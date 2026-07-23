@@ -1,0 +1,5 @@
+{
+  "luau-lsp.types.newSolver": true,
+  "luau-lsp.sourcemap.enabled": true,
+  "luau-lsp.sourcemap.rojoProjectFile": "default.project.json"
+}
