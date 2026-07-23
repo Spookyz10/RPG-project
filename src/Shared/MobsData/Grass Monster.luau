@@ -3,9 +3,10 @@ local ServerStorage = game:GetService("ServerStorage")
 local BehaviorManager = require(ReplicatedStorage.Shared.Behavrios.BehaviorManager)
 local DamageHandler = require(ServerStorage.Modules.DamageHandler)
 local Hitbox = require(ServerStorage.Modules.Hitbox)
-local MobClass = require(ReplicatedStorage.Shared.MobClass)
+
 local PlayerClass = require(ReplicatedStorage.Shared.PlayerClass)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
+local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Mob = {
 	HP = 100,
@@ -23,6 +24,7 @@ local Mob = {
 	Drops = {
 		["Wooden Sword"] = { Chance = 10, Amount = 1 },
 	},
+	RespawnTime = 10,
 }
 
 local function getHighestDamagePlayer(hitlist: { [Player]: number }): Player?
@@ -43,7 +45,7 @@ local function getHighestDamagePlayer(hitlist: { [Player]: number }): Player?
 	return HighestPlayer
 end
 
-function Mob:Start(mob: Model, class: MobClass.MobInfo)
+function Mob:Start(mob: Model, class: Types.MobInfo)
 	local Humanoid = mob:FindFirstChild("Humanoid") :: Humanoid
 	local RootPart = mob:FindFirstChild("HumanoidRootPart")
 	if not Humanoid or not RootPart then

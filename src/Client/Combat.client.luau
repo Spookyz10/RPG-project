@@ -1,7 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
-local Remotes = ReplicatedStorage:FindFirstChild("Remotes")
+local Remotes = ReplicatedStorage:FindFirstChild("Remotes"):FindFirstChild("Server")
 
 local IsHolding = false
 

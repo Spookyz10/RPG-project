@@ -10,8 +10,8 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Hitbox = {}
 
 type HitboxResults = {
-	Players: { [Model]: Types.PlayerInfo },
-	Mobs: { [Model]: Types.MobInfo },
+	Players: { [Model]: Types.Entity },
+	Mobs: { [Model]: Types.Entity },
 }
 
 local DebugBool = ServerScriptService:FindFirstChild("DebugHitboxes") :: BoolValue
@@ -64,11 +64,11 @@ function Hitbox.GetHitModels(hitbox: BasePart): HitboxResults
 	return { Players = PlayersHit, Mobs = MobsHit }
 end
 
-local function SetHitboxPosition(hitbox: BasePart, position: Vector3 | CFrame)
-	if typeof(position) == "Vector3" then
-		hitbox.Position = position
+local function SetHitboxPosition(hitbox: BasePart, goalPart: BasePart, Offset: Vector3 | CFrame)
+	if typeof(Offset) == "Vector3" then
+		hitbox.Position = goalPart.Position + Offset
 	else
-		hitbox.CFrame = position
+		hitbox.CFrame = goalPart.CFrame * Offset
 	end
 end
 
@@ -76,15 +76,15 @@ function Hitbox:Create(info: Types.HitboxInfo): (BasePart, HitboxResults)
 	local Part = Instance.new("Part")
 	Part.Parent = workspace
 	Part.Size = info.Size
-	SetHitboxPosition(Part, info.Position)
+	SetHitboxPosition(Part, info.Part, info.Offset)
 	Part.CanCollide = false
 	Part.Anchored = true
 	Part.Transparency = Debug and 0.6 or 1
 	Part.Color3 = Color3.fromRGB(255, 0, 0)
 
 	local HitList: { [Model]: true } = {}
-	local AllPlayersHit: { [Model]: Types.PlayerInfo } = {}
-	local AllMobsHit: { [Model]: Types.MobInfo } = {}
+	local AllPlayersHit: { [Model]: Types.Entity } = {}
+	local AllMobsHit: { [Model]: Types.Entity } = {}
 
 	local function ProcessHits()
 		local Results = Hitbox.GetHitModels(Part)
@@ -125,7 +125,7 @@ function Hitbox:Create(info: Types.HitboxInfo): (BasePart, HitboxResults)
 				return
 			end
 
-			SetHitboxPosition(Part, info.Position)
+			SetHitboxPosition(Part, info.part, info.Offset)
 			ProcessHits()
 		end)
 	else

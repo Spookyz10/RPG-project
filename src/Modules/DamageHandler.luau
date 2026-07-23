@@ -6,8 +6,8 @@ local DamageHandler = {}
 
 local baseCriticalMultiplier = 2
 
-function DamageHandler:calculateDamage(amount: number, class: Types.EntityLike): (number, boolean)
-	local Stats = class.Data.Stats
+function DamageHandler:calculateDamage(amount: number, class: Types.Entity): (number, boolean)
+	local Stats = Functions:GetStatsFromClass(class)
 	local Defense = Stats.Defense
 	local criticalChance = Stats.CriticalChance
 	local criticalPower = Stats.CriticalPower
@@ -18,12 +18,11 @@ function DamageHandler:calculateDamage(amount: number, class: Types.EntityLike):
 	return Damage, isCrit
 end
 
-function DamageHandler:dealDamage(amount: number, entity: Types.EntityLike)
+function DamageHandler:dealDamage(amount: number, entity: Types.Entity)
 	local Damage, isCrit = self:calculateDamage(amount, entity)
 	entity.HP = math.clamp(entity.HP - Damage, 0, entity.MaxHP)
 	if entity.HP <= 0 and Functions:isClassMob(entity) then
-		local mob = entity :: Types.MobInfo
-		MobClass.FireDied(entity.Data.HitList, mob.Model:FindFirstChild("UUID").Value)
+		MobClass.FireDied(entity.HitList, entity.Model:FindFirstChild("UUID").Value)
 	end
 	return Damage, isCrit
 end

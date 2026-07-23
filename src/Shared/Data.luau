@@ -5,12 +5,6 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local template = {
 	FirstTimeJoined = true,
-	Stats = {
-		Attack = 0,
-		Defense = 0,
-		CriticalChance = 0,
-		CriticalPower = 0,
-	},
 	Inventory = {} :: { [string]: Types.ItemData },
 	Settings = {
 		Music = true,
@@ -22,6 +16,8 @@ local template = {
 		Ring = "",
 		Necklace = "",
 	},
+	MaxInventorySpace = 100,
+	CurrentInventorySpace = 0,
 }
 
 return DataService({ template = template, profileStoreIndex = "PlayerData1" })

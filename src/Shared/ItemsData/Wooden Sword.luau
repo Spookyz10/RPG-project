@@ -4,12 +4,14 @@ local Item = {
 		Defense = 0,
 		CriticalChance = 0,
 		CriticalPower = 0,
+		Luck = 0,
 	},
 	Passive = "",
 	Data = {
 		SellsFor = 10,
 		ItemType = "Weapon",
 		Name = "Wooden Sword",
+		Stackable = false,
 	},
 }
 

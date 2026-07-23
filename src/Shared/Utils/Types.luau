@@ -3,62 +3,56 @@ export type Stats = {
 	Defense: number,
 	CriticalChance: number,
 	CriticalPower: number,
+	Luck: number,
 }
 
-export type EntityData = {
-	Stats: Stats,
+export type Entity = {
+	HP: number,
+	MaxHP: number,
 	HitList: { [Player]: number },
-}
-
-export type PlayerInfo = {
-	Player: Player,
-	HP: number,
-	MaxHP: number,
-	isPlayer: boolean,
-}
-export type MobInfo = {
-	HP: number,
-	MaxHP: number,
-	XP: number,
-	Gold: number,
-	Data: EntityData,
 	Model: Model,
-	isPlayer: boolean,
-	Drops: Drop,
-}
-
-export type HitboxInfo = {
-	Size: Vector3,
-	Position: Vector3 | CFrame,
-	Drag: boolean,
-	Time: number,
-	OnHit: ((Model, PlayerInfo | MobInfo) -> ())?,
-}
-
-export type ItemData = {
-	Enchants: {
-		[string]: number,
+	Buffs: {
+		[string]: { Value: number, Duration: number },
 	},
-	Amount: number,
-	Name: string,
-}
-
-export type EntityLike = {
-	HP: number,
-	MaxHP: number,
-	Data: EntityData,
-	Model: Model,
-	isPlayer: boolean,
 }
 
 export type Drop = {
 	[string]: { Chance: number, Amount: number },
 }
 
+export type MobInfo = {
+	HP: number,
+	MaxHP: number,
+	Data: { Stats: Stats },
+	XP: number,
+	Gold: number,
+	Drops: Drop,
+	RespawnTime: number,
+}
+
+export type HitboxInfo = {
+	Size: Vector3,
+	Part: BasePart,
+	Offset: Vector3 | CFrame,
+	Drag: boolean,
+	Time: number,
+	OnHit: ((Model, Entity) -> ())?,
+}
+
+export type ItemData = {
+	Enchants: {
+		[string]: number,
+	},
+	Upgrades: number,
+	Amount: number,
+	Name: string,
+}
+
 export type ItemInfo = {
 	SellsFor: number,
 	ItemType: string,
 	Name: string,
+	Stackable: boolean,
 }
 
 export type Equipment = {
@@ -71,6 +65,10 @@ export type Consumable = {
 	Amount: number,
 	Stat: string,
 	Data: ItemInfo,
+}
+
+export type ItemTable = {
+	[string]: { Chance: number, Amount: number },
 }
 
 return {}
