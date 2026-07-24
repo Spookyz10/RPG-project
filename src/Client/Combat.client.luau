@@ -1,7 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
-
-local Remotes = ReplicatedStorage:FindFirstChild("Remotes"):FindFirstChild("Server")
+local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 
 local IsHolding = false
 
@@ -26,5 +25,5 @@ UserInputService.InputEnded:Connect(function(input, gpe)
 end)
 
 while IsHolding do
-	Remotes:FindFirstChild("Attack"):FireServer()
+	RemoteManager.SendServerEvent("Attack", nil)
 end
