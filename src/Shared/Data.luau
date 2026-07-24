@@ -18,6 +18,11 @@ local template = {
 	},
 	MaxInventorySpace = 100,
 	CurrentInventorySpace = 0,
+	Skills = {
+		Q = "",
+		E = "",
+		R = "",
+	},
 }
 
 return DataService({ template = template, profileStoreIndex = "PlayerData1" })

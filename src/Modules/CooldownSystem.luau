@@ -16,6 +16,10 @@ function CooldownSystem:StartCooldown(player: Player, key: string, duration: num
 	return "Added cooldown"
 end
 
+function CooldownSystem:IsInCooldown(player: Player, key: string)
+	return Cooldowns[player] and Cooldowns[player][key]
+end
+
 function CooldownSystem:ResetCooldown(player: Player, key: string)
 	if Cooldowns[player] and Cooldowns[player][key] then
 		Cooldowns[player][key] = nil

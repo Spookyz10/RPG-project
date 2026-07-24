@@ -1,6 +1,7 @@
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local Functions = {}
 
 local Data = require(ReplicatedStorage.Shared.Data).server
@@ -24,9 +25,9 @@ function Functions:GenUUID(): string
 	return HttpService:GenerateGUID(false)
 end
 
-function Functions:HasKeyWithValueIntable(table: {}, value: any): (boolean, any)
+function Functions:HasKeyWithValueIntable(table: {}, field: string, value: any): (boolean, any)
 	for key, val in table do
-		if val == value then
+		if val[field] == value then
 			return true, key
 		end
 	end
@@ -61,10 +62,6 @@ function Functions:GetStatsFromClass(class: Types.Entity): Types.Stats
 			Luck = getTotalStats(Equipment, "Luck"),
 		}
 	end
-end
-
-function Functions:GetPlayerDamage(player: Types.Entity, damage: number, extraParams: {}): number
-	return self:GetStatsFromClass(player).Attack
 end
 
 return Functions

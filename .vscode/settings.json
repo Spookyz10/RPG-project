@@ -1,5 +1,13 @@
 {
   "luau-lsp.types.newSolver": true,
   "luau-lsp.sourcemap.enabled": true,
-  "luau-lsp.sourcemap.rojoProjectFile": "default.project.json"
+  "luau-lsp.sourcemap.rojoProjectFile": "default.project.json",
+
+  "editor.quickSuggestions": {
+    "other": "on",
+    "comments": "off",
+    "strings": "off"
+  },
+  "editor.suggestOnTriggerCharacters": true,
+  "editor.quickSuggestionsDelay": 0
 }

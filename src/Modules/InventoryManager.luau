@@ -15,24 +15,47 @@ function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: numb
 	end
 
 	local Inventory = PlayerData.Inventory()
-	local key, isInInventory = Functions:HasKeyWithValueIntable(Inventory)
-	if isInInventory and ItemInfo.Stackable then
-		if key.Amount then
-			Inventory[key].Amount()
-		end
-	else
-		for _ = 1, Amount do
-			local UUID = Functions:GenUUID()
+	local Remaining = Amount
 
-			local NewItem: Types.ItemData = {
-				Name = ItemName,
-				Amount = Amount,
-				Enchants = {},
-				Upgrades = 0,
-			}
+	if ItemInfo.Stackable then
+		local isInInventory, key = Functions:HasKeyWithValueIntable(Inventory, "Name", ItemName)
+		while isInInventory and Remaining > 0 do
+			local itemData = Inventory[key]
+			local SpaceInStack = ItemInfo.Cap - itemData.Amount
 
-			PlayerData[UUID](NewItem)
+			if SpaceInStack > 0 then
+				local ToAdd = math.min(SpaceInStack, Remaining)
+				Inventory[key].Amount(itemData.Amount + ToAdd)
+				Remaining -= ToAdd
+			end
+
+			if Remaining <= 0 then
+				break
+			end
+
+			isInInventory, key = Functions:HasKeyWithValueIntable(Inventory, "Name", ItemName)
 		end
+	end
+
+	while Remaining > 0 do
+		if PlayerData.CurrentInventorySpace() >= PlayerData.MaxInventorySpace() then
+			return "Inventory full"
+		end
+
+		local UUID = Functions:GenUUID()
+		local ToAdd = ItemInfo.Stackable and math.min(ItemInfo.Cap, Remaining) or 1
+
+		local NewItem: Types.ItemData = {
+			Name = ItemName,
+			Amount = ToAdd,
+			Enchants = {},
+			Upgrades = 0,
+		}
+
+		PlayerData[UUID](NewItem)
+		PlayerData.CurrentInventorySpace(PlayerData.CurrentInventorySpace() + 1)
+
+		Remaining -= ToAdd
 	end
 
 	return "Successfully added item"
@@ -47,16 +70,27 @@ function InventoryManager:RemoveItem(Player: Player, ItemName: string, Amount: n
 	end
 
 	local Inventory = PlayerData.Inventory()
-	local key, isInInventory = Functions:HasKeyWithValueIntable(Inventory)
-	if isInInventory and ItemInfo.Stackable then
-		local ResultingAmount = Inventory[key].Amount() - Amount
+	local Remaining = Amount
+
+	local isInInventory, key = Functions:HasKeyWithValueIntable(Inventory, "Name", ItemName)
+	while isInInventory and Remaining > 0 do
+		local itemData = Inventory[key]
+		local ToRemove = math.min(itemData.Amount, Remaining)
+		local ResultingAmount = itemData.Amount - ToRemove
+
 		if ResultingAmount <= 0 then
 			Inventory[key](nil)
+			PlayerData.CurrentInventorySpace(PlayerData.CurrentInventorySpace() - 1)
 		else
-			Inventory[key](ResultingAmount)
+			Inventory[key].Amount(ResultingAmount)
 		end
-	else
-		Inventory[key](nil)
+
+		Remaining -= ToRemove
+		isInInventory, key = Functions:HasKeyWithValueIntable(Inventory, "Name", ItemName)
+	end
+
+	if Remaining > 0 then
+		return "Item not found or insufficient amount"
 	end
 
 	return "Successfully deleted item"

@@ -33,7 +33,7 @@ export type MobInfo = {
 export type HitboxInfo = {
 	Size: Vector3,
 	Part: BasePart,
-	Offset: Vector3 | CFrame,
+	Offset: (Vector3 | CFrame)?,
 	Drag: boolean,
 	Time: number,
 	OnHit: ((Model, Entity) -> ())?,
@@ -53,6 +53,7 @@ export type ItemInfo = {
 	ItemType: string,
 	Name: string,
 	Stackable: boolean,
+	Cap: number,
 }
 
 export type Equipment = {
@@ -69,6 +70,13 @@ export type Consumable = {
 
 export type ItemTable = {
 	[string]: { Chance: number, Amount: number },
+}
+
+export type Skill = {
+	Name: string,
+	Cooldown: number,
+	Multiplier: number,
+	Activate: (self: Skill, Player: Entity) -> (),
 }
 
 return {}

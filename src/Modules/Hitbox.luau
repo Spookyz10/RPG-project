@@ -28,6 +28,9 @@ function Hitbox.GetHitModels(hitbox: BasePart): HitboxResults
 	local partsHit = workspace:GetPartsInPart(hitbox)
 	for _, part in partsHit do
 		local Character = part.Parent :: Model?
+		if not Character then
+			continue
+		end
 		local Humanoid = Character:FindFirstChild("Humanoid")
 		if Humanoid then
 			local isMob = Character:FindFirstChild("UUID") :: BoolValue
@@ -44,7 +47,7 @@ function Hitbox.GetHitModels(hitbox: BasePart): HitboxResults
 
 				MobsHit[Character] = MobData
 			else
-				local player = Players.GetPlayerFromCharacter(Character)
+				local player = Players:GetPlayerFromCharacter(Character)
 				if player then
 					local PlayerData = PlayerClass.getPlayerInfo(player)
 					if not PlayerData then
@@ -64,8 +67,10 @@ function Hitbox.GetHitModels(hitbox: BasePart): HitboxResults
 	return { Players = PlayersHit, Mobs = MobsHit }
 end
 
-local function SetHitboxPosition(hitbox: BasePart, goalPart: BasePart, Offset: Vector3 | CFrame)
-	if typeof(Offset) == "Vector3" then
+local function SetHitboxPosition(hitbox: BasePart, goalPart: BasePart, Offset: (Vector3 | CFrame)?)
+	if Offset == nil then
+		hitbox.CFrame = goalPart.CFrame
+	elseif typeof(Offset) == "Vector3" then
 		hitbox.Position = goalPart.Position + Offset
 	else
 		hitbox.CFrame = goalPart.CFrame * Offset
@@ -125,7 +130,7 @@ function Hitbox:Create(info: Types.HitboxInfo): (BasePart, HitboxResults)
 				return
 			end
 
-			SetHitboxPosition(Part, info.part, info.Offset)
+			SetHitboxPosition(Part, info.Part, info.Offset)
 			ProcessHits()
 		end)
 	else
