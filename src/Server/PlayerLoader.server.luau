@@ -27,8 +27,8 @@ local function LoadPlayer(Player: Player)
 end
 
 Players.PlayerAdded:Connect(function(player: Player)
-	PlayerClass.addPlayer(player)
 	LoadPlayer(player)
+	PlayerClass.addPlayer(player)
 end)
 
 Players.PlayerRemoving:Connect(function(player: Player)

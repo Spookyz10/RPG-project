@@ -85,7 +85,7 @@ function Hitbox:Create(info: Types.HitboxInfo): (BasePart, HitboxResults)
 	Part.CanCollide = false
 	Part.Anchored = true
 	Part.Transparency = Debug and 0.6 or 1
-	Part.Color3 = Color3.fromRGB(255, 0, 0)
+	Part.Color = Color3.fromRGB(255, 0, 0)
 
 	local HitList: { [Model]: true } = {}
 	local AllPlayersHit: { [Model]: Types.Entity } = {}

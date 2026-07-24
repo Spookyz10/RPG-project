@@ -6,7 +6,7 @@ local Functions = {}
 
 local Data = require(ReplicatedStorage.Shared.Data).server
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
-local MobsData = require(ReplicatedStorage.Shared.MobsData)
+
 local Types = require(script.Parent.Types)
 
 function Functions:getDistance(part1: BasePart, part2: BasePart): number
@@ -48,6 +48,7 @@ end
 
 function Functions:GetStatsFromClass(class: Types.Entity): Types.Stats
 	local isMob = self:isClassMob(class)
+	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 	if isMob then
 		return MobsData[class.Model.Name] and MobsData[class.Model.Name].Stats
 	else

@@ -20,7 +20,7 @@ function AttackManager:Swing(class: Types.Entity)
 	local PlayerData = Data.Service:waitForData(Player)
 	local Weapon = PlayerData.Equipment.Weapon()
 
-	if not Weapon then
+	if Weapon == "" then
 		print("Player has no weapon equipped.")
 		return
 	end
@@ -30,6 +30,11 @@ function AttackManager:Swing(class: Types.Entity)
 	end
 
 	local WeaponData = ItemsData[Weapon] :: Types.Equipment
+
+	if not WeaponData then
+		print("Invakid Weapon Id")
+		return
+	end
 
 	if Functions:isEntityAlive(class) then
 		CooldownSystem:StartCooldown(Player, "Swing", 0.6)

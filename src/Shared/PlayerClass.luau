@@ -16,7 +16,7 @@ function PlayerClass.new(player: Player): Types.Entity
 	return {
 		HP = 100,
 		MaxHP = 100,
-		Model = player.Character :: Model,
+		Model = player.Character or player.CharacterAdded:Wait() :: Model,
 		HitList = {},
 		Buffs = {},
 	}

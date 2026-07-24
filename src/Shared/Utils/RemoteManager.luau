@@ -9,7 +9,7 @@ local Remotes = {
 }
 
 local function getRemote(remoteName: string, folder: string): RemoteEvent
-	for _, remote: RemoteEvent in ReplicatedStorage:FindFirstChild(folder):GetDescendants() do
+	for _, remote: RemoteEvent in ReplicatedStorage:FindFirstChild("Remotes"):FindFirstChild(folder):GetDescendants() do
 		if remote.Name == remoteName then
 			return remote
 		end
@@ -37,6 +37,10 @@ function RemoteManager.SendServerEvent(remoteName: string, info: {}?)
 	end
 
 	remote:FireServer(info)
+end
+
+function RemoteManager.GetRemote(remoteName: string, folder: string): RemoteEvent
+	return getRemote(remoteName, folder)
 end
 
 if RunService:IsServer() then

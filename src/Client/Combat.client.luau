@@ -1,5 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 
 local IsHolding = false
@@ -24,6 +25,8 @@ UserInputService.InputEnded:Connect(function(input, gpe)
 	end
 end)
 
-while IsHolding do
-	RemoteManager.SendServerEvent("Attack", nil)
-end
+RunService.Heartbeat:Connect(function()
+	if IsHolding then
+		RemoteManager.SendServerEvent("Attack", nil)
+	end
+end)
