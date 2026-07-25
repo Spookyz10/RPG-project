@@ -48,9 +48,9 @@ end
 
 function Functions:GetStatsFromClass(class: Types.Entity): Types.Stats
 	local isMob = self:isClassMob(class)
-	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 
 	if isMob then
+		local MobsData = require(ReplicatedStorage.Shared.MobsData)
 		return MobsData[class.Model.Name] and MobsData[class.Model.Name].Stats
 	else
 		local PlayerData = Data.Service:waitForData(Players:GetPlayerFromCharacter(class.Model)) :: Types.PlayerData

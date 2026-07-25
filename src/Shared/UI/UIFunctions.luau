@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UIFunctions = {}
 
-local Main = Players.LocalPlayer.PlayerGui.Main :: ScreenGui
+local Main = Players.LocalPlayer.PlayerGui:WaitForChild("Main") :: ScreenGui
 
 local OpenUI: Frame = nil
 

@@ -17,8 +17,9 @@ local Item: Types.Equipment = {
 		SubType = "Weapon",
 		Name = "Wooden Sword",
 		Stackable = false,
-		Icon = "",
+		Icon = "rbxassetid://85402159226223",
 		Rarity = "Common",
+		Level = 1,
 		Description = "Wood",
 	},
 }

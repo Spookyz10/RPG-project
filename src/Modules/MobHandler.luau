@@ -38,6 +38,10 @@ function MobHandler:AddMob(mobName: string)
 	local MobModel = getMob(mobName):Clone()
 	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 	local MobInfo = MobsData[MobModel.Name] :: Types.MobInfo
+	if not MobInfo then
+		print("No mob info for mob: ", MobModel.Name, MobInfo)
+		return
+	end
 	local Origin = getEmptySlot(MobModel.Name)
 	if Origin then
 		MobModel.Parent = workspace:FindFirstChild("Mobs")
@@ -82,6 +86,17 @@ local function Reward(player: Player, MobInfo: Types.MobInfo)
 	RewardManager:AddXP(player, MobInfo.XP)
 end
 
+function MobHandler:InitializeSpawns()
+	for _, mobPart: BasePart in workspace:FindFirstChild("mobSpawns"):GetDescendants() do
+		if mobPart:IsA("BasePart") then
+			local value = Instance.new("StringValue")
+			value.Name = "ID"
+			value.Parent = mobPart
+			MobHandler:AddMob(mobPart.Name)
+		end
+	end
+end
+
 MobClass.Died:Connect(function(mob: Types.Entity, hitlist: { [Player]: number })
 	local MobName = mob.Model.Name
 	local MobsData = require(ReplicatedStorage.Shared.MobsData)
@@ -106,17 +121,6 @@ MobClass.Died:Connect(function(mob: Types.Entity, hitlist: { [Player]: number })
 	task.delay(MobInfo.RespawnTime or 5, function()
 		MobHandler:AddMob(MobName)
 	end)
-end)
-
-task.spawn(function()
-	for _, mobPart: BasePart in workspace:FindFirstChild("mobSpawns"):GetDescendants() do
-		if mobPart:IsA("BasePart") then
-			local value = Instance.new("StringValue")
-			value.Name = "ID"
-			value.Parent = mobPart
-			MobHandler:AddMob(mobPart.Name)
-		end
-	end
 end)
 
 return MobHandler
