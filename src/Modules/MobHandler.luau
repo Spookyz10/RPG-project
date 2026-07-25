@@ -5,7 +5,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local InventoryManager = require(script.Parent.InventoryManager)
 local RewardManager = require(script.Parent.RewardManager)
 local MobClass = require(ReplicatedStorage.Shared.MobClass)
-local MobsData = require(ReplicatedStorage.Shared.MobsData)
+
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local MobHandler = {}
 
@@ -36,6 +36,7 @@ end
 
 function MobHandler:AddMob(mobName: string)
 	local MobModel = getMob(mobName):Clone()
+	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 	local MobInfo = MobsData[MobModel.Name] :: Types.MobInfo
 	local Origin = getEmptySlot(MobModel.Name)
 	if Origin then
@@ -60,16 +61,8 @@ function MobHandler:RemoveMob(mobInfo: Types.Entity)
 	MobModel:Destroy()
 end
 
-for _, mobPart: BasePart in workspace:FindFirstChild("mobSpawns"):GetDescendants() do
-	if mobPart:IsA("BasePart") then
-		local value = Instance.new("StringValue")
-		value.Name = "ID"
-		value.Parent = mobPart
-		MobHandler:AddMob(mobPart.Name)
-	end
-end
-
 function MobHandler:StartBehavior(mobModel: Model, class: Types.Entity)
+	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 	local data = MobsData[mobModel.Name]
 	if data then
 		data:Start(mobModel, class)
@@ -91,6 +84,7 @@ end
 
 MobClass.Died:Connect(function(mob: Types.Entity, hitlist: { [Player]: number })
 	local MobName = mob.Model.Name
+	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 	local MobInfo = MobsData[MobName] :: Types.MobInfo
 	if not MobInfo then
 		print("No mob info for mob: ", MobName, MobInfo)
@@ -112,6 +106,17 @@ MobClass.Died:Connect(function(mob: Types.Entity, hitlist: { [Player]: number })
 	task.delay(MobInfo.RespawnTime or 5, function()
 		MobHandler:AddMob(MobName)
 	end)
+end)
+
+task.spawn(function()
+	for _, mobPart: BasePart in workspace:FindFirstChild("mobSpawns"):GetDescendants() do
+		if mobPart:IsA("BasePart") then
+			local value = Instance.new("StringValue")
+			value.Name = "ID"
+			value.Parent = mobPart
+			MobHandler:AddMob(mobPart.Name)
+		end
+	end
 end)
 
 return MobHandler

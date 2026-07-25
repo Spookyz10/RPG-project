@@ -1,5 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Skills = require(script.Parent.Skills)
+
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
@@ -100,6 +100,7 @@ function InventoryManager:RemoveItem(Player: Player, ItemName: string, Amount: n
 end
 
 function InventoryManager:EquipSkill(player: Player, skill: string, slot: string)
+	local Skills = require(script.Parent.Skills)
 	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
 	if not PlayerData then
 		return

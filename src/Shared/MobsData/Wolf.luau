@@ -58,11 +58,16 @@ function Mob:Start(mob: Model, class: Types.Entity)
 			end
 
 			if Functions:getDistance(RootPart, targetRootPart) < 3 then
-				local _, hitlist =
-					Hitbox:Create({ Size = Vector3.new(4, 4, 4), Position = targetRootPart + Vector3.new(0, 0, -3) })
+				local _, hitlist = Hitbox:Create({
+					Size = Vector3.new(4, 4, 4),
+					Part = targetRootPart,
+					Offset = Vector3.new(0, 0, -3),
+					Drag = false,
+					Time = 0,
+				})
 				for hitPlayer, playerClass in hitlist.Players do
 					if hitPlayer and Functions:isEntityAlive(playerClass) then
-						DamageHandler:dealDamage(Mob.Data.Stats.Attack, playerClass)
+						DamageHandler:dealDamage(class, playerClass)
 					end
 				end
 			end
