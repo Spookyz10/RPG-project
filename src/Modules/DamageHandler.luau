@@ -1,6 +1,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local BuffsManager = require(script.Parent.BuffsManager)
+local MobHandler = require(script.Parent.MobHandler)
 local MobClass = require(ReplicatedStorage.Shared.MobClass)
+
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local DamageHandler = {}
@@ -42,6 +44,9 @@ function DamageHandler:dealDamage(caster: Types.Entity, victim: Types.Entity, mu
 	victim.HP = victim.HP - Damage
 	if victim.HP <= 0 and Functions:isClassMob(victim) then
 		MobClass.FireDied(victim.HitList, victim.Model:FindFirstChild("UUID").Value)
+	end
+	if Functions:isClassMob(victim) then
+		MobHandler:StartBehavior(victim.Model, victim)
 	end
 	return Damage, isCrit
 end

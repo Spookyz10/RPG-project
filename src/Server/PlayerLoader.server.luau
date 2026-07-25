@@ -2,12 +2,13 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 local PlayerClass = require(ReplicatedStorage.Shared.PlayerClass)
+local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Data = require(ReplicatedStorage.Shared.Data).server
 local InventoryManager = require(ServerStorage.Modules.InventoryManager)
 
 local function LoadPlayer(Player: Player)
-	local PlayerData = Data.Service:waitForData(Player)
+	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
 	if not PlayerData then
 		warn("Failed to load data for player: " .. Player.Name)
 		return

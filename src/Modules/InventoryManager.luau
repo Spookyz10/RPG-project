@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Skills = require(script.Parent.Skills)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
@@ -7,17 +8,17 @@ local Data = require(ReplicatedStorage.Shared.Data).server
 local InventoryManager = {}
 
 function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: number): string
-	local PlayerData = Data.Service:waitForData(Player)
+	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
 	local ItemInfo = ItemsData[ItemName] :: Types.ItemInfo
 
 	if not PlayerData or not ItemInfo then
 		return "Invalid player data or itemInfo", PlayerData, ItemInfo
 	end
 
-	local Inventory = PlayerData.Inventory()
 	local Remaining = Amount
 
 	if ItemInfo.Stackable then
+		local Inventory = PlayerData.Inventory()
 		local isInInventory, key = Functions:HasKeyWithValueIntable(Inventory, "Name", ItemName)
 		while isInInventory and Remaining > 0 do
 			local itemData = Inventory[key]
@@ -25,7 +26,7 @@ function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: numb
 
 			if SpaceInStack > 0 then
 				local ToAdd = math.min(SpaceInStack, Remaining)
-				Inventory[key].Amount(itemData.Amount + ToAdd)
+				PlayerData.Inventory[key].Amount(itemData.Amount + ToAdd)
 				Remaining -= ToAdd
 			end
 
@@ -33,6 +34,7 @@ function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: numb
 				break
 			end
 
+			Inventory = PlayerData.Inventory()
 			isInInventory, key = Functions:HasKeyWithValueIntable(Inventory, "Name", ItemName)
 		end
 	end
@@ -52,7 +54,7 @@ function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: numb
 			Upgrades = 0,
 		}
 
-		PlayerData[UUID](NewItem)
+		PlayerData.Inventory[UUID](NewItem)
 		PlayerData.CurrentInventorySpace(PlayerData.CurrentInventorySpace() + 1)
 
 		Remaining -= ToAdd
@@ -62,15 +64,15 @@ function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: numb
 end
 
 function InventoryManager:RemoveItem(Player: Player, ItemName: string, Amount: number): string
-	local PlayerData = Data.Service:waitForData(Player)
+	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
 	local ItemInfo = ItemsData[ItemName] :: Types.ItemInfo
 
 	if not PlayerData or not ItemInfo then
 		return "Invalid player data or itemInfo", PlayerData, ItemInfo
 	end
 
-	local Inventory = PlayerData.Inventory()
 	local Remaining = Amount
+	local Inventory = PlayerData.Inventory()
 
 	local isInInventory, key = Functions:HasKeyWithValueIntable(Inventory, "Name", ItemName)
 	while isInInventory and Remaining > 0 do
@@ -79,13 +81,14 @@ function InventoryManager:RemoveItem(Player: Player, ItemName: string, Amount: n
 		local ResultingAmount = itemData.Amount - ToRemove
 
 		if ResultingAmount <= 0 then
-			Inventory[key](nil)
+			PlayerData.Inventory[key](nil)
 			PlayerData.CurrentInventorySpace(PlayerData.CurrentInventorySpace() - 1)
 		else
-			Inventory[key].Amount(ResultingAmount)
+			PlayerData.Inventory[key].Amount(ResultingAmount)
 		end
 
 		Remaining -= ToRemove
+		Inventory = PlayerData.Inventory()
 		isInInventory, key = Functions:HasKeyWithValueIntable(Inventory, "Name", ItemName)
 	end
 
@@ -94,6 +97,77 @@ function InventoryManager:RemoveItem(Player: Player, ItemName: string, Amount: n
 	end
 
 	return "Successfully deleted item"
+end
+
+function InventoryManager:EquipSkill(player: Player, skill: string, slot: string)
+	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
+	if not PlayerData then
+		return
+	end
+
+	local hasSkill = PlayerData.UnlockedSkills()[skill]
+	if not hasSkill then
+		return
+	end
+
+	local SkillInfo = Skills[skill] :: Types.Skill
+	if not SkillInfo then
+		return
+	end
+
+	local CanEquipSkill = SkillInfo:GetRequirement(PlayerData)
+	if CanEquipSkill then
+		PlayerData.Skills[slot](skill)
+	end
+end
+
+function InventoryManager:EquipItem(player: Player, UUID: string)
+	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
+	if not PlayerData then
+		return
+	end
+
+	local Item = PlayerData.Inventory[UUID]()
+	if not Item then
+		return
+	end
+
+	local Info = ItemsData[Item.Name] :: Types.Equipment | Types.Consumable
+	if not Info then
+		return
+	end
+
+	local canEquip = Info:Elligable(PlayerData)
+	if not canEquip then
+		return
+	end
+
+	if Info.Data.ItemType == "Equipment" then
+		PlayerData.Equipment[Info.Data.SubType](UUID)
+	elseif Info.Data.ItemType == "Consumable" then
+		print("potion")
+	end
+end
+
+function InventoryManager:UnequipItem(player: Player, UUID: string)
+	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
+	if not PlayerData then
+		return
+	end
+
+	local Item = PlayerData.Inventory[UUID]()
+	if not Item then
+		return
+	end
+
+	local Info = ItemsData[Item.Name] :: Types.Equipment | Types.Consumable
+	if not Info then
+		return
+	end
+
+	if Info.Data.ItemType == "Equipment" then
+		PlayerData.Equipment[Info.Data.SubType]("")
+	end
 end
 
 return InventoryManager

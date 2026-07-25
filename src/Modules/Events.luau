@@ -1,7 +1,9 @@
 local Events = {}
 
 local EventMultipliers = {
-	Gold = 1,
+	Currencies = {
+		Gold = 1,
+	},
 	XP = 1,
 	Luck = 0,
 }
@@ -14,7 +16,9 @@ end
 function Events:GetEventMultipliers()
 	if IsWeekend() then
 		return {
-			Gold = 2,
+			Currencies = {
+				Gold = 2,
+			},
 			XP = 2,
 			Luck = 1,
 		}

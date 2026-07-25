@@ -17,7 +17,7 @@ function AttackManager:Swing(class: Types.Entity)
 		return
 	end
 
-	local PlayerData = Data.Service:waitForData(Player)
+	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
 	local Weapon = PlayerData.Equipment.Weapon()
 
 	if Weapon == "" then
@@ -64,7 +64,7 @@ function AttackManager:UseSkill(class: Types.Entity, slot: string)
 		return
 	end
 
-	local PlayerData = Data.Service:waitForData(Player)
+	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
 	local EquippedSkills = PlayerData.Skills()
 
 	local SkillInfo = Skills[EquippedSkills[slot]] :: Types.Skill

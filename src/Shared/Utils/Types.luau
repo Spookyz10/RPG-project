@@ -4,6 +4,7 @@ export type Stats = {
 	CriticalChance: number,
 	CriticalPower: number,
 	Luck: number,
+	Speed: number,
 }
 
 export type Entity = {
@@ -23,11 +24,15 @@ export type Drop = {
 export type MobInfo = {
 	HP: number,
 	MaxHP: number,
+	Level: number,
+	MaxLevel: number,
 	Data: { Stats: Stats },
 	XP: number,
-	Gold: number,
+	Currencies: { [string]: { Amount: number } },
 	Drops: Drop,
 	RespawnTime: number,
+	Zone: string,
+	GlobalDrops: boolean?,
 }
 
 export type HitboxInfo = {
@@ -51,25 +56,54 @@ export type ItemData = {
 export type ItemInfo = {
 	SellsFor: number,
 	ItemType: string,
+	SubType: string?,
 	Name: string,
 	Stackable: boolean,
-	Cap: number,
+	Cap: number?,
 }
 
 export type Equipment = {
 	Stats: Stats,
 	Passive: string,
 	Data: ItemInfo,
+	Elligable: (self: Equipment, Data: PlayerData) -> boolean,
 }
 
 export type Consumable = {
 	Amount: number,
 	Stat: string,
 	Data: ItemInfo,
+	Elligable: (self: Consumable, Data: PlayerData) -> boolean,
 }
 
 export type ItemTable = {
 	[string]: { Chance: number, Amount: number },
+}
+
+export type PlayerData = {
+	FirstTimeJoined: boolean,
+	Level: number,
+	XP: number,
+	Inventory: { [string]: ItemData },
+	Settings: {
+		Music: boolean,
+		CameraShake: boolean,
+	},
+	Equipment: {
+		Weapon: string,
+		Armor: string,
+		Ring: string,
+		Necklace: string,
+	},
+	MaxInventorySpace: number,
+	CurrentInventorySpace: number,
+	Skills: {
+		Q: string,
+		E: string,
+		R: string,
+	},
+	UnlockedSkills: { string },
+	Currencies: { [string]: number },
 }
 
 export type Skill = {
@@ -77,6 +111,7 @@ export type Skill = {
 	Cooldown: number,
 	Multiplier: number,
 	Activate: (self: Skill, Player: Entity) -> (),
+	GetRequirement: (self: Skill, Data: PlayerData) -> boolean,
 }
 
 return {}

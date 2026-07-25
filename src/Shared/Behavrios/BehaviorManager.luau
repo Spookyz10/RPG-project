@@ -8,13 +8,11 @@ function Behavior:Move(Humanoid: Humanoid, Position: Vector3)
 	Humanoid:MoveTo(Position)
 end
 
-function Behavior:Cancel(mobModel: Model)
-	if Behavior.Active[mobModel] then
-		Behavior.Active[mobModel] = nil
-	end
-end
-
 function Behavior:Reset(mobModel: Model)
+	if not mobModel then
+		return
+	end
+
 	local UUID = mobModel:FindFirstChild("UUID")
 	if not UUID then
 		return
@@ -38,6 +36,12 @@ function Behavior:Reset(mobModel: Model)
 		local mobClass = MobClass.getMob(UUID.Value)
 		mobClass.HP = mobClass.MaxHP
 		mobModel:PivotTo(origin.CFrame)
+	end
+end
+
+function Behavior:Cancel(mobModel: Model)
+	if mobModel and Behavior.Active[mobModel] then
+		Behavior.Active[mobModel] = nil
 	end
 end
 

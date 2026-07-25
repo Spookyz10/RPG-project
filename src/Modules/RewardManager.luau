@@ -1,5 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Data = require(ReplicatedStorage.Shared.Data).server
+local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Events = require(script.Parent.Events)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local RewardManager = {}
@@ -17,6 +18,61 @@ function RewardManager:RollTable(itemsTable: Types.ItemTable, Player: Player): {
 	end
 
 	return Results
+end
+
+function RewardManager:AddCurrency(player: Player, currency: string, amount: number)
+	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
+	if not PlayerData then
+		return
+	end
+
+	local Multipliers = Events:GetEventMultipliers()
+	if Multipliers[currency] then
+		amount *= Multipliers[currency]
+	end
+
+	if PlayerData and PlayerData.Currencies() and PlayerData.Currencies()[currency] then
+		PlayerData.Currencies()[currency](function(currentAmount)
+			return currentAmount + amount
+		end)
+	end
+end
+
+function RewardManager:AddXP(player: Player, amount: number, mobData: Types.MobInfo?)
+	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
+	if not PlayerData then
+		return
+	end
+
+	if mobData then
+		if mobData.Level > PlayerData.Level() then
+			return
+		end
+
+		if mobData.MaxLevel < PlayerData.Level() then
+			return
+		end
+	end
+
+	amount *= Events:GetEventMultipliers().XP
+	PlayerData.XP(function(currentXP)
+		return currentXP + amount
+	end)
+
+	while true do
+		local XPNeeded = Functions:GetXPNeeded(PlayerData.Level)
+		local CurrentXP = PlayerData.XP()
+		if XPNeeded <= CurrentXP then
+			PlayerData.XP(function(currentXP)
+				currentXP -= XPNeeded
+			end)
+			PlayerData.Level(function(currentLevel)
+				return currentLevel + 1
+			end)
+		else
+			break
+		end
+	end
 end
 
 return RewardManager

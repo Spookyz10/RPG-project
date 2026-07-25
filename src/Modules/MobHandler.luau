@@ -1,5 +1,7 @@
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
+
 local InventoryManager = require(script.Parent.InventoryManager)
 local RewardManager = require(script.Parent.RewardManager)
 local MobClass = require(ReplicatedStorage.Shared.MobClass)
@@ -67,6 +69,26 @@ for _, mobPart: BasePart in workspace:FindFirstChild("mobSpawns"):GetDescendants
 	end
 end
 
+function MobHandler:StartBehavior(mobModel: Model, class: Types.Entity)
+	local data = MobsData[mobModel.Name]
+	if data then
+		data:Start(mobModel, class)
+	end
+end
+
+local function Reward(player: Player, MobInfo: Types.MobInfo)
+	local results = RewardManager:RollTable(MobInfo.Drops, player)
+	for item, amount in results do
+		InventoryManager:AddItem(player, item, amount)
+	end
+
+	for currency, amount in MobInfo.Currencies do
+		RewardManager:AddCurrency(player, currency, amount)
+	end
+
+	RewardManager:AddXP(player, MobInfo.XP)
+end
+
 MobClass.Died:Connect(function(mob: Types.Entity, hitlist: { [Player]: number })
 	local MobName = mob.Model.Name
 	local MobInfo = MobsData[MobName] :: Types.MobInfo
@@ -77,10 +99,13 @@ MobClass.Died:Connect(function(mob: Types.Entity, hitlist: { [Player]: number })
 
 	MobHandler:RemoveMob(mob)
 
-	for player, _ in hitlist do
-		local results = RewardManager:RollTable(MobInfo.Drops, player)
-		for item, amount in results do
-			InventoryManager:AddItem(player, item, amount)
+	if MobInfo.GlobalDrops then
+		for _, player in Players:GetPlayers() do
+			Reward(player, MobInfo)
+		end
+	else
+		for player, _ in hitlist do
+			Reward(player, MobInfo)
 		end
 	end
 
