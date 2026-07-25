@@ -60,9 +60,14 @@ export type ItemInfo = {
 	Name: string,
 	Stackable: boolean,
 	Cap: number?,
+	Icon: string,
+	Rarity: string,
+	Description: string,
+	Level: number,
 }
 
 export type Equipment = {
+	Kind: "Equipment",
 	Stats: Stats,
 	Passive: string,
 	Data: ItemInfo,
@@ -70,11 +75,14 @@ export type Equipment = {
 }
 
 export type Consumable = {
+	Kind: "Consumable",
 	Amount: number,
 	Stat: string,
 	Data: ItemInfo,
 	Elligable: (self: Consumable, Data: PlayerData) -> boolean,
 }
+
+export type Item = Equipment | Consumable
 
 export type ItemTable = {
 	[string]: { Chance: number, Amount: number },

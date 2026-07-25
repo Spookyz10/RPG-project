@@ -1,6 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Item: Types.Equipment = {
+	Kind = "Equipment",
 	Stats = {
 		Attack = 1,
 		Defense = 0,
@@ -16,6 +17,9 @@ local Item: Types.Equipment = {
 		SubType = "Weapon",
 		Name = "Wooden Sword",
 		Stackable = false,
+		Icon = "",
+		Rarity = "Common",
+		Description = "Wood",
 	},
 }
 

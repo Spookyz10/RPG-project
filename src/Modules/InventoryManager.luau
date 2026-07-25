@@ -9,7 +9,7 @@ local InventoryManager = {}
 
 function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: number): string
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
-	local ItemInfo = ItemsData[ItemName] :: Types.ItemInfo
+	local ItemInfo = ItemsData[ItemName] :: Types.Item
 
 	if not PlayerData or not ItemInfo then
 		return "Invalid player data or itemInfo", PlayerData, ItemInfo
@@ -17,12 +17,12 @@ function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: numb
 
 	local Remaining = Amount
 
-	if ItemInfo.Stackable then
+	if ItemInfo.Data.Stackable then
 		local Inventory = PlayerData.Inventory()
 		local isInInventory, key = Functions:HasKeyWithValueIntable(Inventory, "Name", ItemName)
 		while isInInventory and Remaining > 0 do
 			local itemData = Inventory[key]
-			local SpaceInStack = ItemInfo.Cap - itemData.Amount
+			local SpaceInStack = ItemInfo.Data.Cap - itemData.Amount
 
 			if SpaceInStack > 0 then
 				local ToAdd = math.min(SpaceInStack, Remaining)
@@ -45,7 +45,7 @@ function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: numb
 		end
 
 		local UUID = Functions:GenUUID()
-		local ToAdd = ItemInfo.Stackable and math.min(ItemInfo.Cap, Remaining) or 1
+		local ToAdd = ItemInfo.Data.Stackable and math.min(ItemInfo.Data.Cap, Remaining) or 1
 
 		local NewItem: Types.ItemData = {
 			Name = ItemName,
@@ -65,7 +65,7 @@ end
 
 function InventoryManager:RemoveItem(Player: Player, ItemName: string, Amount: number): string
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
-	local ItemInfo = ItemsData[ItemName] :: Types.ItemInfo
+	local ItemInfo = ItemsData[ItemName] :: Types.Item
 
 	if not PlayerData or not ItemInfo then
 		return "Invalid player data or itemInfo", PlayerData, ItemInfo
@@ -132,7 +132,7 @@ function InventoryManager:EquipItem(player: Player, UUID: string)
 		return
 	end
 
-	local Info = ItemsData[Item.Name] :: Types.Equipment | Types.Consumable
+	local Info = ItemsData[Item.Name] :: Types.Item
 	if not Info then
 		return
 	end
@@ -160,7 +160,7 @@ function InventoryManager:UnequipItem(player: Player, UUID: string)
 		return
 	end
 
-	local Info = ItemsData[Item.Name] :: Types.Equipment | Types.Consumable
+	local Info = ItemsData[Item.Name] :: Types.Item
 	if not Info then
 		return
 	end
