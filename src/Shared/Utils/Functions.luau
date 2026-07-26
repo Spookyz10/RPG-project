@@ -42,9 +42,11 @@ local function getTotalStats(Data: Types.PlayerData, StatName: string)
 		end
 	end
 
-	if Data.ExtraStats[StatName] then
-		Stat += Data.ExtraStats[StatName]
-	end
+	print(Data, Data.ExtraStats, Data.ExtraStats[StatName])
+
+	-- if Data.ExtraStats[StatName] then
+	-- 	Stat += Data.ExtraStats[StatName]
+	-- end
 
 	return Stat
 end

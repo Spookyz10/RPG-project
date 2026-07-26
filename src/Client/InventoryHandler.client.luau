@@ -114,7 +114,8 @@ Data.Inventory.OnKeyRemoved(function(UUID)
 end)
 
 Data.Equipment.Changed(function(equipment, _, _)
-	UIFunctions:UpdateStatsContainer(Stats.Info, Functions:GetTotalStats(Character, Data))
+	-- UIFunctions:UpdateStatsContainer(Stats.Info, Functions:GetTotalStats(Character, Data))
+	print("test")
 	UpdateEquipment(equipment)
 end)
 
