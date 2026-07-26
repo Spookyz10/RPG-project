@@ -5,6 +5,7 @@ local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local ClientInvManager = require(ReplicatedStorage.Shared.UI.ClientInvManager)
 local UIFunctions = require(ReplicatedStorage.Shared.UI.UIFunctions)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
+local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Data = require(ReplicatedStorage.Shared.Data).client
 
@@ -18,12 +19,15 @@ local EquipmentContainer = InventoryFrame.InventoryContainer.Player.Equipment
 local Stats = InventoryFrame.InventoryContainer.Player.Stats
 local ItemTemplate = ReplicatedStorage.Assets.UI.ItemTemplate.Inventory
 
+local Top = InventoryFrame.InventoryContainer.Top
+
 local ItemFrames: { [string]: { Frame: ImageButton, Disconnectors: { () -> () } } } = {}
 
-local function UpdateItemFrame(Button: ImageButton, ItemData: Types.Item)
+local function UpdateItemFrame(Button: ImageButton, ItemData: Types.Item, KeyData: any)
 	if Button then
 		Button.Icon.Image = ItemData.Data.Icon
 		UIFunctions:ApplyRarityGradient(Button.Rarity, ItemData.Data.Rarity)
+		Button.Visible = not KeyData.Equipped
 	end
 end
 
@@ -43,7 +47,7 @@ local function CreateItemFrame(UUID: string, KeyData: any)
 		return
 	end
 
-	UpdateItemFrame(Frame, ItemData)
+	UpdateItemFrame(Frame, ItemData, KeyData)
 
 	local Disconnectors = {}
 
@@ -62,7 +66,7 @@ local function CreateItemFrame(UUID: string, KeyData: any)
 	end)
 
 	local ChangedDisconnect = Data.Inventory[UUID].Changed(function(NewItemData)
-		UpdateItemFrame(Frame, NewItemData)
+		UpdateItemFrame(Frame, ItemData, NewItemData)
 	end)
 	table.insert(Disconnectors, ChangedDisconnect)
 
@@ -87,17 +91,48 @@ local function RemoveItemFrame(UUID: string)
 	ItemFrames[UUID] = nil
 end
 
-local function UpdateEquipment(equipment)
-	for slot, item in equipment do
-		local ItemInfo = ItemsData[item] :: Types.ItemInfo
+local function UpdateEquipment()
+	for slot, item in Data.Equipment() do
+		local InventoryKey = Data.Inventory[item]()
 		local EquipmentSlot = EquipmentContainer:FindFirstChild(slot)
-		if ItemInfo then
-			UIFunctions:ApplyRarityGradient(EquipmentSlot.ClipFrame.Rarity, ItemInfo.Rarity)
-			EquipmentSlot.Icon.Image = ItemInfo.Icon
+		if InventoryKey then
+			local ItemInfo = ItemsData[InventoryKey.Name] :: Types.Item
+
+			if ItemInfo then
+				UIFunctions:ApplyRarityGradient(EquipmentSlot.ClipFrame.Rarity, ItemInfo.Data.Rarity)
+				EquipmentSlot.Icon.Image = ItemInfo.Data.Icon
+			end
 		else
-			EquipmentSlot.ClipFrame.Rarity:FindFirstChildOfClass("UIGradient"):Destroy()
+			if EquipmentSlot.ClipFrame.Rarity:FindFirstChildOfClass("UIGradient") then
+				EquipmentSlot.ClipFrame.Rarity:FindFirstChildOfClass("UIGradient"):Destroy()
+			end
 			EquipmentSlot.Icon.Image = ""
 		end
+	end
+end
+
+local function SetupEquipmentSlots()
+	for _, EquipmentSlot in EquipmentContainer:GetChildren() do
+		if not EquipmentSlot:IsA("ImageButton") then
+			continue
+		end
+
+		local SlotName = EquipmentSlot.Name
+
+		EquipmentSlot.MouseEnter:Connect(function()
+			local UUID = Data.Equipment[SlotName]()
+			if UUID and UUID ~= "" then
+				local KeyData = Data.Inventory[UUID]()
+				if KeyData then
+					ClientInvManager:Hover(EquipmentSlot, KeyData)
+				end
+			end
+		end)
+
+		EquipmentSlot.MouseButton1Click:Connect(function()
+			local UUID = Data.Equipment[SlotName]()
+			RemoteManager.SendServerEvent("UnequipItem", UUID)
+		end)
 	end
 end
 
@@ -113,14 +148,25 @@ Data.Inventory.OnKeyRemoved(function(UUID)
 	RemoveItemFrame(UUID)
 end)
 
-Data.Equipment.Changed(function(equipment, _, _)
-	-- UIFunctions:UpdateStatsContainer(Stats.Info, Functions:GetTotalStats(Character, Data))
-	print("test")
-	UpdateEquipment(equipment)
+Data.Equipment.Changed(function()
+	UIFunctions:UpdateStatsContainer(Stats.Info, Functions:GetTotalStats(Character, Data()))
+	UpdateEquipment()
 end)
 
 Data.ExtraStats.Changed(function()
-	UIFunctions:UpdateStatsContainer(Stats.Info, Functions:GetTotalStats(Character, Data))
+	UIFunctions:UpdateStatsContainer(Stats.Info, Functions:GetTotalStats(Character, Data()))
 end)
 
-UpdateEquipment(Data.Equipment)
+UpdateEquipment()
+SetupEquipmentSlots()
+UIFunctions:UpdateStatsContainer(Stats.Info, Functions:GetTotalStats(Character, Data()))
+
+Data.CurrentInventorySpace.Changed(function(current)
+	Top.Space.Text = current .. "/" .. Data.MaxInventorySpace()
+end)
+
+Data.MaxInventorySpace.Changed(function(current)
+	Top.Space.Text = Data.CurrentInventorySpace() .. "/" .. current
+end)
+
+Top.Space.Text = Data.CurrentInventorySpace() .. "/" .. Data.MaxInventorySpace()

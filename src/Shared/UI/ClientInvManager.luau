@@ -151,8 +151,9 @@ function ClientInvManager:ShowInfo(InventoryEntry: Types.ItemData, UUID: string)
 	InfoFrame.Rarity.Text = ItemData.Data.Rarity
 	InfoFrame.Description.Text = ItemData.Data.Description
 	InfoFrame.Action.ActionName.Text = ItemData.Data.ActionName
+	local Action = InfoFrame.Action :: ImageButton
 
-	InfoFrame.Action.MouseButton1Clicked:Connect(function()
+	Action.MouseButton1Click:Connect(function()
 		if ItemData.Action then
 			ItemData:Action(UUID)
 		end

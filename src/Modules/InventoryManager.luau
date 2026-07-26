@@ -126,7 +126,7 @@ function InventoryManager:EquipSkill(player: Player, skill: string, slot: string
 	end
 end
 
-function InventoryManager:EquipItem(player: Player, UUID: string)
+function InventoryManager:ItemAction(player: Player, UUID: string)
 	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
 	if not PlayerData then
 		return
@@ -149,6 +149,7 @@ function InventoryManager:EquipItem(player: Player, UUID: string)
 
 	if Info.Data.ItemType == "Equipment" then
 		PlayerData.Equipment[Info.Data.SubType](UUID)
+		PlayerData.Inventory[UUID].Equipped(true)
 	elseif Info.Data.ItemType == "Consumable" then
 		print("potion")
 	end
@@ -172,6 +173,7 @@ function InventoryManager:UnequipItem(player: Player, UUID: string)
 
 	if Info.Data.ItemType == "Equipment" then
 		PlayerData.Equipment[Info.Data.SubType]("")
+		PlayerData.Inventory[UUID].Equipped(false)
 	end
 end
 

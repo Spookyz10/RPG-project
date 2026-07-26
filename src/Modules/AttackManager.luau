@@ -29,7 +29,7 @@ function AttackManager:Swing(class: Types.Entity)
 		return
 	end
 
-	local WeaponData = ItemsData[Weapon] :: Types.Equipment
+	local WeaponData = ItemsData[PlayerData.Inventory[Weapon]().Name] :: Types.Equipment
 
 	if not WeaponData then
 		print("Invakid Weapon Id")

@@ -13,6 +13,10 @@ function UIFunctions:ApplyRarityGradient(container: Instance, rarity: string)
 		CurrentGradient:Destroy()
 	end
 
+	if not rarity then
+		return
+	end
+
 	local RarityGradient = ReplicatedStorage.Assets.UI.Rarities:FindFirstChild(rarity) :: UIGradient?
 	if not RarityGradient then
 		return

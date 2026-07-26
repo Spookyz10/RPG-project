@@ -39,4 +39,4 @@ local template: Types.PlayerData = {
 	},
 }
 
-return DataService({ template = template, profileStoreIndex = "PlayerData1" })
+return DataService({ template = template, profileStoreIndex = "PlayerData3" })

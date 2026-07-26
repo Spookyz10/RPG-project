@@ -36,17 +36,20 @@ end
 local function getTotalStats(Data: Types.PlayerData, StatName: string)
 	local Stat = 0
 	for _, Item in Data.Equipment do
-		local ItemInfo = ItemsData[Item]
+		local KeyEntry = Data.Inventory[Item]
+		if not KeyEntry then
+			continue
+		end
+
+		local ItemInfo = ItemsData[KeyEntry.Name] :: Types.Equipment
 		if ItemInfo then
-			Stat += ItemInfo[StatName]
+			Stat += ItemInfo.Stats[StatName]
 		end
 	end
 
-	print(Data, Data.ExtraStats, Data.ExtraStats[StatName])
-
-	-- if Data.ExtraStats[StatName] then
-	-- 	Stat += Data.ExtraStats[StatName]
-	-- end
+	if Data.ExtraStats[StatName] then
+		Stat += Data.ExtraStats[StatName]
+	end
 
 	return Stat
 end

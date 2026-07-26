@@ -18,7 +18,7 @@ function BuffsManager:RemoveBuff(Player: Player, Stat: string)
 end
 
 function BuffsManager:GetBuffAmount(Player: Player, Stat: string): number
-	return Buffed[Player] and Buffed[Player][Stat]
+	return Buffed[Player] and Buffed[Player][Stat] or 0
 end
 
 return BuffsManager

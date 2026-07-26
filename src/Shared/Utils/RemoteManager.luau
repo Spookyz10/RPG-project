@@ -5,6 +5,10 @@ local RemoteManager = {}
 local Remotes = {
 	Attack = "Server",
 	UseSkill = "Server",
+	EquipItem = "Server",
+	UnequipItem = "Server",
+
+	-- client
 	SkillVFX = "Client",
 }
 

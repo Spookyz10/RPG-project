@@ -10,6 +10,7 @@ local Item: Types.Equipment = {
 		CriticalPower = 0,
 		Luck = 0,
 		Speed = 0,
+		Health = 0,
 	},
 	Passive = "",
 	Data = {
@@ -26,7 +27,7 @@ local Item: Types.Equipment = {
 	},
 }
 
-function Item:CanEquip(PlayerData: Types.PlayerData): boolean
+function Item:Elligable(PlayerData: Types.PlayerData): boolean
 	return PlayerData and PlayerData.Level() >= 1
 end
 

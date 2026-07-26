@@ -52,6 +52,7 @@ export type ItemData = {
 	Upgrades: number,
 	Amount: number,
 	Name: string,
+	Equipped: boolean,
 }
 
 export type ItemInfo = {

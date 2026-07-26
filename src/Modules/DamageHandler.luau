@@ -18,8 +18,8 @@ function DamageHandler:calculateDamage(caster: Types.Entity, victim: Types.Entit
 	local CasterData = CasterPlayer and Data.Service:waitForData(CasterPlayer)
 	local VictimData = VictimPlayer and Data.Service:waitForData(VictimPlayer)
 
-	local CasterStats = Functions:GetTotalStats(caster.Model, CasterData)
-	local VictimStats = Functions:GetTotalStats(victim.Model, VictimData)
+	local CasterStats = Functions:GetTotalStats(caster.Model, CasterData())
+	local VictimStats = Functions:GetTotalStats(victim.Model, VictimData())
 
 	local CasterAttack = CasterStats.Attack
 	local VictimDefense = VictimStats.Defense

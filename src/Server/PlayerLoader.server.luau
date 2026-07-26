@@ -17,11 +17,6 @@ local function LoadPlayer(Player: Player)
 	if PlayerData.FirstTimeJoined() then
 		InventoryManager:AddItem(Player, "Wooden Sword", 1)
 		PlayerData.FirstTimeJoined(false)
-		print("Given sword")
-		print(PlayerData.Inventory())
-	else
-		print("Player has already joined")
-		print(PlayerData.Inventory())
 	end
 
 	Player:LoadCharacterAsync()

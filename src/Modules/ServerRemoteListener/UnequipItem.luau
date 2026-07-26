@@ -3,7 +3,7 @@ local InventoryManager = require(ServerStorage.Modules.InventoryManager)
 local Remote = {}
 
 function Remote:Activate(player: Player, UUID: string)
-	InventoryManager:ItemAction(player, UUID)
+	InventoryManager:UnequipItem(player, UUID)
 end
 
 return Remote
