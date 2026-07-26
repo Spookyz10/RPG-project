@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local UIFunctions = {}
 
 local Main = Players.LocalPlayer.PlayerGui:WaitForChild("Main") :: ScreenGui
@@ -47,6 +48,14 @@ function UIFunctions:OpenUI(uiName: string)
 
 	Target.Visible = true
 	OpenUI = Target
+end
+
+function UIFunctions:UpdateStatsContainer(container: Frame, Stats: Types.Stats)
+	for _, label: TextLabel in container:GetChildren() do
+		if label:IsA("TextLabel") then
+			label.Text = label.Name .. ": " .. Stats[label.Name]
+		end
+	end
 end
 
 return UIFunctions

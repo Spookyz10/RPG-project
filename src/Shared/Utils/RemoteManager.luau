@@ -17,30 +17,74 @@ local function getRemote(remoteName: string, folder: string): RemoteEvent
 	return nil
 end
 
-function RemoteManager.SendClientEvent(remoteName: string, params: {}, info: {}?)
+function RemoteManager.SendClientEvent(remoteName: string, params: {}, ...: any)
 	local remote = getRemote(remoteName, "Client")
 	if not remote then
 		return
 	end
 
 	if params.All then
-		remote:FireAllClients(info)
+		remote:FireAllClients(...)
 	else
-		remote:FireClient(params.Player, info)
+		remote:FireClient(params.Player, ...)
 	end
 end
 
-function RemoteManager.SendServerEvent(remoteName: string, info: {}?)
+function RemoteManager.SendServerEvent(remoteName: string, ...: any)
 	local remote = getRemote(remoteName, "Server")
 	if not remote then
 		return
 	end
 
-	remote:FireServer(info)
+	remote:FireServer(...)
 end
 
 function RemoteManager.GetRemote(remoteName: string, folder: string): RemoteEvent
 	return getRemote(remoteName, folder)
+end
+
+function RemoteManager.ListenToAll(Listener: { [string]: any })
+	for remoteName, folder in Remotes do
+		if folder ~= "Server" then
+			continue
+		end
+
+		local remote = getRemote(remoteName, folder)
+		if not remote then
+			continue
+		end
+
+		remote.OnServerEvent:Connect(function(Player: Player, ...)
+			local ListenerModule = Listener[remoteName]
+			if not ListenerModule then
+				return
+			end
+
+			ListenerModule:Activate(Player, ...)
+		end)
+	end
+end
+
+function RemoteManager.ListenToAllClient(Listener: { [string]: any })
+	for remoteName, folder in Remotes do
+		if folder ~= "Client" then
+			continue
+		end
+
+		local remote = getRemote(remoteName, folder)
+		if not remote then
+			continue
+		end
+
+		remote.OnClientEvent:Connect(function(...)
+			local ListenerModule = Listener[remoteName]
+			if not ListenerModule then
+				return
+			end
+
+			ListenerModule:Activate(...)
+		end)
+	end
 end
 
 if RunService:IsServer() then

@@ -5,6 +5,7 @@ export type Stats = {
 	CriticalPower: number,
 	Luck: number,
 	Speed: number,
+	Health: number,
 }
 
 export type Entity = {
@@ -64,22 +65,26 @@ export type ItemInfo = {
 	Rarity: string,
 	Description: string,
 	Level: number,
+	ActionName: string,
 }
 
-export type Equipment = {
+export type ItemBase<T> = {
+	Data: ItemInfo,
+	Elligable: (self: T, Data: PlayerData) -> boolean,
+	Action: (self: T, UUID: string) -> (),
+	OnDropped: (self: T, Data: PlayerData) -> (),
+}
+
+export type Equipment = ItemBase<Equipment> & {
 	Kind: "Equipment",
 	Stats: Stats,
 	Passive: string,
-	Data: ItemInfo,
-	Elligable: (self: Equipment, Data: PlayerData) -> boolean,
 }
 
-export type Consumable = {
+export type Consumable = ItemBase<Consumable> & {
 	Kind: "Consumable",
 	Amount: number,
 	Stat: string,
-	Data: ItemInfo,
-	Elligable: (self: Consumable, Data: PlayerData) -> boolean,
 }
 
 export type Item = Equipment | Consumable
@@ -112,6 +117,8 @@ export type PlayerData = {
 	},
 	UnlockedSkills: { string },
 	Currencies: { [string]: number },
+	UnlockedRecipes: { string },
+	ExtraStats: Stats,
 }
 
 export type Skill = {
@@ -120,6 +127,11 @@ export type Skill = {
 	Multiplier: number,
 	Activate: (self: Skill, Player: Entity) -> (),
 	GetRequirement: (self: Skill, Data: PlayerData) -> boolean,
+}
+
+export type Recipes = {
+	Recipe: { [string]: { Amount: number } },
+	GetRequirement: (Data: PlayerData) -> boolean,
 }
 
 return {}

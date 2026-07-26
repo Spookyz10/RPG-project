@@ -1,4 +1,6 @@
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Data = require(ReplicatedStorage.Shared.Data).server
 local BuffsManager = require(script.Parent.BuffsManager)
 local MobHandler = require(script.Parent.MobHandler)
 local MobClass = require(ReplicatedStorage.Shared.MobClass)
@@ -10,8 +12,14 @@ local DamageHandler = {}
 local baseCriticalMultiplier = 2
 
 function DamageHandler:calculateDamage(caster: Types.Entity, victim: Types.Entity, multi: number): (number, boolean)
-	local CasterStats = Functions:GetStatsFromClass(caster)
-	local VictimStats = Functions:GetStatsFromClass(victim)
+	local CasterPlayer = Players:GetPlayerFromCharacter(caster.Model)
+	local VictimPlayer = Players:GetPlayerFromCharacter(victim.Model)
+
+	local CasterData = CasterPlayer and Data.Service:waitForData(CasterPlayer)
+	local VictimData = VictimPlayer and Data.Service:waitForData(VictimPlayer)
+
+	local CasterStats = Functions:GetTotalStats(caster.Model, CasterData)
+	local VictimStats = Functions:GetTotalStats(victim.Model, VictimData)
 
 	local CasterAttack = CasterStats.Attack
 	local VictimDefense = VictimStats.Defense
@@ -31,7 +39,8 @@ function DamageHandler:calculateDamage(caster: Types.Entity, victim: Types.Entit
 		CasterAttack *= 1 + DamageBuff / 100
 	end
 
-	local isCrit = math.random() * 100 <= CasterStats.CriticalChance
+	local isCrit = math.random() * 100
+		<= CasterStats.CriticalChance + BuffsManager:GetBuffAmount(caster, "CriticalChance") + 5
 	if isCrit then
 		CasterAttack *= (baseCriticalMultiplier * (1 + CasterStats.CriticalPower / 100))
 	end

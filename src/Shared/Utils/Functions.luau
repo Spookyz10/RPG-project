@@ -4,7 +4,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Functions = {}
 
-local Data = require(ReplicatedStorage.Shared.Data).server
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 
 local Types = require(script.Parent.Types)
@@ -34,34 +33,37 @@ function Functions:HasKeyWithValueIntable(table: {}, field: string, value: any):
 	return false, nil
 end
 
-local function getTotalStats(Equipment, Stat)
-	Stat = 0
-	for _, Item in Equipment do
+local function getTotalStats(Data: Types.PlayerData, StatName: string)
+	local Stat = 0
+	for _, Item in Data.Equipment do
 		local ItemInfo = ItemsData[Item]
 		if ItemInfo then
-			Stat += ItemInfo[Stat]
+			Stat += ItemInfo[StatName]
 		end
+	end
+
+	if Data.ExtraStats[StatName] then
+		Stat += Data.ExtraStats[StatName]
 	end
 
 	return Stat
 end
 
-function Functions:GetStatsFromClass(class: Types.Entity): Types.Stats
-	local isMob = self:isClassMob(class)
+function Functions:GetTotalStats(entity: Model, Data: Types.PlayerData): Types.Stats
+	local isMob = entity:FindFirstChild("UUID")
 
 	if isMob then
 		local MobsData = require(ReplicatedStorage.Shared.MobsData)
-		return MobsData[class.Model.Name] and MobsData[class.Model.Name].Stats
+		return MobsData[entity.Name] and MobsData[entity.Name].Stats
 	else
-		local PlayerData = Data.Service:waitForData(Players:GetPlayerFromCharacter(class.Model)) :: Types.PlayerData
-		local Equipment = PlayerData.Equipment()
-
 		return {
-			Attack = getTotalStats(Equipment, "Attack"),
-			Defense = getTotalStats(Equipment, "Defense"),
-			CriticalChance = getTotalStats(Equipment, "CriticalChance"),
-			CriticalPower = getTotalStats(Equipment, "CriticalPower"),
-			Luck = getTotalStats(Equipment, "Luck"),
+			Attack = getTotalStats(Data, "Attack"),
+			Defense = getTotalStats(Data, "Defense"),
+			CriticalChance = getTotalStats(Data, "CriticalChance"),
+			CriticalPower = getTotalStats(Data, "CriticalPower"),
+			Luck = getTotalStats(Data, "Luck"),
+			Health = getTotalStats(Data, "Health"),
+			Speed = getTotalStats(Data, "Speed"),
 		}
 	end
 end

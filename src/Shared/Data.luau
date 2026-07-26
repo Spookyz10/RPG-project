@@ -27,6 +27,16 @@ local template: Types.PlayerData = {
 	},
 	UnlockedSkills = {}, -- {"Skill1" , "Skill2"},
 	Currencies = {}, -- {[Currency] = Amount}
+	UnlockedRecipes = {},
+	ExtraStats = {
+		Health = 0,
+		Speed = 0,
+		Attack = 0,
+		CriticalChance = 0,
+		CriticalPower = 0,
+		Luck = 0,
+		Defense = 0,
+	},
 }
 
 return DataService({ template = template, profileStoreIndex = "PlayerData1" })

@@ -17,6 +17,10 @@ function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: numb
 
 	local Remaining = Amount
 
+	if ItemInfo.OnDropped then
+		ItemInfo:OnDropped(PlayerData)
+	end
+
 	if ItemInfo.Data.Stackable then
 		local Inventory = PlayerData.Inventory()
 		local isInInventory, key = Functions:HasKeyWithValueIntable(Inventory, "Name", ItemName)

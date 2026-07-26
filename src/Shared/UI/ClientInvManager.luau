@@ -122,7 +122,7 @@ function ClientInvManager:Hover(Button: ImageButton, InventoryEntry: Types.ItemD
 	table.insert(ActiveConnections, DestroyingConnection)
 end
 
-function ClientInvManager:ShowInfo(InventoryEntry: Types.ItemData)
+function ClientInvManager:ShowInfo(InventoryEntry: Types.ItemData, UUID: string)
 	if not InfoFrame then
 		return
 	end
@@ -150,6 +150,13 @@ function ClientInvManager:ShowInfo(InventoryEntry: Types.ItemData)
 	InfoFrame.Level.Text = "Level: " .. ItemData.Data.Level
 	InfoFrame.Rarity.Text = ItemData.Data.Rarity
 	InfoFrame.Description.Text = ItemData.Data.Description
+	InfoFrame.Action.ActionName.Text = ItemData.Data.ActionName
+
+	InfoFrame.Action.MouseButton1Clicked:Connect(function()
+		if ItemData.Action then
+			ItemData:Action(UUID)
+		end
+	end)
 
 	UpdateStatsFrame(InfoFrame.Stats.Info, ItemData, InventoryEntry)
 end
