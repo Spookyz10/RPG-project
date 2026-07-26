@@ -135,4 +135,9 @@ export type Recipes = {
 	GetRequirement: (Data: PlayerData) -> boolean,
 }
 
+export type Touch = {
+	touchStarted: () -> (),
+	touchEnded: () -> (),
+}
+
 return {}

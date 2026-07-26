@@ -57,7 +57,12 @@ end
 function UIFunctions:UpdateStatsContainer(container: Frame, Stats: Types.Stats)
 	for _, label: TextLabel in container:GetChildren() do
 		if label:IsA("TextLabel") then
-			label.Text = label.Name .. ": " .. Stats[label.Name]
+			if Stats[label.Name] and Stats[label.Name] > 0 then
+				label.Text = label.Name .. ": " .. Stats[label.Name]
+				label.Visible = true
+			else
+				label.Visible = false
+			end
 		end
 	end
 end

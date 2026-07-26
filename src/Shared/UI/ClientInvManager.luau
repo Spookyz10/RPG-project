@@ -39,21 +39,8 @@ local function StopHover()
 end
 
 local function UpdateStatsFrame(StatsInfo: Instance, ItemData: Types.Item, InventoryEntry: Types.ItemData)
-	for _, label in StatsInfo:GetChildren() do
-		if label:IsA("TextLabel") then
-			label.Visible = false
-		end
-	end
-
 	if ItemData.Kind == "Equipment" then
-		for stat, amount in ItemData.Stats do
-			local Label = StatsInfo:FindFirstChild(stat) :: TextLabel
-
-			if Label and amount > 0 then
-				Label.Visible = true
-				Label.Text = stat .. ": " .. amount
-			end
-		end
+		UIFunctions:UpdateStatsContainer(StatsInfo, ItemData.Stats)
 	end
 end
 
