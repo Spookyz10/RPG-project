@@ -1,19 +1,19 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
-local Player  = Players.LocalPlayer
+local Player = Players.LocalPlayer
 local PlayerGui = Player:FindFirstChild("PlayerGui")
-local ZonesUI = PlayerGui:WaitForChild("Zones").Main
+local ZonesUI = PlayerGui:WaitForChild("Zones")
 
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
-local Touch : Types.Touch = {}
+local Touch: Types.Touch = {}
 
 function Touch.touchStarted()
-    ZonesUI.Visible = true
+	ZonesUI.Enabled = true
 end
 
 function Touch.touchEnded()
-    ZonesUI.Visible = false
+	ZonesUI.Enabled = false
 end
 
 return Touch

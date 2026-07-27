@@ -12,6 +12,10 @@ local Mob: Types.MobInfo = {
 	MaxHP = 100,
 	Level = 1,
 	MaxLevel = 15,
+	XP = 10,
+	RespawnTime = 10,
+	GlobalDrops = false,
+
 	Data = {
 		Stats = {
 			Attack = 10,
@@ -20,17 +24,15 @@ local Mob: Types.MobInfo = {
 			CriticalPower = 0,
 		},
 	},
-	XP = 10,
+
 	Currencies = {
 		Gold = 10,
 		VillagePoints = 10,
 	},
-	Zone = "Village Outskirts",
+
 	Drops = {
 		["Wooden Sword"] = { Chance = 10, Amount = 1 },
 	},
-	RespawnTime = 10,
-	GlobalDrops = false,
 }
 
 function Mob:Start(mob: Model, class: Types.Entity)

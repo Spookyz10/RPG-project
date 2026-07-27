@@ -32,7 +32,6 @@ export type MobInfo = {
 	Currencies: { [string]: { Amount: number } },
 	Drops: Drop,
 	RespawnTime: number,
-	Zone: string,
 	GlobalDrops: boolean?,
 }
 
@@ -120,6 +119,7 @@ export type PlayerData = {
 	Currencies: { [string]: number },
 	UnlockedRecipes: { string },
 	ExtraStats: Stats,
+	MobIndex: { [string]: number },
 }
 
 export type Skill = {
@@ -138,6 +138,14 @@ export type Recipes = {
 export type Touch = {
 	touchStarted: () -> (),
 	touchEnded: () -> (),
+}
+
+export type Zone = {
+	Icon: string,
+	Description: string,
+	Level: number,
+	MaxLevel: number,
+	Mobs: { string },
 }
 
 return {}
