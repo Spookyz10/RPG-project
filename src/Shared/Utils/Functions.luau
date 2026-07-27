@@ -117,4 +117,14 @@ function Functions:GetTargetPlayer(mobModel: Model, hitlist: { [Player]: number 
 	end
 end
 
+function Functions:getMob(name: string)
+	for _, mob: Model in ReplicatedStorage:FindFirstChild("Mobs"):GetDescendants() do
+		if mob:IsA("Model") and mob.Name == name then
+			return mob
+		end
+	end
+
+	return nil
+end
+
 return Functions

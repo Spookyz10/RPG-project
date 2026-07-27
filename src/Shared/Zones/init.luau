@@ -5,3 +5,5 @@ for _, zone in script:GetDescendants() do
 		Zones[zone.Name] = require(zone)
 	end
 end
+
+return Zones

@@ -1,177 +1,215 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local ZonesData = require(ReplicatedStorage.Shared.Zones)
+local MobsData = require(ReplicatedStorage.Shared.MobsData)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
-local ClientInvManager = require(ReplicatedStorage.Shared.UI.ClientInvManager)
 local UIFunctions = require(ReplicatedStorage.Shared.UI.UIFunctions)
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
-local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local UI = {}
 
-local ItemFrames: { [string]: { Frame: ImageButton, Disconnectors: { () -> () } } } = {}
-
 function UI.Init()
 	local Data = UIConstants.Data
-	local Character = UIConstants.Character
+	local PlayerGui = UIConstants.PlayerGui
 
-	local InventoryFrame = UIConstants.Main.Inventory
-	local ItemContainer = InventoryFrame.InventoryContainer.Container
+	local ZonesGui = PlayerGui:WaitForChild("Zones")
+	local Selector = ZonesGui.Selector
+	local SelectorContainer = Selector.Container
 
-	local EquipmentContainer = InventoryFrame.InventoryContainer.Player.Equipment
-	local Stats = InventoryFrame.InventoryContainer.Player.Stats
-	local ItemTemplate = ReplicatedStorage.Assets.UI.ItemTemplate.Inventory
+	local Info = ZonesGui.Info
+	local Tabs = Info.Tabs
 
-	local Top = InventoryFrame.InventoryContainer.Top
+	local OverviewFrame = Info.Overview
+	local MobsFrame = Info.Mobs
+	local EnviromentFrame = Info.Enviroment
 
-	local function UpdateItemFrame(Button: ImageButton, ItemData: Types.Item, KeyData: any)
-		if Button then
-			Button.Icon.Image = ItemData.Data.Icon
-			UIFunctions:ApplyRarityGradient(Button.Rarity, ItemData.Data.Rarity)
-			Button.Visible = not KeyData.Equipped
+	local MobsSelector = MobsFrame.MobsSelector
+	local MobsContainer = MobsSelector.Container
+	local MobsAmount = MobsSelector.Amount
+	local MobInfo = MobsFrame.MobInfo
+
+	local ZoneTemplate = ReplicatedStorage.Assets.UI.ItemTemplate.Zone
+	local MobTemplate = ReplicatedStorage.Assets.UI.ItemTemplate.Mob
+	local DropTemplate = ReplicatedStorage.Assets.UI.ItemTemplate.Drop
+
+	local ContentFrames = {
+		Overview = OverviewFrame,
+		Mobs = MobsFrame,
+		Enviroment = EnviromentFrame,
+	}
+
+	-- ===== Tabs =====
+
+	local function SelectTab(tabName: string)
+		for name, frame in ContentFrames do
+			frame.Visible = (name == tabName)
 		end
 	end
 
-	local function CreateItemFrame(UUID: string, KeyData: any)
-		if ItemFrames[UUID] then
-			return
-		end
-
-		local Frame = ItemTemplate:Clone()
-		Frame.Name = UUID
-		Frame.Parent = ItemContainer
-
-		local ItemData = ItemsData[KeyData.Name] :: Types.Item
-
-		if not ItemData then
-			print("No item data for item: ", KeyData.Name, ItemData)
-			return
-		end
-
-		UpdateItemFrame(Frame, ItemData, KeyData)
-
-		local Disconnectors = {}
-
-		local HoverConnection = Frame.MouseEnter:Connect(function()
-			ClientInvManager:Hover(Frame, KeyData)
-		end)
-		table.insert(Disconnectors, function()
-			HoverConnection:Disconnect()
-		end)
-
-		local ClickConnection = Frame.MouseButton1Click:Connect(function()
-			ClientInvManager:ShowInfo(KeyData, UUID)
-		end)
-		table.insert(Disconnectors, function()
-			ClickConnection:Disconnect()
-		end)
-
-		local ChangedDisconnect = Data.Inventory[UUID].Changed(function(NewItemData)
-			UpdateItemFrame(Frame, ItemData, NewItemData)
-		end)
-		table.insert(Disconnectors, ChangedDisconnect)
-
-		ItemFrames[UUID] = {
-			Frame = Frame,
-			Disconnectors = Disconnectors,
-		}
-	end
-
-	local function RemoveItemFrame(UUID: string)
-		local Entry = ItemFrames[UUID]
-
-		if not Entry then
-			return
-		end
-
-		for _, Disconnect in Entry.Disconnectors do
-			Disconnect()
-		end
-
-		Entry.Frame:Destroy()
-		ItemFrames[UUID] = nil
-	end
-
-	local function UpdateEquipment()
-		for slot, item in Data.Equipment() do
-			local InventoryKey = Data.Inventory[item]()
-			local EquipmentSlot = EquipmentContainer:FindFirstChild(slot)
-			if InventoryKey then
-				local ItemInfo = ItemsData[InventoryKey.Name] :: Types.Item
-
-				if ItemInfo then
-					UIFunctions:ApplyRarityGradient(EquipmentSlot.ClipFrame.Rarity, ItemInfo.Data.Rarity)
-					EquipmentSlot.Icon.Image = ItemInfo.Data.Icon
-				end
-			else
-				if EquipmentSlot.ClipFrame.Rarity:FindFirstChildOfClass("UIGradient") then
-					EquipmentSlot.ClipFrame.Rarity:FindFirstChildOfClass("UIGradient"):Destroy()
-				end
-				EquipmentSlot.Icon.Image = ""
+	local function SetupTabs()
+		for _, TabButton in Tabs:GetChildren() do
+			if TabButton:IsA("ImageButton") then
+				TabButton.MouseButton1Click:Connect(function()
+					SelectTab(TabButton.Name)
+				end)
 			end
 		end
 	end
 
-	local function SetupEquipmentSlots()
-		for _, EquipmentSlot in EquipmentContainer:GetChildren() do
-			if not EquipmentSlot:IsA("ImageButton") then
+	-- ===== Overview =====
+
+	local function UpdateOverview(ZoneName: string, ZoneInfo: Types.Zone)
+		OverviewFrame.Icon.Image = ZoneInfo.Icon
+		OverviewFrame.ZoneName.Text = ZoneName
+		OverviewFrame.Level.Text = "Level: " .. ZoneInfo.Level
+		OverviewFrame.MaxLevel.Text = "Max Level: " .. ZoneInfo.MaxLevel
+		OverviewFrame.Description.Text = ZoneInfo.Description
+	end
+
+	-- ===== Mob Info =====
+
+	local function SetupViewport(Viewport: ViewportFrame, MobName: string)
+		Viewport:ClearAllChildren()
+
+		local MobModel = Functions:getMob(MobName)
+		if not MobModel then
+			return
+		end
+
+		local Clone = MobModel:Clone()
+		Clone.Parent = Viewport
+
+		local Camera = Instance.new("Camera")
+		Camera.Parent = Viewport
+		Viewport.CurrentCamera = Camera
+
+		local Center, Size = Clone:GetBoundingBox()
+		local Distance = Size.Magnitude
+		Camera.CFrame = CFrame.lookAt(
+			Center.Position + Vector3.new(0, Size.Y * 0.15, Distance),
+			Center.Position + Vector3.new(0, Size.Y * 0.15, 0)
+		)
+	end
+
+	local function UpdateDrops(Drops: Types.Drop)
+		local Container = MobInfo.Drops.Container
+
+		for _, child in Container:GetChildren() do
+			if child:IsA("ImageButton") or child:IsA("Frame") then
+				child:Destroy()
+			end
+		end
+
+		for itemName, dropInfo in Drops do
+			local ItemInfo = ItemsData[itemName] :: Types.Item
+			if not ItemInfo then
 				continue
 			end
 
-			local SlotName = EquipmentSlot.Name
+			local DropFrame = DropTemplate:Clone()
+			DropFrame.Name = itemName
+			DropFrame.Icon.Image = ItemInfo.Data.Icon
+			DropFrame.Chance.Text = dropInfo.Chance .. "%"
+			UIFunctions:ApplyRarityGradient(DropFrame.Rarity, ItemInfo.Data.Rarity)
 
-			EquipmentSlot.MouseEnter:Connect(function()
-				local UUID = Data.Equipment[SlotName]()
-				if UUID and UUID ~= "" then
-					local KeyData = Data.Inventory[UUID]()
-					if KeyData then
-						ClientInvManager:Hover(EquipmentSlot, KeyData)
-					end
-				end
-			end)
-
-			EquipmentSlot.MouseButton1Click:Connect(function()
-				local UUID = Data.Equipment[SlotName]()
-				RemoteManager.SendServerEvent("UnequipItem", UUID)
-			end)
+			DropFrame.Parent = Container
 		end
 	end
 
-	for UUID, ItemData in Data.Inventory() do
-		CreateItemFrame(UUID, ItemData)
+	local function OpenMobInfo(MobName: string)
+		local MobData = MobsData[MobName] :: Types.MobInfo
+		if not MobData then
+			return
+		end
+
+		local Header = MobInfo.Header
+		SetupViewport(Header.Icon.ViewportFrame, MobName)
+
+		Header.MobName.Text = MobName
+		Header.MobLevel.Text = "Level: " .. MobData.Level
+		Header.MobMaxLevel.Text = "Max Level: " .. MobData.MaxLevel
+
+		UIFunctions:UpdateStatsContainer(MobInfo.Stats.Info, MobData.Data.Stats)
+		UpdateDrops(MobData.Drops)
+
+		MobInfo.Visible = true
 	end
 
-	Data.Inventory.OnKeyAdded(function(UUID, ItemData)
-		CreateItemFrame(UUID, ItemData)
+	-- ===== Mob Selector =====
+
+	local function CreateMobFrame(MobName: string)
+		local MobFrame = MobTemplate:Clone()
+		MobFrame.Name = MobName
+		MobFrame.MobName.Text = MobName
+
+		local Killed = Data.MobIndex[MobName]()
+
+		if not Killed or Killed <= 0 then
+			MobFrame.Locked.Visible = true
+		else
+			MobFrame.Locked.Visible = false
+			MobFrame.MouseButton1Click:Connect(function()
+				OpenMobInfo(MobName)
+			end)
+		end
+
+		MobFrame.Parent = MobsContainer
+	end
+
+	local function LoadMobs(ZoneInfo: Types.Zone)
+		for _, child in MobsContainer:GetChildren() do
+			if child:IsA("ImageButton") then
+				child:Destroy()
+			end
+		end
+
+		MobInfo.Visible = false
+
+		local UnlockedCount = 0
+		for _, MobName in ZoneInfo.Mobs do
+			CreateMobFrame(MobName)
+			local Killed = Data.MobIndex[MobName]()
+			if Killed and Killed > 0 then
+				UnlockedCount += 1
+			end
+		end
+
+		MobsAmount.Text = UnlockedCount .. "/" .. #ZoneInfo.Mobs
+	end
+
+	-- ===== Zone Selector =====
+
+	local function OpenZone(ZoneName: string, ZoneInfo: Types.Zone)
+		Info.Visible = true
+		SelectTab("Overview")
+		UpdateOverview(ZoneName, ZoneInfo)
+		LoadMobs(ZoneInfo)
+	end
+
+	local function CreateZoneFrame(ZoneName: string, ZoneInfo: Types.Zone)
+		local Frame = ZoneTemplate:Clone()
+		Frame.Name = ZoneName
+		Frame.ZoneName.Text = ZoneName
+		Frame.Image = ZoneInfo.Icon
+
+		Frame.MouseButton1Click:Connect(function()
+			OpenZone(ZoneName, ZoneInfo)
+		end)
+
+		Frame.Parent = SelectorContainer
+	end
+
+	OverviewFrame.Enter.MouseButton1Click:Connect(function()
+		print("Clicked")
 	end)
 
-	Data.Inventory.OnKeyRemoved(function(UUID)
-		RemoveItemFrame(UUID)
-	end)
+	SetupTabs()
 
-	Data.Equipment.Changed(function()
-		UIFunctions:UpdateStatsContainer(Stats.Info, Functions:GetTotalStats(Character, Data()))
-		UpdateEquipment()
-	end)
-
-	Data.ExtraStats.Changed(function()
-		UIFunctions:UpdateStatsContainer(Stats.Info, Functions:GetTotalStats(Character, Data()))
-	end)
-
-	UpdateEquipment()
-	SetupEquipmentSlots()
-	UIFunctions:UpdateStatsContainer(Stats.Info, Functions:GetTotalStats(Character, Data()))
-
-	Data.CurrentInventorySpace.Changed(function(current)
-		Top.Space.Text = current .. "/" .. Data.MaxInventorySpace()
-	end)
-
-	Data.MaxInventorySpace.Changed(function(current)
-		Top.Space.Text = Data.CurrentInventorySpace() .. "/" .. current
-	end)
-
-	Top.Space.Text = Data.CurrentInventorySpace() .. "/" .. Data.MaxInventorySpace()
+	for ZoneName, ZoneInfo in ZonesData do
+		CreateZoneFrame(ZoneName, ZoneInfo)
+	end
 end
 
 return UI

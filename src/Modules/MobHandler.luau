@@ -1,12 +1,14 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerStorage = game:GetService("ServerStorage")
 
 local InventoryManager = require(script.Parent.InventoryManager)
+local Mobs = require(script.Parent.Mobs)
 local RewardManager = require(script.Parent.RewardManager)
 local MobClass = require(ReplicatedStorage.Shared.MobClass)
 
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
+local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
+
 local MobHandler = {}
 
 local function getEmptySlot(mobName: string): BasePart?
@@ -24,18 +26,13 @@ local function getEmptySlot(mobName: string): BasePart?
 	return nil
 end
 
-local function getMob(name: string)
-	for _, mob: Model in ServerStorage:FindFirstChild("Mobs"):GetDescendants() do
-		if mob:IsA("Model") and mob.Name == name then
-			return mob
-		end
-	end
-
-	return nil
-end
-
 function MobHandler:AddMob(mobName: string)
-	local MobModel = getMob(mobName):Clone()
+	local MobModel = Functions:getMob(mobName)
+	if not MobModel then
+		print("No mob model found for: ", mobName)
+		return
+	end
+	MobModel = MobModel:Clone()
 	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 	local MobInfo = MobsData[MobModel.Name] :: Types.MobInfo
 	if not MobInfo then
@@ -66,9 +63,8 @@ function MobHandler:RemoveMob(mobInfo: Types.Entity)
 end
 
 function MobHandler:StartBehavior(mobModel: Model, class: Types.Entity)
-	local MobsData = require(ReplicatedStorage.Shared.MobsData)
-	local data = MobsData[mobModel.Name]
-	if data then
+	local data = Mobs[mobModel.Name]
+	if data and data.Start then
 		data:Start(mobModel, class)
 	end
 end
