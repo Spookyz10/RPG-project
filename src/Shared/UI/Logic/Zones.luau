@@ -7,6 +7,7 @@ local UIFunctions = require(ReplicatedStorage.Shared.UI.UIFunctions)
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
+local ItemDisplay = require(ReplicatedStorage.Shared.UI.ItemDisplay)
 
 local UI = {}
 
@@ -40,8 +41,6 @@ function UI.Init()
 		Enviroment = EnviromentFrame,
 	}
 
-	-- ===== Tabs =====
-
 	local function SelectTab(tabName: string)
 		for name, frame in ContentFrames do
 			frame.Visible = (name == tabName)
@@ -58,8 +57,6 @@ function UI.Init()
 		end
 	end
 
-	-- ===== Overview =====
-
 	local function UpdateOverview(ZoneName: string, ZoneInfo: Types.Zone)
 		OverviewFrame.Icon.Image = ZoneInfo.Icon
 		OverviewFrame.ZoneName.Text = ZoneName
@@ -67,8 +64,6 @@ function UI.Init()
 		OverviewFrame.MaxLevel.Text = "Max Level: " .. ZoneInfo.MaxLevel
 		OverviewFrame.Description.Text = ZoneInfo.Description
 	end
-
-	-- ===== Mob Info =====
 
 	local function SetupViewport(Viewport: ViewportFrame, MobName: string)
 		Viewport:ClearAllChildren()
@@ -114,6 +109,10 @@ function UI.Init()
 			DropFrame.Chance.Text = dropInfo.Chance .. "%"
 			UIFunctions:ApplyRarityGradient(DropFrame.Rarity, ItemInfo.Data.Rarity)
 
+			DropFrame.MouseEnter:Connect(function()
+				ItemDisplay:Hover(DropFrame, { Name = itemName })
+			end)
+
 			DropFrame.Parent = Container
 		end
 	end
@@ -137,39 +136,68 @@ function UI.Init()
 		MobInfo.Visible = true
 	end
 
-	-- ===== Mob Selector =====
+	local ItemFrames: { [string]: { Frame: ImageButton, Disconnectors: { () -> () } } } = {}
 
-	local function CreateMobFrame(MobName: string)
+	local function UpdateMobFrame(MobFrame: ImageButton, Killed: number?)
+		if not Killed or Killed <= 0 then
+			MobFrame.Locked.Visible = true
+		else
+			MobFrame.Locked.Visible = false
+		end
+	end
+
+	local function CreateMobFrame(MobName: string, OnUnlockChanged: (delta: number) -> ())
 		local MobFrame = MobTemplate:Clone()
 		MobFrame.Name = MobName
 		MobFrame.MobName.Text = MobName
 
 		local Killed = Data.MobIndex[MobName]()
+		local WasUnlocked = Killed and Killed > 0
 
-		if not Killed or Killed <= 0 then
-			MobFrame.Locked.Visible = true
-		else
-			MobFrame.Locked.Visible = false
-			MobFrame.MouseButton1Click:Connect(function()
-				OpenMobInfo(MobName)
-			end)
-		end
+		UpdateMobFrame(MobFrame, Killed)
+
+		MobFrame.MouseButton1Click:Connect(function()
+			local CurrentKilled = Data.MobIndex[MobName]()
+			if not CurrentKilled or CurrentKilled <= 0 then
+				return
+			end
+			OpenMobInfo(MobName)
+		end)
+
+		local ChangedDisconnect = Data.MobIndex[MobName].Changed(function(NewKilled)
+			UpdateMobFrame(MobFrame, NewKilled)
+
+			local IsUnlocked = NewKilled and NewKilled > 0
+			if IsUnlocked ~= WasUnlocked then
+				OnUnlockChanged(IsUnlocked and 1 or -1)
+				WasUnlocked = IsUnlocked
+			end
+		end)
 
 		MobFrame.Parent = MobsContainer
+
+		ItemFrames[MobName] = { Frame = MobFrame, Disconnectors = { ChangedDisconnect } }
 	end
 
 	local function LoadMobs(ZoneInfo: Types.Zone)
-		for _, child in MobsContainer:GetChildren() do
-			if child:IsA("ImageButton") then
-				child:Destroy()
+		for _, Entry in ItemFrames do
+			for _, Disconnect in Entry.Disconnectors do
+				Disconnect()
 			end
+			Entry.Frame:Destroy()
 		end
+		table.clear(ItemFrames)
 
 		MobInfo.Visible = false
 
 		local UnlockedCount = 0
+		local function OnUnlockChanged(delta: number)
+			UnlockedCount += delta
+			MobsAmount.Text = UnlockedCount .. "/" .. #ZoneInfo.Mobs
+		end
+
 		for _, MobName in ZoneInfo.Mobs do
-			CreateMobFrame(MobName)
+			CreateMobFrame(MobName, OnUnlockChanged)
 			local Killed = Data.MobIndex[MobName]()
 			if Killed and Killed > 0 then
 				UnlockedCount += 1
@@ -178,8 +206,6 @@ function UI.Init()
 
 		MobsAmount.Text = UnlockedCount .. "/" .. #ZoneInfo.Mobs
 	end
-
-	-- ===== Zone Selector =====
 
 	local function OpenZone(ZoneName: string, ZoneInfo: Types.Zone)
 		Info.Visible = true

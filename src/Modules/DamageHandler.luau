@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Data = require(ReplicatedStorage.Shared.Data).server
 local BuffsManager = require(script.Parent.BuffsManager)
-local MobHandler = require(script.Parent.MobHandler)
+
 local MobClass = require(ReplicatedStorage.Shared.MobClass)
 
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
@@ -51,12 +51,16 @@ end
 function DamageHandler:dealDamage(caster: Types.Entity, victim: Types.Entity, multi: number)
 	local Damage, isCrit = self:calculateDamage(caster, victim, multi)
 	victim.HP = victim.HP - Damage
-	if victim.HP <= 0 and Functions:isClassMob(victim) then
-		MobClass.FireDied(victim.HitList, victim.Model:FindFirstChild("UUID").Value)
-	end
+
 	if Functions:isClassMob(victim) then
-		MobHandler:StartBehavior(victim.Model, victim)
+		local CasterPlayer = Players:GetPlayerFromCharacter(caster.Model)
+		MobClass.FireDamaged(victim, CasterPlayer, Damage)
+
+		if victim.HP <= 0 then
+			MobClass.FireDied(victim.HitList, victim.Model:FindFirstChild("UUID").Value)
+		end
 	end
+
 	return Damage, isCrit
 end
 

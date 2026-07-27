@@ -93,6 +93,14 @@ function MobHandler:InitializeSpawns()
 	end
 end
 
+MobClass.Damaged:Connect(function(mob: Types.Entity, casterPlayer: Player?, amount: number)
+	if casterPlayer then
+		mob.HitList[casterPlayer] = (mob.HitList[casterPlayer] or 0) + amount
+	end
+
+	MobHandler:StartBehavior(mob.Model, mob)
+end)
+
 MobClass.Died:Connect(function(mob: Types.Entity, hitlist: { [Player]: number })
 	local MobName = mob.Model.Name
 	local MobsData = require(ReplicatedStorage.Shared.MobsData)

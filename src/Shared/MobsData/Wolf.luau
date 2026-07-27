@@ -13,9 +13,12 @@ local Mob: Types.MobInfo = {
 	Data = {
 		Stats = {
 			Attack = 10,
-			Defense = 0,
+			Defense = 1,
 			CriticalChance = 0,
 			CriticalPower = 0,
+			Health = 10,
+			Luck = 0,
+			Speed = 0,
 		},
 	},
 

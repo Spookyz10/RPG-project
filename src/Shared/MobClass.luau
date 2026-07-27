@@ -7,7 +7,9 @@ local LoadedMobs = {} :: { [string]: Types.Entity }
 
 local mobAdded = Instance.new("BindableEvent")
 local died = Instance.new("BindableEvent")
+local damaged = Instance.new("BindableEvent")
 
+MobClass.Damaged = damaged.Event
 MobClass.MobAdded = mobAdded.Event
 MobClass.Died = died.Event
 
@@ -40,6 +42,10 @@ function MobClass.FireDied(hitlist: { [Player]: number }, ID: string)
 	if mobInstance then
 		died:Fire(mobInstance, hitlist)
 	end
+end
+
+function MobClass.FireDamaged(mobInstance: Types.Entity, casterPlayer: Player?, amount: number)
+	damaged:Fire(mobInstance, casterPlayer, amount)
 end
 
 return MobClass

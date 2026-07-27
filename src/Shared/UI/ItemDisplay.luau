@@ -12,7 +12,7 @@ local InfoFrame = Inventory:FindFirstChild("InfoFrame") :: Frame
 
 local ItemDisplay = {}
 
-local function UpdateStatsFrame(StatsInfo: Instance, ItemData: Types.Item, InventoryEntry: Types.ItemData)
+local function UpdateStatsFrame(StatsInfo: Instance, ItemData: Types.Item, _InventoryEntry: Types.ItemData)
 	if ItemData.Kind == "Equipment" then
 		UIFunctions:UpdateStatsContainer(StatsInfo, ItemData.Stats)
 	end
