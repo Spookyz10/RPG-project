@@ -28,6 +28,10 @@ end
 
 function MobHandler:AddMob(mobName: string)
 	local MobModel = Functions:getMob(mobName)
+
+	local hpChanged = Instance.new("BindableEvent")
+	local maxHpChanged = Instance.new("BindableEvent")
+
 	if not MobModel then
 		print("No mob model found for: ", mobName)
 		return
@@ -50,7 +54,10 @@ function MobHandler:AddMob(mobName: string)
 			Stats = MobInfo.Data.Stats,
 			Model = MobModel,
 			HitList = {},
-			Buffs = {},
+			_HPChangedEvent = hpChanged,
+			_MaxHPChangedEvent = maxHpChanged,
+			OnHPChanged = hpChanged.Event,
+			OnMaxHPChanged = maxHpChanged.Event,
 		})
 
 		Origin:FindFirstChild("ID").Value = ID

@@ -13,9 +13,10 @@ export type Entity = {
 	MaxHP: number,
 	HitList: { [Player]: number },
 	Model: Model,
-	Buffs: {
-		[string]: { Value: number, Duration: number },
-	},
+	OnHPChanged: RBXScriptSignal<number, number>,
+	OnMaxHPChanged: RBXScriptSignal<number, number>,
+	SetHP: (self: Entity, newHP: number) -> (),
+	SetMaxHP: (self: Entity, newMaxHP: number) -> (),
 }
 
 export type Drop = {
@@ -127,6 +128,7 @@ export type SkillData = {
 	Name: string,
 	Cooldown: number,
 	Multiplier: number,
+	LevelRequirement: number,
 	Elligable: (self: SkillData, Data: PlayerData) -> boolean,
 }
 

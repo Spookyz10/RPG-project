@@ -55,22 +55,34 @@ local function getTotalStats(Data: Types.PlayerData, StatName: string)
 end
 
 function Functions:GetTotalStats(entity: Model, Data: Types.PlayerData): Types.Stats
-	local isMob = entity:FindFirstChild("UUID")
+	if entity then
+		local isMob = entity:FindFirstChild("UUID")
 
-	if isMob then
-		local MobsData = require(ReplicatedStorage.Shared.MobsData)
-		return MobsData[entity.Name] and MobsData[entity.Name].Data.Stats
-	else
-		return {
-			Attack = getTotalStats(Data, "Attack"),
-			Defense = getTotalStats(Data, "Defense"),
-			CriticalChance = getTotalStats(Data, "CriticalChance"),
-			CriticalPower = getTotalStats(Data, "CriticalPower"),
-			Luck = getTotalStats(Data, "Luck"),
-			Health = getTotalStats(Data, "Health"),
-			Speed = getTotalStats(Data, "Speed"),
-		}
+		if isMob then
+			local MobsData = require(ReplicatedStorage.Shared.MobsData)
+			return MobsData[entity.Name] and MobsData[entity.Name].Data.Stats
+		else
+			return {
+				Attack = getTotalStats(Data, "Attack"),
+				Defense = getTotalStats(Data, "Defense"),
+				CriticalChance = getTotalStats(Data, "CriticalChance"),
+				CriticalPower = getTotalStats(Data, "CriticalPower"),
+				Luck = getTotalStats(Data, "Luck"),
+				Health = getTotalStats(Data, "Health"),
+				Speed = getTotalStats(Data, "Speed"),
+			}
+		end
 	end
+
+	return {
+		Attack = 0,
+		Defense = 0,
+		CriticalChance = 0,
+		CriticalPower = 0,
+		Luck = 0,
+		Health = 0,
+		Speed = 0,
+	}
 end
 
 function Functions:GetXPNeeded(level: number): number

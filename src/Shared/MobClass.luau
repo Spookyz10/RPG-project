@@ -38,15 +38,47 @@ function MobClass.getMob(ID: string): Types.Entity?
 	return LoadedMobs[ID]
 end
 
-function MobClass.FireDied(hitlist: { [Player]: number }, ID: string)
+function MobClass.FireDied(ID: string)
 	local mobInstance = LoadedMobs[ID]
 	if mobInstance then
-		died:Fire(mobInstance, hitlist)
+		died:Fire(mobInstance, mobInstance.HitList)
 	end
 end
 
 function MobClass.FireDamaged(mobInstance: Types.Entity, casterPlayer: Player?, amount: number)
 	damaged:Fire(mobInstance, casterPlayer, amount)
+end
+
+function MobClass.setHP(ID: string, newHP: number)
+	local data = LoadedMobs[ID]
+	if not data then
+		return
+	end
+
+	local oldHP = data.HP
+	data.HP = newHP
+
+	if newHP ~= oldHP then
+		data._HPChangedEvent:Fire(newHP, oldHP)
+	end
+
+	if newHP <= 0 and oldHP > 0 then
+		died:Fire(data, data.HitList)
+	end
+end
+
+function MobClass.setMaxHP(ID: string, newMaxHP: number)
+	local data = LoadedMobs[ID]
+	if not data then
+		return
+	end
+
+	local oldMaxHP = data.MaxHP
+	data.MaxHP = newMaxHP
+
+	if newMaxHP ~= oldMaxHP then
+		data._MaxHPChangedEvent:Fire(newMaxHP, oldMaxHP)
+	end
 end
 
 return MobClass

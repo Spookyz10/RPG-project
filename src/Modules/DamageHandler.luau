@@ -57,22 +57,22 @@ end
 
 function DamageHandler:dealDamage(caster: Types.Entity, victim: Types.Entity, multi: number)
 	local Damage, isCrit = self:calculateDamage(caster, victim, multi)
-	victim.HP = victim.HP - Damage
+	victim:SetHP(victim.HP - Damage)
 
 	if Functions:isClassMob(victim) then
 		local CasterPlayer = Players:GetPlayerFromCharacter(caster.Model)
-		MobClass.FireDamaged(victim, CasterPlayer, Damage)
-
-		if victim.HP <= 0 then
-			MobClass.FireDied(victim.HitList, victim.Model:FindFirstChild("UUID").Value)
+		if not CasterPlayer then
+			return
 		end
+
+		MobClass.FireDamaged(victim, CasterPlayer, Damage)
 	end
 
 	RemoteManager.SendClientEvent("Damage", { All = true }, victim.Model, Damage, { Crit = isCrit })
 	return Damage, isCrit
 end
 
-function DamageHandler:heal(caster: Types.Entity, victim: Types.Entity, amount: number): number
+function DamageHandler:heal(_caster: Types.Entity, victim: Types.Entity, amount: number): number
 	if amount <= 0 then
 		return 0
 	end
@@ -82,7 +82,7 @@ function DamageHandler:heal(caster: Types.Entity, victim: Types.Entity, amount: 
 	end
 
 	local HealAmount = math.min(amount, victim.MaxHP - victim.HP)
-	victim.HP += HealAmount
+	victim:SetHP(victim.HP + HealAmount)
 
 	RemoteManager.SendClientEvent("Damage", { All = true }, victim.Model, HealAmount, { Heal = true })
 	return HealAmount

@@ -2,10 +2,12 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 local PlayerClass = require(ReplicatedStorage.Shared.PlayerClass)
+local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Data = require(ReplicatedStorage.Shared.Data).server
 local InventoryManager = require(ServerStorage.Modules.InventoryManager)
+local SkillManager = require(ServerStorage.Modules.SkillManager)
 
 local function LoadPlayer(Player: Player)
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
@@ -16,6 +18,8 @@ local function LoadPlayer(Player: Player)
 
 	if PlayerData.FirstTimeJoined() then
 		InventoryManager:AddItem(Player, "Wooden Sword", 1)
+		SkillManager:GrantSkill(Player, "Whirlwind")
+		SkillManager:Listen(Player)
 		PlayerData.FirstTimeJoined(false)
 	end
 
@@ -24,7 +28,8 @@ end
 
 Players.PlayerAdded:Connect(function(player: Player)
 	LoadPlayer(player)
-	PlayerClass.addPlayer(player)
+	local PlayerStats = Functions:GetTotalStats(nil, Data.Service:waitForData(player))
+	PlayerClass.addPlayer(player, PlayerStats.Health + 100)
 end)
 
 Players.PlayerRemoving:Connect(function(player: Player)
