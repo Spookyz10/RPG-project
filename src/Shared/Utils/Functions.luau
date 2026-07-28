@@ -59,7 +59,7 @@ function Functions:GetTotalStats(entity: Model, Data: Types.PlayerData): Types.S
 
 	if isMob then
 		local MobsData = require(ReplicatedStorage.Shared.MobsData)
-		return MobsData[entity.Name] and MobsData[entity.Name].Stats
+		return MobsData[entity.Name] and MobsData[entity.Name].Data.Stats
 	else
 		return {
 			Attack = getTotalStats(Data, "Attack"),

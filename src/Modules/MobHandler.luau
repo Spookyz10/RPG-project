@@ -44,7 +44,7 @@ function MobHandler:AddMob(mobName: string)
 		MobModel.Parent = workspace:FindFirstChild("Mobs")
 		MobModel:PivotTo(Origin.CFrame)
 
-		MobClass.addMob({
+		local ID = MobClass.addMob({
 			HP = MobInfo.HP,
 			MaxHP = MobInfo.MaxHP,
 			Stats = MobInfo.Data.Stats,
@@ -52,6 +52,8 @@ function MobHandler:AddMob(mobName: string)
 			HitList = {},
 			Buffs = {},
 		})
+
+		Origin:FindFirstChild("ID").Value = ID
 	end
 end
 

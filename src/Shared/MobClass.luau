@@ -21,6 +21,7 @@ function MobClass.addMob(mobData: Types.Entity)
 	Value.Name = "UUID"
 	Value.Value = GenertaedID
 	mobAdded:Fire(mobData)
+	return GenertaedID
 end
 
 function MobClass.removeMob(ID: string)

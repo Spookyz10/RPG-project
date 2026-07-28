@@ -10,6 +10,7 @@ local Remotes = {
 
 	-- client
 	SkillVFX = "Client",
+	Damage = "Client",
 }
 
 local function getRemote(remoteName: string, folder: string): RemoteEvent

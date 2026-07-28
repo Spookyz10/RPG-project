@@ -45,6 +45,7 @@ function AttackManager:Swing(class: Types.Entity)
 				Part = PrimaryPart,
 				Offset = CFrame.new(0, 0, -3),
 				Time = 0.5,
+				Caster = class.Model,
 				Drag = true,
 				OnHit = function(_, HitEntity)
 					DamageHandler:dealDamage(class, HitEntity)
@@ -78,7 +79,7 @@ function AttackManager:UseSkill(class: Types.Entity, slot: string)
 		return
 	end
 
-	CooldownSystem:StartCooldown(key, key, SkillInfo.Cooldown)
+	CooldownSystem:StartCooldown(Player, key, SkillInfo.Cooldown)
 
 	SkillInfo:Activate(class)
 end

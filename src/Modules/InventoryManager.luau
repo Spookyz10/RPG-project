@@ -110,8 +110,8 @@ function InventoryManager:EquipSkill(player: Player, skill: string, slot: string
 		return
 	end
 
-	local hasSkill = PlayerData.UnlockedSkills()[skill]
-	if not hasSkill then
+	local UnlockedSkills = PlayerData.UnlockedSkills()
+	if not table.find(UnlockedSkills, skill) then
 		return
 	end
 
@@ -120,7 +120,7 @@ function InventoryManager:EquipSkill(player: Player, skill: string, slot: string
 		return
 	end
 
-	local CanEquipSkill = SkillInfo:GetRequirement(PlayerData)
+	local CanEquipSkill = SkillInfo:Elligable(PlayerData)
 	if CanEquipSkill then
 		PlayerData.Skills[slot](skill)
 	end

@@ -31,9 +31,9 @@ function UI.Init()
 	local MobsAmount = MobsSelector.Amount
 	local MobInfo = MobsFrame.MobInfo
 
-	local ZoneTemplate = ReplicatedStorage.Assets.UI.ItemTemplate.Zone
-	local MobTemplate = ReplicatedStorage.Assets.UI.ItemTemplate.Mob
-	local DropTemplate = ReplicatedStorage.Assets.UI.ItemTemplate.Drop
+	local ZoneTemplate = ReplicatedStorage.Assets.UI.Templates.Zone
+	local MobTemplate = ReplicatedStorage.Assets.UI.Templates.Mob
+	local DropTemplate = ReplicatedStorage.Assets.UI.Templates.Drop
 
 	local ContentFrames = {
 		Overview = OverviewFrame,

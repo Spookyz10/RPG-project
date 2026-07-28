@@ -6,6 +6,7 @@ local BuffsManager = require(script.Parent.BuffsManager)
 local MobClass = require(ReplicatedStorage.Shared.MobClass)
 
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
+local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local DamageHandler = {}
 
@@ -18,8 +19,8 @@ function DamageHandler:calculateDamage(caster: Types.Entity, victim: Types.Entit
 	local CasterData = CasterPlayer and Data.Service:waitForData(CasterPlayer)
 	local VictimData = VictimPlayer and Data.Service:waitForData(VictimPlayer)
 
-	local CasterStats = Functions:GetTotalStats(caster.Model, CasterData())
-	local VictimStats = Functions:GetTotalStats(victim.Model, VictimData())
+	local CasterStats = Functions:GetTotalStats(caster.Model, CasterData and CasterData())
+	local VictimStats = Functions:GetTotalStats(victim.Model, VictimData and VictimData())
 
 	local CasterAttack = CasterStats.Attack
 	local VictimDefense = VictimStats.Defense
@@ -45,7 +46,13 @@ function DamageHandler:calculateDamage(caster: Types.Entity, victim: Types.Entit
 		CasterAttack *= (baseCriticalMultiplier * (1 + CasterStats.CriticalPower / 100))
 	end
 
-	return CasterAttack - VictimDefense, isCrit
+	local FinalDamage = CasterAttack - VictimDefense
+
+	if FinalDamage < 0 then
+		FinalDamage = 0
+	end
+
+	return FinalDamage, isCrit
 end
 
 function DamageHandler:dealDamage(caster: Types.Entity, victim: Types.Entity, multi: number)
@@ -61,7 +68,24 @@ function DamageHandler:dealDamage(caster: Types.Entity, victim: Types.Entity, mu
 		end
 	end
 
+	RemoteManager.SendClientEvent("Damage", { All = true }, victim.Model, Damage, { Crit = isCrit })
 	return Damage, isCrit
+end
+
+function DamageHandler:heal(caster: Types.Entity, victim: Types.Entity, amount: number): number
+	if amount <= 0 then
+		return 0
+	end
+
+	if not Functions:isEntityAlive(victim) then
+		return 0
+	end
+
+	local HealAmount = math.min(amount, victim.MaxHP - victim.HP)
+	victim.HP += HealAmount
+
+	RemoteManager.SendClientEvent("Damage", { All = true }, victim.Model, HealAmount, { Heal = true })
+	return HealAmount
 end
 
 return DamageHandler

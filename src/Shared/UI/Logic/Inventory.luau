@@ -21,7 +21,7 @@ function UI.Init()
 
 	local EquipmentContainer = InventoryFrame.InventoryContainer.Player.Equipment
 	local Stats = InventoryFrame.InventoryContainer.Player.Stats
-	local ItemTemplate = ReplicatedStorage.Assets.UI.ItemTemplate.Inventory
+	local Templates = ReplicatedStorage.Assets.UI.Templates.Inventory
 
 	local Top = InventoryFrame.InventoryContainer.Top
 
@@ -38,7 +38,7 @@ function UI.Init()
 			return
 		end
 
-		local Frame = ItemTemplate:Clone()
+		local Frame = Templates:Clone()
 		Frame.Name = UUID
 		Frame.Parent = ItemContainer
 

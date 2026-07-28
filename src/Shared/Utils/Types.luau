@@ -41,6 +41,7 @@ export type HitboxInfo = {
 	Offset: (Vector3 | CFrame)?,
 	Drag: boolean,
 	Time: number,
+	Caster: Model?,
 	OnHit: ((Model, Entity) -> ())?,
 }
 
@@ -122,12 +123,15 @@ export type PlayerData = {
 	MobIndex: { [string]: number },
 }
 
-export type Skill = {
+export type SkillData = {
 	Name: string,
 	Cooldown: number,
 	Multiplier: number,
+	Elligable: (self: SkillData, Data: PlayerData) -> boolean,
+}
+
+export type Skill = SkillData & {
 	Activate: (self: Skill, Player: Entity) -> (),
-	GetRequirement: (self: Skill, Data: PlayerData) -> boolean,
 }
 
 export type Recipes = {

@@ -95,7 +95,7 @@ function Hitbox:Create(info: Types.HitboxInfo): (BasePart, HitboxResults)
 		local Results = Hitbox.GetHitModels(Part)
 
 		for Model, PlayerInfo in Results.Players do
-			if HitList[Model] then
+			if HitList[Model] or Model == info.Caster then
 				continue
 			end
 			HitList[Model] = true
@@ -107,7 +107,7 @@ function Hitbox:Create(info: Types.HitboxInfo): (BasePart, HitboxResults)
 		end
 
 		for Model, MobInfo in Results.Mobs do
-			if HitList[Model] then
+			if HitList[Model] or Model == info.Caster then
 				continue
 			end
 			HitList[Model] = true
