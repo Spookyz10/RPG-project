@@ -1,12 +1,25 @@
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
 
 local UI = {}
 
-function UI.Init() end
+function UI.Init()
+	UIConstants.PlayerGui:FindFirstChild("HUD"):FindFirstChild("Player").Icon.Image = Players:GetUserThumbnailAsync(
+		UIConstants.Player.UserId,
+		Enum.ThumbnailType.HeadShot,
+		Enum.ThumbnailSize.Size100x100
+	)
+
+	UIConstants.PlayerGui:FindFirstChild("HUD"):FindFirstChild("Player").Level.Text = "Level: "
+		.. UIConstants.Data.Level()
+
+	UIConstants.Data.Level.Changed(function(newLevel)
+		UIConstants.PlayerGui:FindFirstChild("HUD"):FindFirstChild("Player").Level.Text = "Level: " .. newLevel
+	end)
+end
 
 function UI.UpdateBar(value: number, maxValue: number, bar: string)
 	local Bar = UIConstants.PlayerGui:FindFirstChild("HUD"):FindFirstChild(bar)

@@ -21,3 +21,6 @@ end)
 Data.XP.Changed(function(NewXp)
 	Logic["Bars"].UpdateBar(NewXp, Functions:GetXPNeeded(Data.Level()), "XP")
 end)
+
+Logic["Bars"].UpdateBar(Class.HP, Class.MaxHP, "HP")
+Logic["Bars"].UpdateBar(Data.XP(), Functions:GetXPNeeded(Data.Level()), "XP")
