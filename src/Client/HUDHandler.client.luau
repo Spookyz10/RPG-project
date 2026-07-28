@@ -9,6 +9,7 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Player = Players.LocalPlayer
 
 local Class = PlayerClass.getPlayerInfo(Player) :: Types.Entity
+print(Class)
 
 Class.OnHPChanged:Connect(function(newHp, _)
 	Logic["Bars"].UpdateBar(newHp, Class.MaxHP, "HP")

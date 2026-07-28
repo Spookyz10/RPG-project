@@ -30,6 +30,7 @@ Players.PlayerAdded:Connect(function(player: Player)
 	LoadPlayer(player)
 	local PlayerStats = Functions:GetTotalStats(nil, Data.Service:waitForData(player))
 	PlayerClass.addPlayer(player, PlayerStats.Health + 100)
+	print("adding player")
 end)
 
 Players.PlayerRemoving:Connect(function(player: Player)

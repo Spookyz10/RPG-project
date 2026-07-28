@@ -16,6 +16,8 @@ function PlayerClass.new(player: Player, HP: number): Types.Entity
 	local hpChanged = Instance.new("BindableEvent")
 	local maxHpChanged = Instance.new("BindableEvent")
 
+	print("adding class player")
+
 	return {
 		HP = HP,
 		MaxHP = HP,
@@ -29,8 +31,15 @@ function PlayerClass.new(player: Player, HP: number): Types.Entity
 end
 
 function PlayerClass.getPlayerInfo(player: Player): Types.Entity?
-	if not PlayerData[player] then
-		return nil
+	local MaxWait = 3
+	local StartTime = os.clock()
+
+	while not PlayerData[player] do
+		print(PlayerData[player], PlayerData)
+		if os.clock() - StartTime >= MaxWait then
+			return nil
+		end
+		task.wait()
 	end
 
 	return PlayerData[player]
@@ -40,9 +49,10 @@ function PlayerClass.getLoadedPlayers(): { [Player]: Types.Entity }
 	return PlayerData
 end
 
-function PlayerClass.addPlayer(player: Player)
-	local playerInfo = PlayerClass.new(player)
+function PlayerClass.addPlayer(player: Player, health: number)
+	local playerInfo = PlayerClass.new(player, health)
 	PlayerData[player] = playerInfo
+	print(PlayerData, PlayerData[player])
 	playerAdded:Fire(player)
 end
 

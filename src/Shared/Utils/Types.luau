@@ -15,8 +15,6 @@ export type Entity = {
 	Model: Model,
 	OnHPChanged: RBXScriptSignal<number, number>,
 	OnMaxHPChanged: RBXScriptSignal<number, number>,
-	SetHP: (self: Entity, newHP: number) -> (),
-	SetMaxHP: (self: Entity, newMaxHP: number) -> (),
 }
 
 export type Drop = {
