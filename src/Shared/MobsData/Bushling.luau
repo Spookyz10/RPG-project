@@ -28,8 +28,8 @@ local Mob: Types.MobInfo = {
 	},
 
 	Drops = {
-		["Wolf's Fang"] = { Chance = 15, Amount = 1 },
-		["Small Attack Potion"] = { Chance = 30, Amount = 1 },
+		["Dark Ivy"] = { Chance = 15, Amount = 1 },
+		["Small Health Potion"] = { Chance = 50, Amount = 1 },
 	},
 }
 

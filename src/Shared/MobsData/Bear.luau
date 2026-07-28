@@ -28,8 +28,9 @@ local Mob: Types.MobInfo = {
 	},
 
 	Drops = {
-		["Wolf's Fang"] = { Chance = 15, Amount = 1 },
-		["Small Attack Potion"] = { Chance = 30, Amount = 1 },
+		["Cloak of Hide"] = { Chance = 10, Amount = 1 },
+		["Clawed Pendant"] = { Chance = 12, Amount = 1 },
+		["Small Attack Potion"] = { Chance = 50, Amount = 1 },
 	},
 }
 
