@@ -75,4 +75,17 @@ function RewardManager:AddXP(player: Player, amount: number, mobData: Types.MobI
 	end
 end
 
+function RewardManager:AddMisc(player: Player, misc: string, amount: number)
+	local PlayerData = Data.Service:waitForData(player)() :: Types.PlayerData
+	if not PlayerData then
+		return
+	end
+
+	if PlayerData and PlayerData[misc] then
+		PlayerData[misc](function(currentAmount)
+			return currentAmount + amount
+		end)
+	end
+end
+
 return RewardManager

@@ -6,5 +6,6 @@ local MobHandler = require(ServerStorage.Modules.MobHandler)
 local ServerRemoteListener = require(ServerStorage.Modules.ServerRemoteListener)
 
 RemoteManager.ListenToAll(ServerRemoteListener)
+RemoteManager.ListenToAllFunctions(ServerRemoteListener)
 
 MobHandler:InitializeSpawns()

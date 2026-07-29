@@ -8,13 +8,16 @@ local Remotes = {
 	EquipItem = "Server",
 	UnequipItem = "Server",
 
-	-- client
 	SkillVFX = "Client",
 	Damage = "Client",
 }
 
-local function getRemote(remoteName: string, folder: string): RemoteEvent
-	for _, remote: RemoteEvent in ReplicatedStorage:FindFirstChild("Remotes"):FindFirstChild(folder):GetDescendants() do
+local RemoteFunctions = {
+	GetPlayerInfo = "Server",
+}
+
+local function getRemote(remoteName: string, folder: string): Instance
+	for _, remote: Instance in ReplicatedStorage:FindFirstChild("Remotes"):FindFirstChild(folder):GetDescendants() do
 		if remote.Name == remoteName then
 			return remote
 		end
@@ -44,7 +47,16 @@ function RemoteManager.SendServerEvent(remoteName: string, ...: any)
 	remote:FireServer(...)
 end
 
-function RemoteManager.GetRemote(remoteName: string, folder: string): RemoteEvent
+function RemoteManager.InvokeServerFunction(remoteName: string, ...: any)
+	local remote = getRemote(remoteName, "Server")
+	if not remote then
+		return nil
+	end
+
+	return remote:InvokeServer(...)
+end
+
+function RemoteManager.GetRemote(remoteName: string, folder: string): Instance
 	return getRemote(remoteName, folder)
 end
 
@@ -67,6 +79,28 @@ function RemoteManager.ListenToAll(Listener: { [string]: any })
 
 			ListenerModule:Activate(Player, ...)
 		end)
+	end
+end
+
+function RemoteManager.ListenToAllFunctions(Listener: { [string]: any })
+	for remoteName, folder in RemoteFunctions do
+		if folder ~= "Server" then
+			continue
+		end
+
+		local remote = getRemote(remoteName, folder)
+		if not remote then
+			continue
+		end
+
+		remote.OnServerInvoke = function(Player: Player, ...)
+			local ListenerModule = Listener[remoteName]
+			if not ListenerModule then
+				return nil
+			end
+
+			return ListenerModule:Invoke(Player, ...)
+		end
 	end
 end
 
@@ -95,6 +129,12 @@ end
 if RunService:IsServer() then
 	for remote: string, goal: string in Remotes do
 		local newRemote = Instance.new("RemoteEvent")
+		newRemote.Parent = ReplicatedStorage:FindFirstChild("Remotes"):FindFirstChild(goal)
+		newRemote.Name = remote
+	end
+
+	for remote: string, goal: string in RemoteFunctions do
+		local newRemote = Instance.new("RemoteFunction")
 		newRemote.Parent = ReplicatedStorage:FindFirstChild("Remotes"):FindFirstChild(goal)
 		newRemote.Name = remote
 	end

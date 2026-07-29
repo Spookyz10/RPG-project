@@ -6,6 +6,8 @@ local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
 
 local UI = {}
 
+local ActiveTweens = {} :: { [string]: { Main: Tween?, Trail: Tween? } }
+
 function UI.Init()
 	UIConstants.PlayerGui:FindFirstChild("HUD"):FindFirstChild("Player").Icon.Image = Players:GetUserThumbnailAsync(
 		UIConstants.Player.UserId,
@@ -28,13 +30,27 @@ function UI.UpdateBar(value: number, maxValue: number, bar: string)
 
 	Bar:FindFirstChild("Value").Text = value .. "/" .. maxValue
 
-	local TweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-	local Percentage = value / maxValue
-	local ContTween = TweenService:Create(MainContainer, TweenInfo, { Size = UDim2.fromScale(Percentage, 1) })
-	local TrailTween = TweenService:Create(Trail, TweenInfo, { Size = UDim2.fromScale(Percentage, 1) })
+	local Percentage = math.clamp(value / maxValue, 0, 1)
 
-	ContTween:Play()
-	ContTween.Completed:Wait()
+	local Existing = ActiveTweens[bar]
+	if Existing then
+		if Existing.Main then
+			Existing.Main:Cancel()
+		end
+		if Existing.Trail then
+			Existing.Trail:Cancel()
+		end
+	end
+
+	local MainInfo = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	local MainTween = TweenService:Create(MainContainer, MainInfo, { Size = UDim2.fromScale(Percentage, 1) })
+
+	local TrailInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	local TrailTween = TweenService:Create(Trail, TrailInfo, { Size = UDim2.fromScale(Percentage, 1) })
+
+	ActiveTweens[bar] = { Main = MainTween, Trail = TrailTween }
+
+	MainTween:Play()
 	TrailTween:Play()
 end
 

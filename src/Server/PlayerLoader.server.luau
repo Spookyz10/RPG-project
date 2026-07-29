@@ -26,11 +26,19 @@ local function LoadPlayer(Player: Player)
 	Player:LoadCharacterAsync()
 end
 
+PlayerClass.Died:Connect(function(player: Player)
+	local PlayerData = Data.Service:waitForData(player)
+	if PlayerData then
+		PlayerData.Deaths(function(current)
+			return current + 1
+		end)
+	end
+end)
+
 Players.PlayerAdded:Connect(function(player: Player)
 	LoadPlayer(player)
 	local PlayerStats = Functions:GetTotalStats(nil, Data.Service:waitForData(player))
 	PlayerClass.addPlayer(player, PlayerStats.Health + 100)
-	print("adding player")
 end)
 
 Players.PlayerRemoving:Connect(function(player: Player)

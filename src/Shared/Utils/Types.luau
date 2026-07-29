@@ -97,6 +97,9 @@ export type PlayerData = {
 	FirstTimeJoined: boolean,
 	Level: number,
 	XP: number,
+	Kills: number,
+	Deaths: number,
+	PlayTime: number,
 	Inventory: { [string]: ItemData },
 	Settings: {
 		Music: boolean,

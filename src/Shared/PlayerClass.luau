@@ -16,7 +16,8 @@ function PlayerClass.new(player: Player, HP: number): Types.Entity
 	local hpChanged = Instance.new("BindableEvent")
 	local maxHpChanged = Instance.new("BindableEvent")
 
-	print("adding class player")
+	player:SetAttribute("HP", HP)
+	player:SetAttribute("MaxHP", HP)
 
 	return {
 		HP = HP,
@@ -35,7 +36,6 @@ function PlayerClass.getPlayerInfo(player: Player): Types.Entity?
 	local StartTime = os.clock()
 
 	while not PlayerData[player] do
-		print(PlayerData[player], PlayerData)
 		if os.clock() - StartTime >= MaxWait then
 			return nil
 		end
@@ -52,7 +52,6 @@ end
 function PlayerClass.addPlayer(player: Player, health: number)
 	local playerInfo = PlayerClass.new(player, health)
 	PlayerData[player] = playerInfo
-	print(PlayerData, PlayerData[player])
 	playerAdded:Fire(player)
 end
 
@@ -79,6 +78,8 @@ function PlayerClass.setHP(player: Player, newHP: number)
 		data._HPChangedEvent:Fire(newHP, oldHP)
 	end
 
+	player:SetAttribute("HP", newHP)
+
 	if newHP <= 0 and oldHP > 0 then
 		died:Fire(player)
 	end
@@ -92,6 +93,8 @@ function PlayerClass.setMaxHP(player: Player, newMaxHP: number)
 
 	local oldMaxHP = data.MaxHP
 	data.MaxHP = newMaxHP
+
+	player:SetAttribute("MaxHP", newMaxHP)
 
 	if newMaxHP ~= oldMaxHP then
 		data._MaxHPChangedEvent:Fire(newMaxHP, oldMaxHP)

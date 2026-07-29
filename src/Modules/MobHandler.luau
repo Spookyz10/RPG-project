@@ -88,6 +88,7 @@ local function Reward(player: Player, MobInfo: Types.MobInfo)
 		RewardManager:AddCurrency(player, currency, amount)
 	end
 
+	RewardManager:AddMisc(player, "Kills", 1)
 	RewardManager:AddXP(player, MobInfo.XP)
 end
 
