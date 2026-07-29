@@ -18,10 +18,11 @@ local function LoadPlayer(Player: Player)
 
 	if PlayerData.FirstTimeJoined() then
 		InventoryManager:AddItem(Player, "Wooden Sword", 1)
-		SkillManager:GrantSkill(Player, "Whirlwind")
-		SkillManager:Listen(Player)
 		PlayerData.FirstTimeJoined(false)
 	end
+
+	SkillManager:GrantSkill(Player, "Whirlwind")
+	SkillManager:Listen(Player)
 
 	Player:LoadCharacterAsync()
 end

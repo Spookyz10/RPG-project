@@ -1,35 +1,67 @@
+local Players = game:GetService("Players")
+
 local CooldownSystem = {}
 
-local Cooldowns = {}
+local Cooldowns: { [Player]: { [string]: number } } = {}
 
-function CooldownSystem:StartCooldown(player: Player, key: string, duration: number): string
-	if Cooldowns[player] and Cooldowns[player][key] then
-		return "In cooldown"
+local function getPlayerCooldowns(player: Player)
+	local playerCooldowns = Cooldowns[player]
+	if not playerCooldowns then
+		playerCooldowns = {}
+		Cooldowns[player] = playerCooldowns
 	end
-	Cooldowns[player] = { [key] = true }
+	return playerCooldowns
+end
+
+function CooldownSystem:StartCooldown(player: Player, key: string, duration: number): boolean
+	local playerCooldowns = getPlayerCooldowns(player)
+
+	if playerCooldowns[key] and playerCooldowns[key] > os.clock() then
+		return false
+	end
+
+	local endTime = os.clock() + duration
+	playerCooldowns[key] = endTime
+
 	task.delay(duration, function()
-		if Cooldowns[player][key] then
-			Cooldowns[player][key] = nil
+		local currentCooldowns = Cooldowns[player]
+		if currentCooldowns and currentCooldowns[key] == endTime then
+			currentCooldowns[key] = nil
 		end
 	end)
 
-	return "Added cooldown"
+	return true
 end
 
-function CooldownSystem:IsInCooldown(player: Player, key: string)
-	return Cooldowns[player] and Cooldowns[player][key]
+function CooldownSystem:IsInCooldown(player: Player, key: string): boolean
+	local playerCooldowns = Cooldowns[player]
+	if not playerCooldowns or not playerCooldowns[key] then
+		return false
+	end
+	return playerCooldowns[key] > os.clock()
+end
+
+function CooldownSystem:GetTimeLeft(player: Player, key: string): number
+	local playerCooldowns = Cooldowns[player]
+	if not playerCooldowns or not playerCooldowns[key] then
+		return 0
+	end
+	return math.max(0, playerCooldowns[key] - os.clock())
 end
 
 function CooldownSystem:ResetCooldown(player: Player, key: string)
-	if Cooldowns[player] and Cooldowns[player][key] then
-		Cooldowns[player][key] = nil
+	local playerCooldowns = Cooldowns[player]
+	if playerCooldowns then
+		playerCooldowns[key] = nil
 	end
 end
 
-function CooldownSystem:resetAllCooldowns(player: Player)
-	if Cooldowns[player] then
-		Cooldowns[player] = nil
-	end
+function CooldownSystem:ResetAllCooldowns(player: Player)
+	Cooldowns[player] = nil
 end
+
+Players.PlayerRemoving:Connect(function(player)
+	Cooldowns[player] = nil
+end)
 
 return CooldownSystem
