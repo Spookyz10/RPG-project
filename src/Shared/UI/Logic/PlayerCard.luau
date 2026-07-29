@@ -22,7 +22,7 @@ local function FormatTime(seconds: number): string
 end
 
 function UI.Init()
-	local Card = UIConstants.PlayerGui:WaitForChild("HUD").PlayerCard
+	local Card = UIConstants.PlayerGui:WaitForChild("Overlap").PlayerCard
 
 	Card.Close.MouseButton1Click:Connect(function()
 		Card.Visible = false
@@ -30,7 +30,7 @@ function UI.Init()
 end
 
 function UI.Open(targetPlayer: Player)
-	local Card = UIConstants.PlayerGui:WaitForChild("HUD").PlayerCard
+	local Card = UIConstants.PlayerGui:WaitForChild("Overlap").PlayerCard
 	local Data = RemoteManager.InvokeServerFunction("GetPlayerInfo", targetPlayer)
 
 	if not Data then

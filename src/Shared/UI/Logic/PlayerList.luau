@@ -9,7 +9,7 @@ local UI = {}
 local Entries = {} :: { [Player]: GuiObject }
 
 function UI.Init()
-	local PlayerListFrame = UIConstants.PlayerGui:WaitForChild("HUD").PlayerList
+	local PlayerListFrame = UIConstants.PlayerGui:WaitForChild("Overlap").PlayerList
 	local Action = PlayerListFrame.Action
 	local List = PlayerListFrame.List
 	local Template = ReplicatedStorage.Assets.UI.Templates.PlayerList
