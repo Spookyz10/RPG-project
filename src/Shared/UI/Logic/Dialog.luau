@@ -156,6 +156,11 @@ function UI.Init()
 			return
 		end
 
+		if Node.Action then
+			Node:Action(UIConstants.Data :: Types.PlayerData, UI.Goto, UI.Close)
+			return
+		end
+
 		if Node.Next then
 			UI.Goto(Node.Next)
 		else

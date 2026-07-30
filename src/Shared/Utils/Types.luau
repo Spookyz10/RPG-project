@@ -130,6 +130,7 @@ export type SkillData = {
 	Cooldown: number,
 	Multiplier: number,
 	LevelRequirement: number,
+	Description: string,
 	Elligable: (self: SkillData, Data: PlayerData) -> boolean,
 }
 
@@ -166,6 +167,7 @@ export type DialogueNode = {
 	Text: string | ((PlayerData) -> string),
 	Options: { DialogueOption }?,
 	Next: string?,
+	Action: ((self: DialogueNode, PlayerData: PlayerData, Goto: (node: string) -> (), Close: () -> ()) -> ())?,
 }
 
 export type Dialogue = {

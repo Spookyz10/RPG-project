@@ -7,6 +7,7 @@ local Skill: Types.SkillData = {
 	Multiplier = 3,
 	LevelRequirement = 10,
 	Icon = "",
+	Description = "Slash your enemy multiple times in a row.",
 }
 
 function Skill:Elligable(PlayerData: Types.PlayerData): boolean

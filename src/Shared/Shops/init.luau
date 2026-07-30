@@ -5,3 +5,5 @@ for _, shop in script:GetDescendants() do
 		shops[shop.Name] = require(shop)
 	end
 end
+
+return shops

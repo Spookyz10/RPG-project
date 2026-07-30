@@ -23,23 +23,23 @@ function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: numb
 
 	if ItemInfo.Data.Stackable then
 		local Inventory = PlayerData.Inventory()
-		local isInInventory, key = Functions:HasKeyWithValueIntable(Inventory, "Name", ItemName)
-		while isInInventory and Remaining > 0 do
-			local itemData = Inventory[key]
-			local SpaceInStack = ItemInfo.Data.Cap - itemData.Amount
+		local Cap = ItemInfo.Data.Cap
 
+		for key, itemData in Inventory do
+			if Remaining <= 0 then
+				break
+			end
+
+			if itemData.Name ~= ItemName then
+				continue
+			end
+
+			local SpaceInStack = Cap - itemData.Amount
 			if SpaceInStack > 0 then
 				local ToAdd = math.min(SpaceInStack, Remaining)
 				PlayerData.Inventory[key].Amount(itemData.Amount + ToAdd)
 				Remaining -= ToAdd
 			end
-
-			if Remaining <= 0 then
-				break
-			end
-
-			Inventory = PlayerData.Inventory()
-			isInInventory, key = Functions:HasKeyWithValueIntable(Inventory, "Name", ItemName)
 		end
 	end
 
