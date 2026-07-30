@@ -63,7 +63,13 @@ local function ShowOptions(Options: { Types.DialogueOption }, PlayerData: Types.
 		Frame.Label.Text = ResolveText(Option.Text, PlayerData)
 
 		Frame.MouseButton1Click:Connect(function()
-			Option:Action(PlayerData, UI.Goto, UI.Close)
+			if Option.Action then
+				Option:Action(PlayerData, UI.Goto, UI.Close)
+			elseif Option.Next then
+				UI.Goto(Option.Next)
+			else
+				UI.Close()
+			end
 		end)
 
 		Frame.Parent = OptionsFrame

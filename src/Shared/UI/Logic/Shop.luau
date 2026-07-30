@@ -109,7 +109,7 @@ function UI.Open(shopName: string)
 		BounceTween = nil
 	end
 
-	ShopFrame.Position = UDim2.fromScale(0.6, 1.6)
+	ShopFrame.Position = UDim2.fromScale(0.5, 1.6)
 
 	BounceTween = TweenService:Create(
 		ShopFrame,
@@ -133,7 +133,7 @@ function UI.Close()
 	BounceTween = TweenService:Create(
 		ShopFrame,
 		TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
-		{ Position = UDim2.fromScale(0.6, 1.6) }
+		{ Position = UDim2.fromScale(0.5, 1.6) }
 	)
 
 	BounceTween:Play()
