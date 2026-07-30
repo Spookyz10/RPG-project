@@ -35,6 +35,7 @@ function Behavior:Reset(mobModel: Model)
 		self:Cancel(mobModel)
 		local mobClass = MobClass.getMob(UUID.Value)
 		mobClass.HP = mobClass.MaxHP
+		mobModel.Humanoid.WalkSpeed = 16
 		mobModel:PivotTo(origin.CFrame)
 	end
 end

@@ -15,6 +15,7 @@ local Remotes = {
 	Damage = "Client",
 	SkillCooldown = "Client",
 	LeaderboardUpdate = "Client",
+	Indicator = "Client",
 }
 
 local RemoteFunctions = {
