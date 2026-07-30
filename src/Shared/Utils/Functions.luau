@@ -139,4 +139,27 @@ function Functions:getMob(name: string)
 	return nil
 end
 
+function Functions:RollAttack(attackTable: { [string]: number })
+	local totalWeight = 0
+	for _, chance in attackTable do
+		totalWeight += chance
+	end
+
+	local roll = math.random() * totalWeight
+
+	local current = 0
+
+	for attack, weight in attackTable do
+		if weight > 0 then
+			current += weight
+
+			if roll <= current then
+				return attack
+			end
+		end
+	end
+
+	return nil
+end
+
 return Functions

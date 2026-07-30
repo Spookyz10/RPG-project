@@ -41,6 +41,9 @@ local template: Types.PlayerData = {
 		Defense = 0,
 	},
 	MobIndex = {},
+	Quests = {},
+	DailyQuests = {},
+	CompletedQuests = {},
 }
 
 return DataService({ template = template, profileStoreIndex = "PlayerData3" })

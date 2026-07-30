@@ -9,6 +9,7 @@ local Remotes = {
 	UnequipItem = "Server",
 	EquipSkill = "Server",
 	ShopBuy = "Server",
+	AcceptQuest = "Server",
 
 	SkillVFX = "Client",
 	Damage = "Client",

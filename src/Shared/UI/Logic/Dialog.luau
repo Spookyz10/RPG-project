@@ -21,6 +21,13 @@ local function ResolveText(text: string | ((Types.PlayerData) -> string), Player
 	return text
 end
 
+local function ResolveValue(value, PlayerData: Types.PlayerData)
+	if typeof(value) == "function" then
+		return value(PlayerData)
+	end
+	return value
+end
+
 local function ClearOptions()
 	for _, Frame in OptionFrames do
 		Frame:Destroy()
@@ -138,6 +145,7 @@ function UI.Open(dialogue: Types.Dialogue, startNode: string, npcName: string?)
 end
 
 function UI.Init()
+	local PlayerData = UIConstants.Data :: Types.PlayerData
 	local DialogFrame = UIConstants.Main.Dialog
 	local ActionButton = DialogFrame.DialogueAction :: GuiButton
 
@@ -167,8 +175,10 @@ function UI.Init()
 			return
 		end
 
-		if Node.Next then
-			UI.Goto(Node.Next)
+		local NextNode = Node.Next and ResolveValue(Node.Next, PlayerData)
+
+		if NextNode then
+			UI.Goto(NextNode)
 		else
 			UI.Close()
 		end

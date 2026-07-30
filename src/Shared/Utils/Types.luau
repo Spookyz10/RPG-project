@@ -123,6 +123,8 @@ export type PlayerData = {
 	UnlockedRecipes: { string },
 	ExtraStats: Stats,
 	MobIndex: { [string]: number },
+	Quests: { string },
+	CompletedQuests: { [string]: number },
 }
 
 export type SkillData = {
@@ -166,7 +168,7 @@ export type DialogueOption = {
 export type DialogueNode = {
 	Text: string | ((PlayerData) -> string),
 	Options: { DialogueOption }?,
-	Next: string?,
+	Next: string | ((PlayerData) -> string),
 	Action: ((self: DialogueNode, PlayerData: PlayerData, Goto: (node: string) -> (), Close: () -> ()) -> ())?,
 }
 
@@ -176,6 +178,14 @@ export type Dialogue = {
 
 export type Shop = {
 	[string]: { Cost: { [string]: number }, itemType: string },
+}
+
+export type LeaderboardBoard = "Gold" | "Kills" | "PlayTime"
+
+export type LeaderboardEntry = {
+	UserId: number,
+	Name: string,
+	Value: number,
 }
 
 return {}
