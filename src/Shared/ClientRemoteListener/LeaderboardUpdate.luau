@@ -13,6 +13,18 @@ local BoardFolders: { [Types.LeaderboardBoard]: string } = {
 	PlayTime = "Play Time",
 }
 
+local BoardLabels: { [Types.LeaderboardBoard]: string } = {
+	Gold = "Gold",
+	Kills = "Kills",
+	PlayTime = "Play Time",
+}
+
+local BoardColors: { [Types.LeaderboardBoard]: Color3 } = {
+	Kills = Color3.fromRGB(255, 0, 0),
+	Gold = Color3.fromRGB(255, 170, 0),
+	PlayTime = Color3.fromRGB(170, 255, 255),
+}
+
 local RankStyles = { "Top1", "Top2", "Top3" }
 
 local function FormatPlayTime(seconds: number): string
@@ -32,7 +44,7 @@ local Formatters: { [Types.LeaderboardBoard]: (number) -> string } = {
 		return Abbreviation:Number(value)
 	end,
 	Kills = function(value: number)
-		return tostring(math.floor(value))
+		return Abbreviation:Number(value)
 	end,
 	PlayTime = FormatPlayTime,
 }
@@ -44,10 +56,17 @@ local ActiveEntries: { [Types.LeaderboardBoard]: { Frame } } = {
 }
 
 local function ApplyRank(Entry: Frame, rank: number)
-	Entry.Basic.Visible = rank > 3
+	Entry.Basic.Enabled = rank > 3
 	for index, styleName in RankStyles do
-		Entry[styleName].Visible = rank == index
+		Entry[styleName].Enabled = rank == index
 	end
+end
+
+local function ApplyStat(Entry: Frame, board: Types.LeaderboardBoard, value: number)
+	local Stat = Entry.Stat :: TextLabel
+	Stat.RichText = true
+	Stat.TextColor3 = BoardColors[board]
+	Stat.Text = BoardLabels[board] .. ':<br/><font color="rgb(255,255,255)">' .. Formatters[board](value) .. "</font>"
 end
 
 local function CreateEntry(
@@ -62,7 +81,7 @@ local function CreateEntry(
 	ApplyRank(Entry, rank)
 
 	Entry.PlayerName.Text = data.Name
-	Entry.Stat.Text = Formatters[board](data.Value)
+	ApplyStat(Entry, board, data.Value)
 
 	local success, thumbnail = pcall(
 		Players.GetUserThumbnailAsync,

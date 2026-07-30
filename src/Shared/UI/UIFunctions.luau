@@ -18,6 +18,8 @@ local ActiveConnections = {}
 local MouseOffset = Vector2.new(20, 0)
 local Container = FloatingItem.Parent :: GuiObject
 
+local TypingSessions = {} :: { [TextLabel]: number }
+
 local function GetHoverPosition(): UDim2
 	local RelativeX = (Mouse.X - Container.AbsolutePosition.X) / Container.AbsoluteSize.X
 	local RelativeY = (Mouse.Y - Container.AbsolutePosition.Y) / Container.AbsoluteSize.Y
@@ -104,6 +106,57 @@ function UIFunctions:UpdateStatsContainer(container: Frame, Stats: Types.Stats)
 			end
 		end
 	end
+end
+
+function UIFunctions:TypeText(
+	label: TextLabel,
+	text: string,
+	charDelay: number?,
+	onComplete: (() -> ())?
+): (() -> (), () -> boolean)
+	TypingSessions[label] = (TypingSessions[label] or 0) + 1
+	local Session = TypingSessions[label]
+
+	local Delay = charDelay or 0.03
+	local Completed = false
+
+	label.Text = ""
+
+	local function Finish()
+		if Completed or TypingSessions[label] ~= Session then
+			return
+		end
+
+		Completed = true
+		label.Text = text
+
+		if onComplete then
+			onComplete()
+		end
+	end
+
+	local function IsComplete(): boolean
+		return Completed
+	end
+
+	task.spawn(function()
+		for index = 1, #text do
+			if TypingSessions[label] ~= Session then
+				return
+			end
+
+			if Completed then
+				return
+			end
+
+			label.Text = string.sub(text, 1, index)
+			task.wait(Delay)
+		end
+
+		Finish()
+	end)
+
+	return Finish, IsComplete
 end
 
 function UIFunctions:Hover(Button: GuiObject, Populate: ((FloatingItem: Frame) -> ())?)

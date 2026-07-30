@@ -130,7 +130,6 @@ export type SkillData = {
 	Cooldown: number,
 	Multiplier: number,
 	LevelRequirement: number,
-	Icon: string,
 	Elligable: (self: SkillData, Data: PlayerData) -> boolean,
 }
 
@@ -157,12 +156,20 @@ export type Zone = {
 	ApplyLighting: () -> (),
 }
 
-export type LeaderboardBoard = "Gold" | "Kills" | "PlayTime"
+export type DialogueOption = {
+	Text: string | ((PlayerData) -> string),
+	Condition: ((PlayerData) -> boolean)?,
+	Action: (self: DialogueOption, PlayerData: PlayerData, Goto: (node: string) -> (), Close: () -> ()) -> (),
+}
 
-export type LeaderboardEntry = {
-	UserId: number,
-	Name: string,
-	Value: number,
+export type DialogueNode = {
+	Text: string | ((PlayerData) -> string),
+	Options: { DialogueOption }?,
+	Next: string?,
+}
+
+export type Dialogue = {
+	[string]: DialogueNode,
 }
 
 return {}
