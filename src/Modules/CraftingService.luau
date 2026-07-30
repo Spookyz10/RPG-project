@@ -4,6 +4,8 @@ local RecipeManager = require(script.Parent.RecipeManager)
 local Recipes = require(ReplicatedStorage.Shared.Recipes)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local InventoryManager = require(script.Parent.InventoryManager)
+local QuestManager = require(script.Parent.QuestManager)
+
 local CraftingService = {}
 
 function CraftingService:HasRequiredItems(PlayerData: Types.PlayerData, ItemRecipe: Types.Recipes): boolean
@@ -56,6 +58,7 @@ function CraftingService:CraftItem(item: string, player: Player): string
 	end
 
 	InventoryManager:AddItem(player, item, 1)
+	QuestManager:OnItemCrafted(player, item)
 
 	return "Succesfully crafted item"
 end

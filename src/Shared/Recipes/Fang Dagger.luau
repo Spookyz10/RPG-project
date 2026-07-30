@@ -5,7 +5,7 @@ local ItemRecipe: Types.Recipes = {}
 ItemRecipe.Recipe = {
 	["Wolf's Fang"] = { Amount = 1 },
 	["Wilderbone"] = { Amount = 1 },
-	["Dark Ivy "] = { Amount = 1 },
+	["Dark Ivy"] = { Amount = 1 },
 }
 
 function ItemRecipe.GetRequirement(Data: Types.PlayerData): (boolean, string)

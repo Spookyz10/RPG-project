@@ -31,10 +31,13 @@ function RewardManager:AddCurrency(player: Player, currency: string, amount: num
 		amount *= Multipliers[currency]
 	end
 
-	if PlayerData and PlayerData.Currencies() and PlayerData.Currencies()[currency] then
+	local Currencies = PlayerData.Currencies()
+	if Currencies[currency] then
 		PlayerData.Currencies()[currency](function(currentAmount)
 			return currentAmount + amount
 		end)
+	else
+		PlayerData.Currencies[currency](amount)
 	end
 end
 

@@ -91,7 +91,7 @@ local function OnInteract(input: InputObject, gameProcessed: boolean)
 		return
 	end
 
-	DialogLogic.Open(NPCDialogue, "Start", NearestNPC.Name)
+	DialogLogic.Open(NPCDialogue, NearestNPC.Name)
 end
 
 NPCsFolder.ChildRemoved:Connect(function(npc)

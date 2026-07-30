@@ -123,8 +123,8 @@ export type PlayerData = {
 	UnlockedRecipes: { string },
 	ExtraStats: Stats,
 	MobIndex: { [string]: number },
-	Quests: { string },
-	CompletedQuests: { [string]: number },
+	Quests: { [string]: QuestProgress },
+	CompletedQuests: { [string]: QuestCompletion },
 }
 
 export type SkillData = {
@@ -186,6 +186,43 @@ export type LeaderboardEntry = {
 	UserId: number,
 	Name: string,
 	Value: number,
+}
+
+export type QuestObjectiveType = "KillMob" | "CraftItem"
+
+export type QuestObjective = {
+	Type: QuestObjectiveType,
+	Target: string,
+	Amount: number,
+}
+
+export type QuestReward = {
+	Currencies: { [string]: number }?,
+	XP: number?,
+	Items: { [string]: number }?,
+	Recipes: { string }?,
+}
+
+export type QuestProgress = {
+	Objectives: { [number]: number },
+	StartedAt: number,
+}
+
+export type QuestCompletion = {
+	Count: number,
+	LastCompletedAt: number,
+}
+
+export type QuestInfo = {
+	Name: string,
+	Description: string,
+	Repeatable: boolean,
+	Cooldown: number?,
+	RequiredLevel: number?,
+	RequiredQuest: string?,
+	SkipIfOverleveled: boolean?,
+	Objectives: { QuestObjective },
+	Rewards: QuestReward,
 }
 
 return {}

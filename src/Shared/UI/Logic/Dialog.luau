@@ -89,7 +89,7 @@ local function RenderNode(nodeName: string)
 		return
 	end
 
-	local Node = CurrentDialogue[nodeName]
+	local Node = CurrentDialogue.Nodes[nodeName]
 	if not Node then
 		warn("No dialogue node found for: ", nodeName)
 		UI.Close()
@@ -116,8 +116,9 @@ function UI.Goto(nodeName: string)
 	RenderNode(nodeName)
 end
 
-function UI.Open(dialogue: Types.Dialogue, startNode: string, npcName: string?)
+function UI.Open(dialogue: Types.Dialogue, npcName: string?)
 	local DialogFrame = UIConstants.Main.Dialog
+	local PlayerData = UIConstants.Data :: Types.PlayerData
 
 	CurrentDialogue = dialogue
 	DialogFrame.Visible = true
@@ -141,7 +142,8 @@ function UI.Open(dialogue: Types.Dialogue, startNode: string, npcName: string?)
 	)
 	BounceTween:Play()
 
-	RenderNode(startNode)
+	local StartNode = (dialogue.GetStartNode and dialogue.GetStartNode(PlayerData)) or "Start"
+	RenderNode(StartNode)
 end
 
 function UI.Init()

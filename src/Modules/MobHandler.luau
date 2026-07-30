@@ -5,6 +5,7 @@ local InventoryManager = require(script.Parent.InventoryManager)
 local Mobs = require(script.Parent.Mobs)
 local RewardManager = require(script.Parent.RewardManager)
 local MobClass = require(ReplicatedStorage.Shared.MobClass)
+local QuestManager = require(script.Parent.QuestManager)
 
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
@@ -78,7 +79,7 @@ function MobHandler:StartBehavior(mobModel: Model, class: Types.Entity)
 	end
 end
 
-local function Reward(player: Player, MobInfo: Types.MobInfo)
+local function Reward(player: Player, MobInfo: Types.MobInfo, MobName: string)
 	local results = RewardManager:RollTable(MobInfo.Drops, player)
 	for item, amount in results do
 		InventoryManager:AddItem(player, item, amount)
@@ -90,6 +91,7 @@ local function Reward(player: Player, MobInfo: Types.MobInfo)
 
 	RewardManager:AddMisc(player, "Kills", 1)
 	RewardManager:AddXP(player, MobInfo.XP)
+	QuestManager:OnMobKilled(player, MobName)
 end
 
 function MobHandler:InitializeSpawns()
@@ -124,11 +126,11 @@ MobClass.Died:Connect(function(mob: Types.Entity, hitlist: { [Player]: number })
 
 	if MobInfo.GlobalDrops then
 		for _, player in Players:GetPlayers() do
-			Reward(player, MobInfo)
+			Reward(player, MobInfo, MobName)
 		end
 	else
 		for player, _ in hitlist do
-			Reward(player, MobInfo)
+			Reward(player, MobInfo, MobName)
 		end
 	end
 

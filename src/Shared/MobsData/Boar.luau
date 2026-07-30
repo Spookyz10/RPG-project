@@ -29,7 +29,7 @@ local Mob: Types.MobInfo = {
 
 	Drops = {
 		["Talisman of the Wild"] = { Chance = 8, Amount = 1 },
-		["Wilderbone "] = { Chance = 15, Amount = 1 },
+		["Wilderbone"] = { Chance = 15, Amount = 1 },
 		["Small Defense Potion"] = { Chance = 50, Amount = 1 },
 	},
 }
