@@ -172,4 +172,8 @@ export type Dialogue = {
 	[string]: DialogueNode,
 }
 
+export type Shop = {
+	[string]: { Cost: { [string]: number }, itemType: string },
+}
+
 return {}

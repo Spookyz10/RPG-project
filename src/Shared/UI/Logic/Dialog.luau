@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 
 local UIFunctions = require(ReplicatedStorage.Shared.UI.UIFunctions)
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
@@ -11,6 +12,7 @@ local CurrentNodeName: string? = nil
 local SkipTyping: (() -> ())? = nil
 local IsTypingComplete: (() -> boolean)? = nil
 local OptionFrames: { GuiObject } = {}
+local BounceTween: Tween? = nil
 
 local function ResolveText(text: string | ((Types.PlayerData) -> string), PlayerData: Types.PlayerData): string
 	if typeof(text) == "function" then
@@ -26,9 +28,17 @@ local function ClearOptions()
 	table.clear(OptionFrames)
 end
 
+function UI.IsOpen(): boolean
+	return CurrentDialogue ~= nil
+end
+
 function UI.Close()
 	local DialogFrame = UIConstants.Main:FindFirstChild("Dialog")
 	if DialogFrame then
+		if BounceTween then
+			BounceTween:Cancel()
+			BounceTween = nil
+		end
 		DialogFrame.Visible = false
 	end
 
@@ -77,7 +87,7 @@ local function RenderNode(nodeName: string)
 	ClearOptions()
 
 	local DialogFrame = UIConstants.Main.Dialog
-	local TextLabel = DialogFrame.Text :: TextLabel
+	local TextLabel = DialogFrame.DialogueAction.Dialog :: TextLabel
 	local PlayerData = UIConstants.Data :: Types.PlayerData
 
 	local NodeText = ResolveText(Node.Text, PlayerData)
@@ -93,9 +103,31 @@ function UI.Goto(nodeName: string)
 	RenderNode(nodeName)
 end
 
-function UI.Open(dialogue: Types.Dialogue, startNode: string)
+function UI.Open(dialogue: Types.Dialogue, startNode: string, npcName: string?)
+	local DialogFrame = UIConstants.Main.Dialog
+
 	CurrentDialogue = dialogue
-	UIConstants.Main.Dialog.Visible = true
+	DialogFrame.Visible = true
+
+	if npcName then
+		DialogFrame.NPCName.Text = npcName
+	end
+
+	if BounceTween then
+		BounceTween:Cancel()
+		BounceTween = nil
+	end
+
+	local BasePosition = DialogFrame.Position
+	DialogFrame.Position = UDim2.new(BasePosition.X.Scale, BasePosition.X.Offset, 1.2, BasePosition.Y.Offset)
+
+	BounceTween = TweenService:Create(
+		DialogFrame,
+		TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+		{ Position = UDim2.new(BasePosition.X.Scale, BasePosition.X.Offset, 0.802, BasePosition.Y.Offset) }
+	)
+	BounceTween:Play()
+
 	RenderNode(startNode)
 end
 
