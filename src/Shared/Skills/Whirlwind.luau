@@ -6,6 +6,7 @@ local Skill: Types.SkillData = {
 	Cooldown = 5,
 	Multiplier = 10,
 	LevelRequirement = 1,
+	Icon = "",
 }
 
 function Skill:Elligable(PlayerData: Types.PlayerData): boolean

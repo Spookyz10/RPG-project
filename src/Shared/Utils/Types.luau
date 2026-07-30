@@ -130,6 +130,7 @@ export type SkillData = {
 	Cooldown: number,
 	Multiplier: number,
 	LevelRequirement: number,
+	Icon: string,
 	Elligable: (self: SkillData, Data: PlayerData) -> boolean,
 }
 
@@ -154,6 +155,14 @@ export type Zone = {
 	MaxLevel: number,
 	Mobs: { string },
 	ApplyLighting: () -> (),
+}
+
+export type LeaderboardBoard = "Gold" | "Kills" | "PlayTime"
+
+export type LeaderboardEntry = {
+	UserId: number,
+	Name: string,
+	Value: number,
 }
 
 return {}

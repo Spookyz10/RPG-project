@@ -11,6 +11,8 @@ local Remotes = {
 
 	SkillVFX = "Client",
 	Damage = "Client",
+	SkillCooldown = "Client",
+	LeaderboardUpdate = "Client",
 }
 
 local RemoteFunctions = {

@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Data = require(ReplicatedStorage.Shared.Data).server
+
 local CooldownSystem = require(script.Parent.CooldownSystem)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local DamageHandler = require(script.Parent.DamageHandler)
@@ -8,6 +9,8 @@ local Hitbox = require(script.Parent.Hitbox)
 local Skills = require(script.Parent.Skills)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
+local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
+
 local AttackManager = {}
 
 function AttackManager:Swing(class: Types.Entity)
@@ -80,6 +83,8 @@ function AttackManager:UseSkill(class: Types.Entity, slot: string)
 	end
 
 	CooldownSystem:StartCooldown(Player, key, SkillInfo.Cooldown)
+
+	RemoteManager.SendClientEvent("SkillCooldown", { Player = Player }, slot, SkillInfo.Cooldown)
 
 	SkillInfo:Activate(class)
 end
