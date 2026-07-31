@@ -4,6 +4,7 @@ local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local Recipes = require(ReplicatedStorage.Shared.Recipes)
 local UIFunctions = require(ReplicatedStorage.Shared.UI.UIFunctions)
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
+local ItemDisplay = require(ReplicatedStorage.Shared.UI.ItemDisplay)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
@@ -15,24 +16,61 @@ function UI.Init()
 	local Data = UIConstants.Data
 
 	local CraftingFrame = UIConstants.Main:WaitForChild("Crafting")
-	local Container = CraftingFrame.Container
-	local ItemInfo = CraftingFrame.ItemInfo
+	local Container = CraftingFrame.Recipes.Container
+	local ItemInfo = CraftingFrame.InfoFrame
+	local MainInfo = ItemInfo.MainInfo
+
+	local RecipeButton = MainInfo.RecipeButton
+	local StatsButton = MainInfo.StatsButton
+	local RecipeContentFrame = MainInfo.Recipe
+	local StatsContentFrame = MainInfo.Stats
+
 	local Template = ReplicatedStorage.Assets.UI.Templates.Recipe
+	local RecipeLabelTemplate = ReplicatedStorage.Assets.UI.Templates.RecipeLabel
 
 	local SelectedRecipe: string? = nil
+	local IngredientDisconnect: (() -> ())? = nil
 
-	local function BuildRecipeText(itemName: string): string
+	local function ShowTab(tabName: string)
+		RecipeContentFrame.Visible = tabName == "Recipe"
+		StatsContentFrame.Visible = tabName == "Stats"
+	end
+
+	local function GetInventoryCounts(): { [string]: number }
+		local Counts = {}
+		for _, itemData in Data.Inventory() do
+			Counts[itemData.Name] = (Counts[itemData.Name] or 0) + itemData.Amount
+		end
+		return Counts
+	end
+
+	local function RenderRecipe(itemName: string)
+		for _, child in RecipeContentFrame:GetChildren() do
+			if child:IsA("TextLabel") then
+				child:Destroy()
+			end
+		end
+
 		local ItemRecipe = Recipes[itemName] :: Types.Recipes
 		if not ItemRecipe then
-			return ""
+			return
 		end
 
-		local Parts = {}
+		local Counts = GetInventoryCounts()
+
 		for ingredientName, ingredientInfo in ItemRecipe.Recipe do
-			table.insert(Parts, "x" .. ingredientInfo.Amount .. " " .. ingredientName)
+			local Label = RecipeLabelTemplate:Clone()
+			local Current = Counts[ingredientName] or 0
+			Label.Text = ingredientInfo.Amount
+				.. " "
+				.. ingredientName
+				.. " ("
+				.. Current
+				.. "/"
+				.. ingredientInfo.Amount
+				.. ")"
+			Label.Parent = RecipeContentFrame
 		end
-
-		return table.concat(Parts, ", ")
 	end
 
 	local function OpenItemInfo(itemName: string)
@@ -44,19 +82,34 @@ function UI.Init()
 		SelectedRecipe = itemName
 
 		ItemInfo.Visible = true
-		ItemInfo.Icon.Image = ItemData.Data.Icon
+		ItemInfo.ImageContainer.Icon.Image = ItemData.Data.Icon
 		ItemInfo.ItemName.Text = ItemData.Data.Name
+		ItemInfo.Level.Text = "Level: " .. ItemData.Data.Level
+		ItemInfo.Rarity.Text = ItemData.Data.Rarity
+		ItemInfo.Description.Text = ItemData.Data.Description
 
-		UIFunctions:ApplyRarityGradient(ItemInfo.Rarity, ItemData.Data.Rarity)
+		UIFunctions:ApplyRarityGradient(ItemInfo.ImageContainer.Rarity, ItemData.Data.Rarity)
 
 		if ItemData.Kind == "Equipment" then
-			ItemInfo.Stats.Visible = true
-			UIFunctions:UpdateStatsContainer(ItemInfo.Stats.Info, ItemData.Stats)
+			StatsContentFrame.Visible = true
+			UIFunctions:UpdateStatsContainer(StatsContentFrame.Info, ItemData.Stats)
 		else
-			ItemInfo.Stats.Visible = false
+			StatsContentFrame.Visible = false
 		end
 
-		ItemInfo.Recipe.RecipesLabel.Text = BuildRecipeText(itemName)
+		ShowTab("Recipe")
+		RenderRecipe(itemName)
+
+		if IngredientDisconnect then
+			IngredientDisconnect()
+			IngredientDisconnect = nil
+		end
+
+		IngredientDisconnect = Data.Inventory.Changed(function()
+			if SelectedRecipe == itemName then
+				RenderRecipe(itemName)
+			end
+		end)
 	end
 
 	local function UpdateRecipeFrame(Frame: ImageButton, itemName: string)
@@ -84,11 +137,18 @@ function UI.Init()
 			OpenItemInfo(itemName)
 		end)
 
+		local HoverConnection = Frame.MouseEnter:Connect(function()
+			ItemDisplay:Hover(Frame, { Name = itemName })
+		end)
+
 		RecipeFrames[itemName] = {
 			Frame = Frame,
 			Disconnectors = {
 				function()
 					ClickConnection:Disconnect()
+				end,
+				function()
+					HoverConnection:Disconnect()
 				end,
 			},
 		}
@@ -123,7 +183,15 @@ function UI.Init()
 		end
 	end
 
-	ItemInfo.Craft.MouseButton1Click:Connect(function()
+	RecipeButton.MouseButton1Click:Connect(function()
+		ShowTab("Recipe")
+	end)
+
+	StatsButton.MouseButton1Click:Connect(function()
+		ShowTab("Stats")
+	end)
+
+	ItemInfo.Action.MouseButton1Click:Connect(function()
 		if not SelectedRecipe then
 			return
 		end
@@ -132,8 +200,11 @@ function UI.Init()
 	end)
 
 	ItemInfo.Visible = false
+	ShowTab("Recipe")
 
 	LoadRecipes(Data.UnlockedRecipes())
+
+	print(Data.UnlockedRecipes())
 
 	Data.UnlockedRecipes.Changed(function(NewList)
 		LoadRecipes(NewList)

@@ -9,9 +9,9 @@ function RecipeManager:AddRecipe(recipe: string, player: Player)
 		return
 	end
 
-	local Recipes = PlayerData.Recipes()
+	local Recipes = PlayerData.UnlockedRecipes()
 	if not table.find(Recipes, recipe) then
-		PlayerData.Recipes.Insert(recipe)
+		PlayerData.UnlockedRecipes.Insert(recipe)
 	end
 end
 
@@ -21,7 +21,7 @@ function RecipeManager:HasRecipe(recipe: string, player: Player): boolean
 		return false
 	end
 
-	local Recipes = PlayerData.Recipes()
+	local Recipes = PlayerData.UnlockedRecipes()
 	if table.find(Recipes, recipe) then
 		return true
 	end
