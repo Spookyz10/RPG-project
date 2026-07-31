@@ -15,7 +15,7 @@ local Item: Types.Consumable = {
 		Rarity = "Common",
 		Level = 1,
 		Description = "Used to Craft Fang Dagger.",
-		ActionName = "Equip",
+		ActionName = nil,
 	},
 }
 

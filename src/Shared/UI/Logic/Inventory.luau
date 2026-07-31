@@ -12,6 +12,12 @@ local UI = {}
 
 local ItemFrames: { [string]: { Frame: ImageButton, Disconnectors: { () -> () } } } = {}
 
+local SellMode = false
+local SelectedItems: { [string]: { Clone: GuiObject, Amount: number } } = {}
+
+local PendingSellUUID: string? = nil
+local PendingSellButton: GuiObject? = nil
+
 function UI.Init()
 	local Data = UIConstants.Data
 	local Character = UIConstants.Character
@@ -24,6 +30,133 @@ function UI.Init()
 	local Templates = ReplicatedStorage.Assets.UI.Templates.Inventory
 
 	local Top = InventoryFrame.InventoryContainer.Top
+	local SellButton = InventoryFrame.InventoryContainer.Sell :: GuiButton
+
+	local SellMultiple = UIConstants.Main.SellMultiple
+
+	local function ClearSelection()
+		for _, Entry in SelectedItems do
+			if Entry.Clone then
+				Entry.Clone:Destroy()
+			end
+		end
+		table.clear(SelectedItems)
+	end
+
+	local function DeselectItem(UUID: string)
+		local Entry = SelectedItems[UUID]
+		if not Entry then
+			return
+		end
+
+		if Entry.Clone then
+			Entry.Clone:Destroy()
+		end
+
+		SelectedItems[UUID] = nil
+	end
+
+	local function SelectItem(UUID: string, Button: GuiObject, Amount: number)
+		if SelectedItems[UUID] then
+			return
+		end
+
+		local Clone = Templates.Selected:Clone()
+		Clone.Parent = Button
+
+		SelectedItems[UUID] = { Clone = Clone, Amount = Amount }
+	end
+
+	local function CloseSellMultiple()
+		SellMultiple.Visible = false
+		PendingSellUUID = nil
+		PendingSellButton = nil
+	end
+
+	local function OpenSellMultiple(UUID: string, Button: GuiObject, KeyData: any, ItemInfo: Types.Item)
+		PendingSellUUID = UUID
+		PendingSellButton = Button
+
+		SellMultiple.ItemName.Text = ItemInfo.Data.Name
+		SellMultiple.ItemIcon.Image = ItemInfo.Data.Icon
+		SellMultiple.Amount.Text = tostring(KeyData.Amount)
+
+		SellMultiple.Visible = true
+	end
+
+	local function OnItemClicked(UUID: string, Button: ImageButton)
+		if not SellMode then
+			return
+		end
+
+		if SelectedItems[UUID] then
+			DeselectItem(UUID)
+			return
+		end
+
+		local KeyData = Data.Inventory[UUID]()
+		if not KeyData then
+			return
+		end
+
+		local ItemInfo = ItemsData[KeyData.Name] :: Types.Item
+		if not ItemInfo then
+			return
+		end
+
+		if ItemInfo.Data.Stackable and KeyData.Amount > 1 then
+			OpenSellMultiple(UUID, Button, KeyData, ItemInfo)
+		else
+			SelectItem(UUID, Button, KeyData.Amount)
+		end
+	end
+
+	SellMultiple.Cancel.MouseButton1Click:Connect(function()
+		CloseSellMultiple()
+	end)
+
+	SellMultiple.Confirm.MouseButton1Click:Connect(function()
+		if not PendingSellUUID or not PendingSellButton then
+			CloseSellMultiple()
+			return
+		end
+
+		local KeyData = Data.Inventory[PendingSellUUID]()
+		if not KeyData then
+			CloseSellMultiple()
+			return
+		end
+
+		local Amount = tonumber(SellMultiple.Amount.Text)
+		if not Amount then
+			return
+		end
+
+		Amount = math.clamp(math.floor(Amount), 1, KeyData.Amount)
+
+		SelectItem(PendingSellUUID, PendingSellButton, Amount)
+		CloseSellMultiple()
+	end)
+
+	SellButton.MouseButton1Click:Connect(function()
+		if not SellMode then
+			SellMode = true
+			return
+		end
+
+		local SellList = {}
+		for UUID, Entry in SelectedItems do
+			SellList[UUID] = Entry.Amount
+		end
+
+		if next(SellList) then
+			RemoteManager.SendServerEvent("SellItems", SellList)
+		end
+
+		ClearSelection()
+		CloseSellMultiple()
+		SellMode = false
+	end)
 
 	local function UpdateItemFrame(Button: ImageButton, ItemData: Types.Item, KeyData: any)
 		if Button then
@@ -61,7 +194,11 @@ function UI.Init()
 		end)
 
 		local ClickConnection = Frame.MouseButton1Click:Connect(function()
-			ItemDisplay:ShowInfo(KeyData, UUID)
+			if SellMode then
+				OnItemClicked(UUID, Frame)
+			else
+				ItemDisplay:ShowInfo(KeyData, UUID)
+			end
 		end)
 		table.insert(Disconnectors, function()
 			ClickConnection:Disconnect()
@@ -91,6 +228,11 @@ function UI.Init()
 
 		Entry.Frame:Destroy()
 		ItemFrames[UUID] = nil
+		SelectedItems[UUID] = nil
+
+		if PendingSellUUID == UUID then
+			CloseSellMultiple()
+		end
 	end
 
 	local function UpdateEquipment()
@@ -172,6 +314,8 @@ function UI.Init()
 	end)
 
 	Top.Space.Text = Data.CurrentInventorySpace() .. "/" .. Data.MaxInventorySpace()
+
+	SellMultiple.Visible = false
 end
 
 return UI
