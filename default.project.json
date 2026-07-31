@@ -24,6 +24,12 @@
       }
     },
 
+    "ReplicatedFirst": {
+      "ReplicatedFirst": {
+        "$path": "src/First"
+      }
+    },
+
     "StarterPlayer": {
       "StarterPlayerScripts": {
         "Client": {

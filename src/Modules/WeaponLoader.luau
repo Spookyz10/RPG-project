@@ -18,6 +18,10 @@ local function getHand(character: Model): BasePart?
 	return (character:FindFirstChild("RightHand") :: BasePart?) or (character:FindFirstChild("Right Arm") :: BasePart?)
 end
 
+local function getGripOffset(): CFrame
+	return CFrame.Angles(math.rad(60), math.rad(-200), math.rad(90))
+end
+
 local function clearWeapon(player: Player)
 	local Existing = LoadedWeapons[player]
 	if Existing then
@@ -62,10 +66,12 @@ local function attachWeapon(character: Model, weaponName: string): Model?
 	WeaponModel.Parent = character
 
 	local GripAttachment = Handle:FindFirstChild(GRIP_ATTACHMENT_NAME) :: Attachment?
+	local GRIP_OFFSET = getGripOffset()
+
 	if GripAttachment then
-		WeaponModel:PivotTo(Hand.CFrame * GripAttachment.CFrame:Inverse())
+		WeaponModel:PivotTo(Hand.CFrame * GripAttachment.CFrame:Inverse() * GRIP_OFFSET)
 	else
-		WeaponModel:PivotTo(Hand.CFrame)
+		WeaponModel:PivotTo(Hand.CFrame * GRIP_OFFSET)
 	end
 
 	WeldSystem:Weld(Hand, Handle)
