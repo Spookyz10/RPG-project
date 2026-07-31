@@ -4,9 +4,9 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Zone: Types.Zone = {
 	Level = 1,
 	MaxLevel = 1,
-	Description = "A bilalge",
+	Description = "lobbywse",
 	Icon = "",
-	Mobs = { "Wolf" },
+	Mobs = {},
 }
 
 function Zone.getLighting()

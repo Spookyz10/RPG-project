@@ -65,7 +65,7 @@ export type ItemInfo = {
 	Rarity: string,
 	Description: string,
 	Level: number,
-	ActionName: string,
+	ActionName: string?,
 }
 
 export type ItemBase<T> = {
@@ -73,6 +73,7 @@ export type ItemBase<T> = {
 	Elligable: (self: T, Data: PlayerData) -> boolean,
 	Action: (self: T, UUID: string) -> (),
 	OnDropped: (self: T, Data: PlayerData) -> (),
+	OnUse: (self: T, Data: PlayerData) -> ()?,
 }
 
 export type Equipment = ItemBase<Equipment> & {
@@ -157,7 +158,7 @@ export type Zone = {
 	Level: number,
 	MaxLevel: number,
 	Mobs: { string },
-	ApplyLighting: () -> (),
+	getLighting: () -> (),
 }
 
 export type DialogueOption = {

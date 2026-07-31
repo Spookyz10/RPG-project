@@ -2,7 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Skill: Types.SkillData = {
-	Name = "Consecutive Slashes",
+	Name = script.Name,
 	Cooldown = 3,
 	Multiplier = 3,
 	LevelRequirement = 10,

@@ -151,7 +151,7 @@ function InventoryManager:ItemAction(player: Player, UUID: string)
 		PlayerData.Equipment[Info.Data.SubType](UUID)
 		PlayerData.Inventory[UUID].Equipped(true)
 	elseif Info.Data.ItemType == "Consumable" then
-		print("potion")
+		Info:Use(PlayerData)
 	end
 end
 

@@ -2,7 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Skill: Types.SkillData = {
-	Name = "Whirlwind",
+	Name = script.Name,
 	Cooldown = 5,
 	Multiplier = 10,
 	LevelRequirement = 1,

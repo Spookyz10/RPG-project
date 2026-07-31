@@ -2,7 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Quest: Types.QuestInfo = {
-	Name = "Tutorial1",
+	Name = script.Name,
 	Description = "Defeat 3 Bushlings to prove you can handle yourself.",
 	Repeatable = false,
 	RequiredLevel = 1,

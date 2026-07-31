@@ -3,11 +3,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ZonesData = require(ReplicatedStorage.Shared.Zones)
 local MobsData = require(ReplicatedStorage.Shared.MobsData)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
+local LightingManager = require(ReplicatedStorage.Shared.LightingManager)
 local UIFunctions = require(ReplicatedStorage.Shared.UI.UIFunctions)
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local ItemDisplay = require(ReplicatedStorage.Shared.UI.ItemDisplay)
+local Zones = require(ReplicatedStorage.Shared.Zones)
 
 local UI = {}
 
@@ -35,11 +37,25 @@ function UI.Init()
 	local MobTemplate = ReplicatedStorage.Assets.UI.Templates.Mob
 	local DropTemplate = ReplicatedStorage.Assets.UI.Templates.Drop
 
+	local SelectedZone = nil
+
 	local ContentFrames = {
 		Overview = OverviewFrame,
 		Mobs = MobsFrame,
 		Enviroment = EnviromentFrame,
 	}
+
+	local function EnterZone()
+		local ZoneInfo = Zones[SelectedZone] :: Types.Zone
+		if ZoneInfo then
+			if Data.Level() >= ZoneInfo.Level then
+				LightingManager:ApplyZoneLighting(SelectedZone)
+				UIConstants.Character:PivotTo(
+					workspace:FindFirstChild("ZoneTPs"):FindFirstChild(SelectedZone).PrimaryPart.CFrame
+				)
+			end
+		end
+	end
 
 	local function SelectTab(tabName: string)
 		for name, frame in ContentFrames do
@@ -222,13 +238,14 @@ function UI.Init()
 
 		Frame.MouseButton1Click:Connect(function()
 			OpenZone(ZoneName, ZoneInfo)
+			SelectedZone = ZoneName
 		end)
 
 		Frame.Parent = SelectorContainer
 	end
 
 	OverviewFrame.Enter.MouseButton1Click:Connect(function()
-		print("Clicked")
+		EnterZone()
 	end)
 
 	SetupTabs()

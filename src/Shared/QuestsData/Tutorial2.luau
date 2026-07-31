@@ -2,7 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Quest: Types.QuestInfo = {
-	Name = "Tutorial2",
+	Name = script.Name,
 	Description = "Defeat the Bear that lurks at the edge of the Village Outskirts.",
 	Repeatable = false,
 	RequiredLevel = 1,

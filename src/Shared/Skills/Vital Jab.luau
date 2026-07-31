@@ -2,7 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Skill: Types.SkillData = {
-	Name = "Vital Jab",
+	Name = script.Name,
 	Cooldown = 10,
 	Multiplier = 2,
 	LevelRequirement = 3,

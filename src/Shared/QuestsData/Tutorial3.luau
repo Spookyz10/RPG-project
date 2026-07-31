@@ -2,7 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Quest: Types.QuestInfo = {
-	Name = "Tutorial3",
+	Name = script.Name,
 	Description = "Craft a Fang Dagger at the blacksmith using materials from the wild.",
 	Repeatable = false,
 	RequiredLevel = 1,

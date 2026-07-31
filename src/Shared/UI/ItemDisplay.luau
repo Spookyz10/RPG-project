@@ -134,7 +134,12 @@ function ItemDisplay:ShowInfo(InventoryEntry: Types.ItemData, UUID: string)
 	InfoFrame.Level.Text = "Level: " .. ItemData.Data.Level
 	InfoFrame.Rarity.Text = ItemData.Data.Rarity
 	InfoFrame.Description.Text = ItemData.Data.Description
-	InfoFrame.Action.ActionName.Text = ItemData.Data.ActionName
+	if ItemData.Data.ActionName then
+		InfoFrame.Action.ActionName.Text = ItemData.Data.ActionName
+		InfoFrame.Action.Visible = true
+	else
+		InfoFrame.Action.Visible = false
+	end
 	local Action = InfoFrame.Action :: ImageButton
 
 	Action.MouseButton1Click:Connect(function()

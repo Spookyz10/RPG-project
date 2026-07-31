@@ -2,7 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Quest: Types.QuestInfo = {
-	Name = "Wolf Culling",
+	Name = script.Name,
 	Description = "The village needs help keeping the wolf population down. Kill 5 Wolves.",
 	Repeatable = true,
 	Cooldown = 10,
