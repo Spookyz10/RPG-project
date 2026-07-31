@@ -163,7 +163,7 @@ function UI.Init()
 			return
 		end
 
-		local Node = CurrentDialogue[CurrentNodeName]
+		local Node = CurrentDialogue.Nodes[CurrentNodeName]
 		if not Node then
 			return
 		end

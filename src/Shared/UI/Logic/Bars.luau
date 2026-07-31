@@ -9,22 +9,21 @@ local UI = {}
 local ActiveTweens = {} :: { [string]: { Main: Tween?, Trail: Tween? } }
 
 function UI.Init()
-	UIConstants.PlayerGui:FindFirstChild("HUD"):FindFirstChild("Player").Icon.Image = Players:GetUserThumbnailAsync(
+	UIConstants.PlayerGui:WaitForChild("HUD"):WaitForChild("Player").Icon.Image = Players:GetUserThumbnailAsync(
 		UIConstants.Player.UserId,
 		Enum.ThumbnailType.HeadShot,
 		Enum.ThumbnailSize.Size100x100
 	)
 
-	UIConstants.PlayerGui:FindFirstChild("HUD"):FindFirstChild("Player").Level.Text = "Level: "
-		.. UIConstants.Data.Level()
+	UIConstants.PlayerGui:WaitForChild("HUD"):WaitForChild("Player").Level.Text = "Level: " .. UIConstants.Data.Level()
 
 	UIConstants.Data.Level.Changed(function(newLevel)
-		UIConstants.PlayerGui:FindFirstChild("HUD"):FindFirstChild("Player").Level.Text = "Level: " .. newLevel
+		UIConstants.PlayerGui:WaitForChild("HUD"):WaitForChild("Player").Level.Text = "Level: " .. newLevel
 	end)
 end
 
 function UI.UpdateBar(value: number, maxValue: number, bar: string)
-	local Bar = UIConstants.PlayerGui:FindFirstChild("HUD"):FindFirstChild(bar)
+	local Bar = UIConstants.PlayerGui:WaitForChild("HUD"):FindFirstChild(bar)
 	local MainContainer = Bar:FindFirstChild("Container")
 	local Trail = Bar:FindFirstChild("Trail")
 

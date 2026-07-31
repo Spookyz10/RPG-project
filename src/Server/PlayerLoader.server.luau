@@ -4,6 +4,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local PlayerClass = require(ReplicatedStorage.Shared.PlayerClass)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
+local WeaponLoader = require(ServerStorage.Modules.WeaponLoader)
 
 local Data = require(ReplicatedStorage.Shared.Data).server
 local InventoryManager = require(ServerStorage.Modules.InventoryManager)
@@ -23,6 +24,7 @@ local function LoadPlayer(Player: Player)
 
 	SkillManager:GrantSkill(Player, "Whirlwind")
 	SkillManager:Listen(Player)
+	WeaponLoader:Listen(Player)
 
 	Player:LoadCharacterAsync()
 end
