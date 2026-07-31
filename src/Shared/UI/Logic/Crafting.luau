@@ -12,11 +12,18 @@ local UI = {}
 
 local RecipeFrames: { [string]: { Frame: ImageButton, Disconnectors: { () -> () } } } = {}
 
+local TotalRecipes = 0
+for _ in Recipes do
+	TotalRecipes += 1
+end
+
 function UI.Init()
 	local Data = UIConstants.Data
 
 	local CraftingFrame = UIConstants.Main:WaitForChild("Crafting")
-	local Container = CraftingFrame.Recipes.Container
+	local RecipesFrame = CraftingFrame.Recipes
+	local Top = RecipesFrame.Top
+	local Container = RecipesFrame.Container
 	local ItemInfo = CraftingFrame.InfoFrame
 	local MainInfo = ItemInfo.MainInfo
 
@@ -42,6 +49,10 @@ function UI.Init()
 			Counts[itemData.Name] = (Counts[itemData.Name] or 0) + itemData.Amount
 		end
 		return Counts
+	end
+
+	local function UpdateDiscovered()
+		Top.Discovered.Text = #Data.UnlockedRecipes() .. "/" .. TotalRecipes
 	end
 
 	local function RenderRecipe(itemName: string)
@@ -91,10 +102,10 @@ function UI.Init()
 		UIFunctions:ApplyRarityGradient(ItemInfo.ImageContainer.Rarity, ItemData.Data.Rarity)
 
 		if ItemData.Kind == "Equipment" then
-			StatsContentFrame.Visible = true
-			UIFunctions:UpdateStatsContainer(StatsContentFrame.Info, ItemData.Stats)
+			StatsButton.Visible = true
+			UIFunctions:UpdateStatsContainer(StatsContentFrame, ItemData.Stats)
 		else
-			StatsContentFrame.Visible = false
+			StatsButton.Visible = false
 		end
 
 		ShowTab("Recipe")
@@ -166,19 +177,14 @@ function UI.Init()
 
 		Entry.Frame:Destroy()
 		RecipeFrames[itemName] = nil
-	end
 
-	local function LoadRecipes(UnlockedRecipes: { string })
-		local Seen = {}
+		if SelectedRecipe == itemName then
+			ItemInfo.Visible = false
+			SelectedRecipe = nil
 
-		for _, itemName in UnlockedRecipes do
-			Seen[itemName] = true
-			CreateRecipeFrame(itemName)
-		end
-
-		for itemName in RecipeFrames do
-			if not Seen[itemName] then
-				RemoveRecipeFrame(itemName)
+			if IngredientDisconnect then
+				IngredientDisconnect()
+				IngredientDisconnect = nil
 			end
 		end
 	end
@@ -202,12 +208,19 @@ function UI.Init()
 	ItemInfo.Visible = false
 	ShowTab("Recipe")
 
-	LoadRecipes(Data.UnlockedRecipes())
+	for _, itemName in Data.UnlockedRecipes() do
+		CreateRecipeFrame(itemName)
+	end
+	UpdateDiscovered()
 
-	print(Data.UnlockedRecipes())
+	Data.UnlockedRecipes.OnKeyAdded(function(_, itemName)
+		CreateRecipeFrame(itemName)
+		UpdateDiscovered()
+	end)
 
-	Data.UnlockedRecipes.Changed(function(NewList)
-		LoadRecipes(NewList)
+	Data.UnlockedRecipes.OnKeyRemoved(function(_, itemName)
+		RemoveRecipeFrame(itemName)
+		UpdateDiscovered()
 	end)
 end
 

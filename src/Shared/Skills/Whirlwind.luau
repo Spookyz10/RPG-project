@@ -8,6 +8,7 @@ local Skill: Types.SkillData = {
 	LevelRequirement = 1,
 	Icon = "",
 	Description = "Spin around and hit all enemies around you.",
+	SkillType = "Attack",
 }
 
 function Skill:Elligable(PlayerData: Types.PlayerData): boolean

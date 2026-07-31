@@ -133,6 +133,7 @@ export type SkillData = {
 	Multiplier: number,
 	LevelRequirement: number,
 	Description: string,
+	SkillType: string,
 	Elligable: (self: SkillData, Data: PlayerData) -> boolean,
 }
 

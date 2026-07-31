@@ -133,7 +133,7 @@ function UI.Open(dialogue: Types.Dialogue, npcName: string?)
 	end
 
 	local BasePosition = DialogFrame.Position
-	DialogFrame.Position = UDim2.new(BasePosition.X.Scale, BasePosition.X.Offset, 1.2, BasePosition.Y.Offset)
+	DialogFrame.Position = UDim2.new(BasePosition.X.Scale, BasePosition.X.Offset, 1.6, BasePosition.Y.Offset)
 
 	BounceTween = TweenService:Create(
 		DialogFrame,
