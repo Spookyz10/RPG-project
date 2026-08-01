@@ -27,18 +27,19 @@ function Indicators:CreateIndicator(
 		local Indicator = Template:Clone()
 		Indicator.Color = color.Main
 		Indicator.Transparency = 0.5
+		Indicator.Parent = workspace
 
 		if size then
 			Indicator.Size = size
 		end
 
-		if typeof(position) == CFrame then
+		if typeof(position) == "CFrame" then
 			Indicator:PivotTo(position)
 		else
 			Indicator.Position = position
 		end
 
-		local TweenInfo = TweenInfo.new(time, Enum.EasingStyle.Quad, Enum.EasingStyle.Linear)
+		local TweenInfoObj = TweenInfo.new(time, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		local Tween
 		local FakeIndicator = Indicator:Clone()
 		FakeIndicator.Color = color.Display
@@ -46,16 +47,22 @@ function Indicators:CreateIndicator(
 
 		if FakeIndicator.Shape == Enum.PartType.Block then
 			FakeIndicator.Size = Vector3.new(1, FakeIndicator.Size.Y, 1)
-			Tween = TweenService:Create(FakeIndicator, TweenInfo, { Size = Indicator.Size })
+			Tween = TweenService:Create(FakeIndicator, TweenInfoObj, { Size = Indicator.Size })
 		elseif FakeIndicator.Shape == Enum.PartType.Cylinder then
 			FakeIndicator.Size = Vector3.new(FakeIndicator.Size.X, 1, 1)
-			Tween = TweenService:Create(FakeIndicator, TweenInfo, { Size = Indicator.Size })
+			Tween = TweenService:Create(FakeIndicator, TweenInfoObj, { Size = Indicator.Size })
 		end
 
-		Tween:Play()
-		Tween.Completed:Wait()
+		if Tween then
+			Tween:Play()
+			Tween.Completed:Wait()
+		else
+			task.wait(time)
+		end
+
 		FakeIndicator.Material = Enum.Material.Neon
 		Debris:AddItem(FakeIndicator, 1)
+		Debris:AddItem(Indicator, 0)
 	end)
 end
 

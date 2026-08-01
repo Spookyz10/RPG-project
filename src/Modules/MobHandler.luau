@@ -9,6 +9,7 @@ local QuestManager = require(script.Parent.QuestManager)
 local BehaviorManager = require(script.Parent.Mobs.BehaviorManager)
 local BuffsManager = require(script.Parent.BuffsManager)
 local CooldownSystem = require(script.Parent.CooldownSystem)
+local CollisionGroups = require(ReplicatedStorage.Shared.CollisionGroups)
 
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
@@ -51,6 +52,7 @@ function MobHandler:AddMob(mobName: string)
 	if Origin then
 		MobModel.Parent = workspace:FindFirstChild("Mobs")
 		MobModel:PivotTo(Origin.CFrame)
+		CollisionGroups:Apply(MobModel)
 
 		local ID = MobClass.addMob({
 			HP = MobInfo.HP,

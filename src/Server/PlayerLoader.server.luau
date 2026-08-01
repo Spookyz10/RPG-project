@@ -4,6 +4,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local PlayerClass = require(ReplicatedStorage.Shared.PlayerClass)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
+local CollisionGroups = require(ReplicatedStorage.Shared.CollisionGroups)
 local WeaponLoader = require(ServerStorage.Modules.WeaponLoader)
 
 local Data = require(ReplicatedStorage.Shared.Data).server
@@ -55,6 +56,7 @@ end)
 
 Players.PlayerAdded:Connect(function(player: Player)
 	player.CharacterAdded:Connect(function(character)
+		CollisionGroups:Apply(character)
 		SetupRespawn(player, character)
 	end)
 

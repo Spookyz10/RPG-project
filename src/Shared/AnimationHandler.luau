@@ -12,15 +12,55 @@ AnimationHandler.__index = AnimationHandler
 
 local ActiveHandlers: { [Model]: any } = {}
 
-local function getAnimator(character: Model): Animator?
-	local Controller = character:FindFirstChildOfClass("Humanoid")
-		or character:FindFirstChildOfClass("AnimationController")
+function AnimationHandler:_WaitReady(): boolean
+	local Character = self.Character
 
-	if not Controller then
-		return nil
+	local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+		or Character:FindFirstChildOfClass("AnimationController")
+	if not Humanoid then
+		Humanoid = Character:WaitForChild("Humanoid", 10) :: Humanoid?
+	end
+	if not Humanoid or self._Destroyed then
+		return false
 	end
 
-	return (Controller:FindFirstChildOfClass("Animator") :: Animator?) or Instance.new("Animator", Controller)
+	local RootPart = Character:FindFirstChild("HumanoidRootPart")
+	if not RootPart then
+		RootPart = Character:WaitForChild("HumanoidRootPart", 10)
+	end
+	if not RootPart or self._Destroyed then
+		return false
+	end
+
+	local Animator = Humanoid:FindFirstChildOfClass("Animator")
+	if not Animator then
+		Animator = Humanoid:WaitForChild("Animator", 5) :: Animator?
+	end
+	if not Animator then
+		Animator = Instance.new("Animator", Humanoid)
+	end
+	if self._Destroyed then
+		return false
+	end
+
+	self.Animator = Animator
+
+	if Humanoid:IsA("Humanoid") and Humanoid:GetState() == Enum.HumanoidStateType.Physics then
+		Humanoid.StateChanged:Wait()
+	end
+
+	return not self._Destroyed
+end
+
+function AnimationHandler:WaitUntilReady(): boolean
+	if self.Ready then
+		return true
+	end
+	if self._Destroyed then
+		return false
+	end
+	self._ReadyEvent.Event:Wait()
+	return self.Ready
 end
 
 function AnimationHandler.new(character: Model)
@@ -29,22 +69,30 @@ function AnimationHandler.new(character: Model)
 		return Existing
 	end
 
-	local Animator = getAnimator(character)
-	if not Animator then
-		warn("[AnimationHandler] Character sem Humanoid/AnimationController: " .. character:GetFullName())
-		return nil
-	end
-
 	local self = setmetatable({}, AnimationHandler)
 
 	self.Character = character
-	self.Animator = Animator
+	self.Animator = nil :: Animator?
 	self.Tracks = {} :: { [string]: AnimationTrack }
+	self.Ready = false
+	self._Destroyed = false
+	self._ReadyEvent = Instance.new("BindableEvent")
 
 	ActiveHandlers[character] = self
 
 	character.Destroying:Connect(function()
 		self:Destroy()
+	end)
+
+	task.spawn(function()
+		local ok = self:_WaitReady()
+		if self._Destroyed then
+			return
+		end
+		if ok then
+			self.Ready = true
+		end
+		self._ReadyEvent:Fire()
 	end)
 
 	return self
@@ -64,6 +112,10 @@ function AnimationHandler:LoadTrack(animName: string): AnimationTrack?
 		return Track
 	end
 
+	if not self.Animator then
+		return nil
+	end
+
 	local AnimInstance = AnimationsFolder:FindFirstChild(animName) :: Animation?
 	if not AnimInstance then
 		warn("[AnimationHandler] Nenhuma Animation chamada '" .. animName .. "' em Assets.Animations")
@@ -80,7 +132,15 @@ function AnimationHandler:Play(animName: string, fadeTime: number?, speed: numbe
 		PreloadStatus:WaitUntilReady()
 	end
 
-	if not self.Character or not self.Character.Parent then
+	if not self.Character or not self.Character.Parent or self._Destroyed then
+		return nil
+	end
+
+	if not self:WaitUntilReady() then
+		return nil
+	end
+
+	if not self.Character or not self.Character.Parent or self._Destroyed then
 		return nil
 	end
 
@@ -117,11 +177,19 @@ function AnimationHandler:StopAll(fadeTime: number?)
 end
 
 function AnimationHandler:Destroy()
+	self._Destroyed = true
+
+	if not self.Ready then
+		self._ReadyEvent:Fire()
+	end
+
 	for _, Track in self.Tracks do
 		Track:Stop(0)
 		Track:Destroy()
 	end
 	table.clear(self.Tracks)
+
+	self._ReadyEvent:Destroy()
 	ActiveHandlers[self.Character] = nil
 end
 

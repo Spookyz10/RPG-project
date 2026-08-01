@@ -4,6 +4,8 @@ local ContentProvider = game:GetService("ContentProvider")
 
 local PreloadStatus = require(ReplicatedFirst:WaitForChild("First"):WaitForChild("PreloadStatus"))
 
+require(ReplicatedStorage:WaitForChild("Shared").CollisionGroups)
+
 if not game:IsLoaded() then
 	game.Loaded:Wait()
 end

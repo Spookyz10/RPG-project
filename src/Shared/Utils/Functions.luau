@@ -166,21 +166,48 @@ function Functions:Raycast(origin: Vector3, direction: Vector3, params: RaycastP
 	return workspace:Raycast(origin, direction, params)
 end
 
-function Functions:GetGroundCFrame(position: Vector3, ignoreList: { Instance }?, maxDistance: number?): CFrame
+function Functions:GetGroundCFrame(
+	position: Vector3,
+	ignoreList: { Instance }?,
+	maxDistance: number?,
+	keepRotation: CFrame?
+): CFrame
 	local Distance = maxDistance or 100
 	local Origin = position + Vector3.new(0, Distance * 0.5, 0)
 	local Direction = Vector3.new(0, -Distance, 0)
 
-	local Params = RaycastParams.new()
-	Params.FilterType = Enum.RaycastFilterType.Exclude
-	Params.FilterDescendantsInstances = ignoreList or {}
+	local FilterList: { Instance } = {}
 
-	local Result = self:Raycast(Origin, Direction, Params)
-	if Result then
-		return CFrame.new(Result.Position)
+	local MobsFolder = workspace:FindFirstChild("Mobs")
+	if MobsFolder then
+		table.insert(FilterList, MobsFolder)
 	end
 
-	return CFrame.new(position)
+	for _, player in Players:GetPlayers() do
+		if player.Character then
+			table.insert(FilterList, player.Character)
+		end
+	end
+
+	if ignoreList then
+		for _, instance in ignoreList do
+			table.insert(FilterList, instance)
+		end
+	end
+
+	local Params = RaycastParams.new()
+	Params.FilterType = Enum.RaycastFilterType.Exclude
+	Params.FilterDescendantsInstances = FilterList
+
+	local Result = self:Raycast(Origin, Direction, Params)
+
+	local RotationOnly = keepRotation and (keepRotation - keepRotation.Position) or CFrame.new()
+
+	if Result then
+		return CFrame.new(Result.Position) * RotationOnly
+	end
+
+	return CFrame.new(position) * RotationOnly
 end
 
 return Functions

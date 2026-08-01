@@ -12,7 +12,7 @@ local ATTACK_RANGE = 4
 local WINDUP_TIME = 1
 local ATTACK_COOLDOWN = 1.5
 
-local DEFAULT_SIZE = Vector3.new(6.962, 13, 5.384)
+local DEFAULT_SIZE = Vector3.new(6, 6, 6)
 local DEFAULT_OFFSET = CFrame.new(0, 0, -3)
 
 export type Config = {
@@ -78,7 +78,8 @@ function BasicMeleeBehavior:Start(mob: Model, class: Types.Entity)
 
 				local HitboxCFrame = RootPart.CFrame * self.Offset
 				local IndicatorSize = Vector3.new(self.Size.X, 0.3, self.Size.Z)
-				local GroundCFrame = Functions:GetGroundCFrame(HitboxCFrame.Position, { mob })
+
+				local GroundCFrame = Functions:GetGroundCFrame(HitboxCFrame.Position, { mob }, nil, HitboxCFrame)
 
 				RemoteManager.SendClientEvent(
 					"Indicator",
