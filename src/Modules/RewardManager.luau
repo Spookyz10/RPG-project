@@ -63,11 +63,11 @@ function RewardManager:AddXP(player: Player, amount: number, mobData: Types.MobI
 	end)
 
 	while true do
-		local XPNeeded = Functions:GetXPNeeded(PlayerData.Level)
+		local XPNeeded = Functions:GetXPNeeded(PlayerData.Level())
 		local CurrentXP = PlayerData.XP()
 		if XPNeeded <= CurrentXP then
 			PlayerData.XP(function(currentXP)
-				currentXP -= XPNeeded
+				return currentXP - XPNeeded
 			end)
 			PlayerData.Level(function(currentLevel)
 				return currentLevel + 1
@@ -79,12 +79,12 @@ function RewardManager:AddXP(player: Player, amount: number, mobData: Types.MobI
 end
 
 function RewardManager:AddMisc(player: Player, misc: string, amount: number)
-	local PlayerData = Data.Service:waitForData(player)() :: Types.PlayerData
+	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
 	if not PlayerData then
 		return
 	end
 
-	if PlayerData and PlayerData[misc] then
+	if PlayerData[misc] then
 		PlayerData[misc](function(currentAmount)
 			return currentAmount + amount
 		end)

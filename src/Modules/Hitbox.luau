@@ -137,7 +137,7 @@ function Hitbox:Create(info: Types.HitboxInfo): (BasePart, HitboxResults)
 		ProcessHits()
 	end
 
-	Debris:AddItem(Part, 0.3)
+	Debris:AddItem(Part, math.max(info.Time or 0, 0.3))
 
 	return Part, { Players = AllPlayersHit, Mobs = AllMobsHit }
 end

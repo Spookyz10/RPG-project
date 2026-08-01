@@ -1,24 +1,43 @@
 local BuffsManager = {}
 
-local Buffed = {}
-
--- [[ Buffed = {[Entity] = {Damage, Defense}}
+local Buffed: { [Model]: { [string]: number } } = {}
 
 function BuffsManager:AddBuff(Entity: Model, Stat: string, Duration: number, Amount: number)
+	Buffed[Entity] = Buffed[Entity] or {}
 	Buffed[Entity][Stat] = Amount
+
 	task.delay(Duration, function()
-		Buffed[Entity][Stat] = nil
+		local EntityBuffs = Buffed[Entity]
+		if not EntityBuffs then
+			return
+		end
+
+		EntityBuffs[Stat] = nil
+
+		if next(EntityBuffs) == nil then
+			Buffed[Entity] = nil
+		end
 	end)
 end
 
 function BuffsManager:RemoveBuff(Entity: Model, Stat: string)
-	if Buffed[Entity] and Buffed[Entity][Stat] then
-		Buffed[Entity][Stat] = nil
+	local EntityBuffs = Buffed[Entity]
+	if EntityBuffs and EntityBuffs[Stat] then
+		EntityBuffs[Stat] = nil
+
+		if next(EntityBuffs) == nil then
+			Buffed[Entity] = nil
+		end
 	end
 end
 
 function BuffsManager:GetBuffAmount(Entity: Model, Stat: string): number
-	return Buffed[Entity] and Buffed[Entity][Stat] or 0
+	local EntityBuffs = Buffed[Entity]
+	return (EntityBuffs and EntityBuffs[Stat]) or 0
+end
+
+function BuffsManager:ClearEntity(Entity: Model)
+	Buffed[Entity] = nil
 end
 
 return BuffsManager

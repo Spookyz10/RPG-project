@@ -12,7 +12,7 @@ local Skill: Types.SkillData = {
 }
 
 function Skill:Elligable(PlayerData: Types.PlayerData): boolean
-	return PlayerData.Level >= Skill.LevelRequirement
+	return PlayerData.Level() >= Skill.LevelRequirement
 end
 
 return Skill

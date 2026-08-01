@@ -24,12 +24,28 @@ local RemoteFunctions = {
 	GetPlayerInfo = "Server",
 }
 
-local function getRemote(remoteName: string, folder: string): Instance
-	for _, remote: Instance in ReplicatedStorage:FindFirstChild("Remotes"):FindFirstChild(folder):GetDescendants() do
+local RemoteCache: { [string]: Instance } = {}
+
+local function getRemote(remoteName: string, folder: string): Instance?
+	local CacheKey = folder .. ":" .. remoteName
+	local Cached = RemoteCache[CacheKey]
+	if Cached and Cached.Parent then
+		return Cached
+	end
+
+	local RemotesFolder = ReplicatedStorage:FindFirstChild("Remotes")
+	local TargetFolder = RemotesFolder and RemotesFolder:FindFirstChild(folder)
+	if not TargetFolder then
+		return nil
+	end
+
+	for _, remote: Instance in TargetFolder:GetDescendants() do
 		if remote.Name == remoteName then
+			RemoteCache[CacheKey] = remote
 			return remote
 		end
 	end
+
 	return nil
 end
 

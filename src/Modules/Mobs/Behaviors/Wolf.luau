@@ -9,6 +9,10 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Behavior = {}
 
 function Behavior:Start(mob: Model, class: Types.Entity)
+	if BehaviorManager.Active[mob] then
+		return
+	end
+
 	local Humanoid = mob:FindFirstChild("Humanoid") :: Humanoid
 	local RootPart = mob:FindFirstChild("HumanoidRootPart")
 	if not Humanoid or not RootPart then
@@ -17,19 +21,23 @@ function Behavior:Start(mob: Model, class: Types.Entity)
 
 	BehaviorManager.Active[mob] = true
 
-	while mob and RootPart and BehaviorManager.Active[mob] do
+	while mob and mob.Parent and RootPart and RootPart.Parent and BehaviorManager.Active[mob] do
 		local Hitlist = class.HitList
 		local targetPlayer = Functions:GetTargetPlayer(mob, Hitlist)
 		if not targetPlayer then
 			BehaviorManager:Reset(mob)
+			break
 		end
+
 		local targetCharacter = targetPlayer.Character
-		local targetRootPart = targetCharacter:FindFirstChild("HumanoidRootPart") :: BasePart
+		local targetRootPart = targetCharacter and (targetCharacter:FindFirstChild("HumanoidRootPart") :: BasePart)
+
 		if targetCharacter and targetRootPart then
 			BehaviorManager:Move(Humanoid, targetRootPart.Position)
 
 			if Functions:getDistance(RootPart, targetRootPart) > 50 then
 				BehaviorManager:Reset(mob)
+				break
 			end
 
 			if Functions:getDistance(RootPart, targetRootPart) < 3 then
@@ -47,6 +55,8 @@ function Behavior:Start(mob: Model, class: Types.Entity)
 				end
 			end
 		end
+
+		task.wait(0.1)
 	end
 end
 

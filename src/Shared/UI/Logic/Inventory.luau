@@ -31,8 +31,11 @@ function UI.Init()
 
 	local Top = InventoryFrame.InventoryContainer.Top
 	local SellButton = InventoryFrame.InventoryContainer.Sell :: GuiButton
+	local ConfirmButton = InventoryFrame.InventoryContainer.Confirm :: GuiButton
+	local CancelButton = InventoryFrame.InventoryContainer.Cancel :: GuiButton
 
 	local SellMultiple = UIConstants.Main.SellMultiple
+	local SellMultipleItemContainer = SellMultiple.ItemContainer
 
 	local function ClearSelection()
 		for _, Entry in SelectedItems do
@@ -77,8 +80,11 @@ function UI.Init()
 		PendingSellUUID = UUID
 		PendingSellButton = Button
 
+		SellMultipleItemContainer.Icon.Image = ItemInfo.Data.Icon
+		UIFunctions:ApplyRarityGradient(SellMultipleItemContainer.Rarity, ItemInfo.Data.Rarity)
+
 		SellMultiple.ItemName.Text = ItemInfo.Data.Name
-		SellMultiple.ItemIcon.Image = ItemInfo.Data.Icon
+		SellMultiple.AmountLabel.Text = "You have " .. KeyData.Amount .. " " .. ItemInfo.Data.Name .. " in this stack."
 		SellMultiple.Amount.Text = tostring(KeyData.Amount)
 
 		SellMultiple.Visible = true
@@ -111,6 +117,34 @@ function UI.Init()
 		end
 	end
 
+	local function SetSellMode(enabled: boolean)
+		SellMode = enabled
+		SellButton.Visible = not enabled
+		ConfirmButton.Visible = enabled
+		CancelButton.Visible = enabled
+	end
+
+	SellMultiple.Amount:GetPropertyChangedSignal("Text"):Connect(function()
+		if not PendingSellUUID then
+			return
+		end
+
+		local KeyData = Data.Inventory[PendingSellUUID]()
+		if not KeyData then
+			return
+		end
+
+		local Amount = tonumber(SellMultiple.Amount.Text)
+		if not Amount then
+			return
+		end
+
+		local Clamped = math.clamp(math.floor(Amount), 1, KeyData.Amount)
+		if Clamped ~= Amount then
+			SellMultiple.Amount.Text = tostring(Clamped)
+		end
+	end)
+
 	SellMultiple.Cancel.MouseButton1Click:Connect(function()
 		CloseSellMultiple()
 	end)
@@ -139,11 +173,10 @@ function UI.Init()
 	end)
 
 	SellButton.MouseButton1Click:Connect(function()
-		if not SellMode then
-			SellMode = true
-			return
-		end
+		SetSellMode(true)
+	end)
 
+	ConfirmButton.MouseButton1Click:Connect(function()
 		local SellList = {}
 		for UUID, Entry in SelectedItems do
 			SellList[UUID] = Entry.Amount
@@ -155,7 +188,13 @@ function UI.Init()
 
 		ClearSelection()
 		CloseSellMultiple()
-		SellMode = false
+		SetSellMode(false)
+	end)
+
+	CancelButton.MouseButton1Click:Connect(function()
+		ClearSelection()
+		CloseSellMultiple()
+		SetSellMode(false)
 	end)
 
 	local function UpdateItemFrame(Button: ImageButton, ItemData: Types.Item, KeyData: any)
@@ -316,6 +355,8 @@ function UI.Init()
 	Top.Space.Text = Data.CurrentInventorySpace() .. "/" .. Data.MaxInventorySpace()
 
 	SellMultiple.Visible = false
+	ConfirmButton.Visible = false
+	CancelButton.Visible = false
 end
 
 return UI

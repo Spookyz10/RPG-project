@@ -6,6 +6,8 @@ local Mobs = require(script.Parent.Mobs)
 local RewardManager = require(script.Parent.RewardManager)
 local MobClass = require(ReplicatedStorage.Shared.MobClass)
 local QuestManager = require(script.Parent.QuestManager)
+local BehaviorManager = require(script.Parent.Mobs.BehaviorManager)
+local BuffsManager = require(script.Parent.BuffsManager)
 
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
@@ -67,6 +69,10 @@ end
 
 function MobHandler:RemoveMob(mobInfo: Types.Entity)
 	local MobModel = mobInfo.Model
+
+	BehaviorManager:Cancel(MobModel)
+	BuffsManager:ClearEntity(MobModel)
+
 	local UUID = MobModel:FindFirstChild("UUID")
 	MobClass:removeMob(UUID.Value)
 	MobModel:Destroy()
