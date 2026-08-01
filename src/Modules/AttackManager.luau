@@ -17,7 +17,6 @@ local AttackManager = {}
 function AttackManager:Swing(class: Types.Entity)
 	local Player = Players:GetPlayerFromCharacter(class.Model)
 	if not Player then
-		print("what the hell!!!!!!!!")
 		return
 	end
 
@@ -25,7 +24,6 @@ function AttackManager:Swing(class: Types.Entity)
 	local Weapon = PlayerData.Equipment.Weapon()
 
 	if Weapon == "" then
-		print("Player has no weapon equipped.")
 		return
 	end
 
@@ -36,7 +34,6 @@ function AttackManager:Swing(class: Types.Entity)
 	local WeaponData = ItemsData[PlayerData.Inventory[Weapon]().Name] :: Types.Equipment
 
 	if not WeaponData then
-		print("Invakid Weapon Id")
 		return
 	end
 
@@ -65,7 +62,6 @@ end
 function AttackManager:UseSkill(class: Types.Entity, slot: string)
 	local Player = Players:GetPlayerFromCharacter(class.Model)
 	if not Player then
-		print("what the hell!!!!!!!!")
 		return
 	end
 

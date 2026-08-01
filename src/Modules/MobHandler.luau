@@ -38,14 +38,12 @@ function MobHandler:AddMob(mobName: string)
 	local maxHpChanged = Instance.new("BindableEvent")
 
 	if not MobModel then
-		print("No mob model found for: ", mobName)
 		return
 	end
 	MobModel = MobModel:Clone()
 	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 	local MobInfo = MobsData[MobModel.Name] :: Types.MobInfo
 	if not MobInfo then
-		print("No mob info for mob: ", MobModel.Name, MobInfo)
 		return
 	end
 	local Origin = getEmptySlot(MobModel.Name)
@@ -128,7 +126,6 @@ MobClass.Died:Connect(function(mob: Types.Entity, hitlist: { [Player]: number })
 	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 	local MobInfo = MobsData[MobName] :: Types.MobInfo
 	if not MobInfo then
-		print("No mob info for mob: ", MobName, MobInfo)
 		return
 	end
 

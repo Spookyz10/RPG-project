@@ -84,7 +84,7 @@ function BasicMeleeBehavior:Start(mob: Model, class: Types.Entity)
 				RemoteManager.SendClientEvent(
 					"Indicator",
 					{ All = true },
-					"BasicMelee",
+					"Square",
 					{ Main = Color3.fromRGB(199, 8, 8), Display = Color3.fromRGB(255, 0, 0) },
 					GroundCFrame,
 					WINDUP_TIME,

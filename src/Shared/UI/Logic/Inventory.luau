@@ -217,7 +217,6 @@ function UI.Init()
 		local ItemData = ItemsData[KeyData.Name] :: Types.Item
 
 		if not ItemData then
-			print("No item data for item: ", KeyData.Name, ItemData)
 			return
 		end
 

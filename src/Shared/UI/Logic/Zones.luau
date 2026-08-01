@@ -49,10 +49,8 @@ function UI.Init()
 		local ZoneInfo = Zones[SelectedZone] :: Types.Zone
 		if ZoneInfo then
 			if Data.Level() >= ZoneInfo.Level then
-				LightingManager:ApplyZoneLighting(SelectedZone)
-				UIConstants.Character:PivotTo(
-					workspace:FindFirstChild("ZoneTPs"):FindFirstChild(SelectedZone).PrimaryPart.CFrame
-				)
+				--LightingManager:ApplyZoneLighting(SelectedZone)
+				UIConstants.Character:PivotTo(workspace:FindFirstChild("ZoneTPs"):FindFirstChild(SelectedZone).CFrame)
 			end
 		end
 	end
@@ -251,7 +249,9 @@ function UI.Init()
 	SetupTabs()
 
 	for ZoneName, ZoneInfo in ZonesData do
-		CreateZoneFrame(ZoneName, ZoneInfo)
+		if ZoneName ~= "Lobby" then
+			CreateZoneFrame(ZoneName, ZoneInfo)
+		end
 	end
 end
 

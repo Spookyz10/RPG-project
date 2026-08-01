@@ -60,7 +60,7 @@ function Behavior:Start(mob: Model, class: Types.Entity)
 					RemoteManager.SendClientEvent(
 						"Indicator",
 						{ All = true },
-						"Spin",
+						"Cylinder",
 						{ Main = Color3.fromRGB(199, 8, 8), Display = Color3.fromRGB(255, 0, 0) },
 						RootPart.Position + Vector3.new(0, -3.5, 0),
 						2
@@ -92,7 +92,7 @@ function Behavior:Start(mob: Model, class: Types.Entity)
 					RemoteManager.SendClientEvent(
 						"Indicator",
 						{ All = true },
-						"Slam",
+						"Square",
 						{ Main = Color3.fromRGB(199, 8, 8), Display = Color3.fromRGB(255, 0, 0) },
 						RootPart.Position + Vector3.new(0, -3.5, -3),
 						2
@@ -124,7 +124,7 @@ function Behavior:Start(mob: Model, class: Types.Entity)
 					RemoteManager.SendClientEvent(
 						"Indicator",
 						{ All = true },
-						"Dash",
+						"Square",
 						{ Main = Color3.fromRGB(199, 8, 8), Display = Color3.fromRGB(255, 0, 0) },
 						RootPart.Position + Vector3.new(0, -3.5, -3.5),
 						2

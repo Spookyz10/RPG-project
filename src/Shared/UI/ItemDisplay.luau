@@ -53,14 +53,12 @@ end
 
 function ItemDisplay:Hover(Button: ImageButton, InventoryEntry: Types.ItemData)
 	if not InventoryEntry then
-		print("No inventory entry")
 		return
 	end
 
 	local ItemData = ItemsData[InventoryEntry.Name] :: Types.Item
 
 	if not ItemData then
-		print("No item data for item: ", InventoryEntry.Name, ItemData)
 		return
 	end
 
@@ -89,7 +87,6 @@ function ItemDisplay:HoverShopItem(Button: GuiObject, itemName: string, itemType
 		if itemType == "Skill" then
 			local SkillInfo = Skills[itemName] :: Types.SkillData
 			if not SkillInfo then
-				print("No skill data for skill: ", itemName)
 				return
 			end
 
@@ -97,7 +94,6 @@ function ItemDisplay:HoverShopItem(Button: GuiObject, itemName: string, itemType
 		else
 			local ItemData = ItemsData[itemName] :: Types.Item
 			if not ItemData then
-				print("No item data for item: ", itemName)
 				return
 			end
 
@@ -112,14 +108,12 @@ function ItemDisplay:ShowInfo(InventoryEntry: Types.ItemData, UUID: string)
 	end
 
 	if not InventoryEntry then
-		print("No inventory entry")
 		return
 	end
 
 	local ItemData = ItemsData[InventoryEntry.Name] :: Types.Item
 
 	if not ItemData then
-		print("No item data for item: ", InventoryEntry.Name, ItemData)
 		return
 	end
 
