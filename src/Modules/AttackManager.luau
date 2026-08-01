@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Data = require(ReplicatedStorage.Shared.Data).server
 
 local CooldownSystem = require(script.Parent.CooldownSystem)
+local ComboManager = require(script.Parent.ComboManager)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local DamageHandler = require(script.Parent.DamageHandler)
 local Hitbox = require(script.Parent.Hitbox)
@@ -87,6 +88,8 @@ function AttackManager:UseSkill(class: Types.Entity, slot: string)
 	RemoteManager.SendClientEvent("SkillCooldown", { Player = Player }, slot, SkillInfo.Cooldown)
 
 	SkillInfo:Activate(class)
+
+	ComboManager:RecordSkill(Player, class, SkillInfo.Name)
 end
 
 return AttackManager

@@ -8,7 +8,7 @@ local Remote = {}
 
 function Remote:Activate(Player: Player, slot: string)
 	local class = PlayerClass.getPlayerInfo(Player)
-	print("using skill")
+
 	AttackManager:UseSkill(class, slot)
 end
 

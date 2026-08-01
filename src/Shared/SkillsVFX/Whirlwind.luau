@@ -16,7 +16,7 @@ function VFX:Play(Character: Model)
 	WeldSystem:Weld(Effect, RootPart)
 	Emitter:Emit(Effect)
 
-	Debris:AddItem(Effect, 1.5)
+	Debris:AddItem(Effect, 3)
 end
 
 return VFX
