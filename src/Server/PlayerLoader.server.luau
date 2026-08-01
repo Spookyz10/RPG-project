@@ -10,6 +10,10 @@ local Data = require(ReplicatedStorage.Shared.Data).server
 local InventoryManager = require(ServerStorage.Modules.InventoryManager)
 local SkillManager = require(ServerStorage.Modules.SkillManager)
 
+local RESPAWN_TIME = 6
+
+Players.CharacterAutoLoads = false
+
 local function LoadPlayer(Player: Player)
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
 	if not PlayerData then
@@ -29,6 +33,17 @@ local function LoadPlayer(Player: Player)
 	Player:LoadCharacterAsync()
 end
 
+local function SetupRespawn(Player: Player, Character: Model)
+	local Humanoid = Character:WaitForChild("Humanoid") :: Humanoid
+
+	Humanoid.Died:Connect(function()
+		task.wait(RESPAWN_TIME)
+		if Player and Player.Parent then
+			Player:LoadCharacterAsync()
+		end
+	end)
+end
+
 PlayerClass.Died:Connect(function(player: Player)
 	local PlayerData = Data.Service:waitForData(player)
 	if PlayerData then
@@ -39,6 +54,10 @@ PlayerClass.Died:Connect(function(player: Player)
 end)
 
 Players.PlayerAdded:Connect(function(player: Player)
+	player.CharacterAdded:Connect(function(character)
+		SetupRespawn(player, character)
+	end)
+
 	LoadPlayer(player)
 	local PlayerStats = Functions:GetTotalStats(nil, Data.Service:waitForData(player))
 	PlayerClass.addPlayer(player, PlayerStats.Health + 100)

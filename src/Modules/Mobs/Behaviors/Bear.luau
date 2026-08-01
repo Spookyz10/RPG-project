@@ -5,6 +5,7 @@ local TweenService = game:GetService("TweenService")
 local DamageHandler = require(ServerStorage.Modules.DamageHandler)
 local Hitbox = require(ServerStorage.Modules.Hitbox)
 local BehaviorManager = require(ServerStorage.Modules.Mobs.BehaviorManager)
+local CooldownSystem = require(ServerStorage.Modules.CooldownSystem)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
@@ -154,7 +155,13 @@ function Behavior:Start(mob: Model, class: Types.Entity)
 				end
 			end
 
-			if Functions:getDistance(RootPart, targetRootPart) < 3 then
+			if
+				not IsAttacking
+				and Functions:getDistance(RootPart, targetRootPart) < 3
+				and not CooldownSystem:IsInCooldown(mob, "MeleeAttack")
+			then
+				CooldownSystem:StartCooldown(mob, "MeleeAttack", 1)
+
 				local _, hitlist = Hitbox:Create({
 					Size = Vector3.new(4, 4, 4),
 					Part = targetRootPart,

@@ -1,6 +1,11 @@
+local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local AnimationsFolder = ReplicatedStorage.Assets.Animations
+local PreloadStatus = RunService:IsClient()
+		and require(ReplicatedFirst:WaitForChild("First"):WaitForChild("PreloadStatus"))
+	or nil
 
 local AnimationHandler = {}
 AnimationHandler.__index = AnimationHandler
@@ -71,13 +76,20 @@ function AnimationHandler:LoadTrack(animName: string): AnimationTrack?
 end
 
 function AnimationHandler:Play(animName: string, fadeTime: number?, speed: number?): AnimationTrack?
+	if PreloadStatus then
+		PreloadStatus:WaitUntilReady()
+	end
+
+	if not self.Character or not self.Character.Parent then
+		return nil
+	end
+
 	local Track = self:LoadTrack(animName)
 	if not Track then
 		return nil
 	end
 
 	if not Track.IsPlaying then
-		print("[AnimationHandler] Playing animation: " .. animName)
 		Track:Play(fadeTime or 0.2, 1, speed or 1)
 	end
 

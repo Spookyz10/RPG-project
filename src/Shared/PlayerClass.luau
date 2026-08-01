@@ -82,6 +82,12 @@ function PlayerClass.setHP(player: Player, newHP: number)
 
 	if newHP <= 0 and oldHP > 0 then
 		died:Fire(player)
+
+		local Character = player.Character
+		local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
+		if Humanoid and Humanoid.Health > 0 then
+			Humanoid.Health = 0
+		end
 	end
 end
 

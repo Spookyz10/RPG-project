@@ -8,6 +8,12 @@ local Shop: Types.Shop = {
 			Gold = 100,
 		},
 	},
+	["Consecutive Slashes"] = {
+		itemType = "Skill",
+		Cost = {
+			Gold = 1000,
+		},
+	},
 }
 
 return Shop

@@ -2,6 +2,8 @@ local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ContentProvider = game:GetService("ContentProvider")
 
+local PreloadStatus = require(ReplicatedFirst:WaitForChild("First"):WaitForChild("PreloadStatus"))
+
 if not game:IsLoaded() then
 	game.Loaded:Wait()
 end
@@ -22,5 +24,7 @@ end
 PreloadFolder(WeaponsFolder, "Weapons")
 PreloadFolder(AnimationsFolder, "Animations")
 PreloadFolder(workspace, "Workspace")
+
+PreloadStatus:MarkComplete()
 
 ReplicatedFirst:RemoveDefaultLoadingScreen()

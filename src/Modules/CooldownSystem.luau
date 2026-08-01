@@ -2,29 +2,29 @@ local Players = game:GetService("Players")
 
 local CooldownSystem = {}
 
-local Cooldowns: { [Player]: { [string]: number } } = {}
+local Cooldowns: { [Instance]: { [string]: number } } = {}
 
-local function getPlayerCooldowns(player: Player)
-	local playerCooldowns = Cooldowns[player]
-	if not playerCooldowns then
-		playerCooldowns = {}
-		Cooldowns[player] = playerCooldowns
+local function getEntityCooldowns(entity: Instance)
+	local entityCooldowns = Cooldowns[entity]
+	if not entityCooldowns then
+		entityCooldowns = {}
+		Cooldowns[entity] = entityCooldowns
 	end
-	return playerCooldowns
+	return entityCooldowns
 end
 
-function CooldownSystem:StartCooldown(player: Player, key: string, duration: number): boolean
-	local playerCooldowns = getPlayerCooldowns(player)
+function CooldownSystem:StartCooldown(entity: Instance, key: string, duration: number): boolean
+	local entityCooldowns = getEntityCooldowns(entity)
 
-	if playerCooldowns[key] and playerCooldowns[key] > os.clock() then
+	if entityCooldowns[key] and entityCooldowns[key] > os.clock() then
 		return false
 	end
 
 	local endTime = os.clock() + duration
-	playerCooldowns[key] = endTime
+	entityCooldowns[key] = endTime
 
 	task.delay(duration, function()
-		local currentCooldowns = Cooldowns[player]
+		local currentCooldowns = Cooldowns[entity]
 		if currentCooldowns and currentCooldowns[key] == endTime then
 			currentCooldowns[key] = nil
 		end
@@ -33,31 +33,31 @@ function CooldownSystem:StartCooldown(player: Player, key: string, duration: num
 	return true
 end
 
-function CooldownSystem:IsInCooldown(player: Player, key: string): boolean
-	local playerCooldowns = Cooldowns[player]
-	if not playerCooldowns or not playerCooldowns[key] then
+function CooldownSystem:IsInCooldown(entity: Instance, key: string): boolean
+	local entityCooldowns = Cooldowns[entity]
+	if not entityCooldowns or not entityCooldowns[key] then
 		return false
 	end
-	return playerCooldowns[key] > os.clock()
+	return entityCooldowns[key] > os.clock()
 end
 
-function CooldownSystem:GetTimeLeft(player: Player, key: string): number
-	local playerCooldowns = Cooldowns[player]
-	if not playerCooldowns or not playerCooldowns[key] then
+function CooldownSystem:GetTimeLeft(entity: Instance, key: string): number
+	local entityCooldowns = Cooldowns[entity]
+	if not entityCooldowns or not entityCooldowns[key] then
 		return 0
 	end
-	return math.max(0, playerCooldowns[key] - os.clock())
+	return math.max(0, entityCooldowns[key] - os.clock())
 end
 
-function CooldownSystem:ResetCooldown(player: Player, key: string)
-	local playerCooldowns = Cooldowns[player]
-	if playerCooldowns then
-		playerCooldowns[key] = nil
+function CooldownSystem:ResetCooldown(entity: Instance, key: string)
+	local entityCooldowns = Cooldowns[entity]
+	if entityCooldowns then
+		entityCooldowns[key] = nil
 	end
 end
 
-function CooldownSystem:ResetAllCooldowns(player: Player)
-	Cooldowns[player] = nil
+function CooldownSystem:ResetAllCooldowns(entity: Instance)
+	Cooldowns[entity] = nil
 end
 
 Players.PlayerRemoving:Connect(function(player)

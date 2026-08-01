@@ -109,11 +109,11 @@ end
 function Functions:GetTargetPlayer(mobModel: Model, hitlist: { [Player]: number }?): Player?
 	if hitlist then
 		local PlayerClass = require(ReplicatedStorage.Shared.PlayerClass)
-		local HighestDamage = 0
+		local HighestDamage = -1
 		local HighestPlayer = nil
 		for player, damage in hitlist do
 			local playerClass = PlayerClass.getPlayerInfo(player)
-			if not Functions:isEntityAlive(playerClass) then
+			if not playerClass or not Functions:isEntityAlive(playerClass) then
 				continue
 			end
 
@@ -160,6 +160,27 @@ function Functions:RollAttack(attackTable: { [string]: number })
 	end
 
 	return nil
+end
+
+function Functions:Raycast(origin: Vector3, direction: Vector3, params: RaycastParams?): RaycastResult?
+	return workspace:Raycast(origin, direction, params)
+end
+
+function Functions:GetGroundCFrame(position: Vector3, ignoreList: { Instance }?, maxDistance: number?): CFrame
+	local Distance = maxDistance or 100
+	local Origin = position + Vector3.new(0, Distance * 0.5, 0)
+	local Direction = Vector3.new(0, -Distance, 0)
+
+	local Params = RaycastParams.new()
+	Params.FilterType = Enum.RaycastFilterType.Exclude
+	Params.FilterDescendantsInstances = ignoreList or {}
+
+	local Result = self:Raycast(Origin, Direction, Params)
+	if Result then
+		return CFrame.new(Result.Position)
+	end
+
+	return CFrame.new(position)
 end
 
 return Functions

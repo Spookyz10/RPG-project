@@ -44,7 +44,7 @@ local Dialogue: Types.Dialogue = {
 		TeachResponse = {
 			Text = "I just hope you're not weak and broke at the same time. Here's what I have to offer.",
 			Action = function(self, PlayerData, Goto, Close)
-				Logic["Shop"].Open("MartialArtistShop")
+				Logic["Shop"].Open("SwordsmanShop")
 				Close()
 			end,
 		},

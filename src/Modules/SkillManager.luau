@@ -6,7 +6,6 @@ local SkillManager = {}
 
 local LevelSkills = {
 	["Ground Break"] = 5,
-	["Consecutive Slashes"] = 10,
 }
 
 function SkillManager:GrantSkill(player: Player, skill: string): boolean
