@@ -12,6 +12,44 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Behavior = {}
 
+local SPECIAL_ATTACK_COOLDOWN = 4
+local WINDUP_TIME = 2
+local INDICATOR_COLOR = { Main = Color3.fromRGB(199, 8, 8), Display = Color3.fromRGB(255, 0, 0) }
+
+local function SendSquareIndicator(RootPart: BasePart, Offset: CFrame?, Size: Vector3, Time: number)
+	local HitboxCFrame = Offset and (RootPart.CFrame * Offset) or RootPart.CFrame
+	local IndicatorSize = Vector3.new(Size.X, 0.3, Size.Z)
+
+	local GroundCFrame = Functions:GetGroundCFrame(HitboxCFrame.Position, { RootPart.Parent }, nil, HitboxCFrame)
+
+	RemoteManager.SendClientEvent(
+		"Indicator",
+		{ All = true },
+		"Square",
+		INDICATOR_COLOR,
+		GroundCFrame,
+		Time,
+		IndicatorSize
+	)
+end
+
+local function SendDashPathIndicator(RootPart: BasePart, Size: Vector3, DashDistance: number, Time: number)
+	local Direction = RootPart.CFrame.LookVector
+	local StartPosition = RootPart.Position
+	local EndPosition = StartPosition + Direction * DashDistance
+	local Center = StartPosition:Lerp(EndPosition, 0.5)
+
+	local PathLength = DashDistance + Size.Z
+	local PathSize = Vector3.new(Size.X, 0.3, PathLength)
+
+	local FacingCFrame = CFrame.lookAt(Center, Center + Direction)
+	local GroundCFrame = Functions:GetGroundCFrame(Center, { RootPart.Parent }, nil, FacingCFrame)
+
+	RemoteManager.SendClientEvent("Indicator", { All = true }, "Square", INDICATOR_COLOR, GroundCFrame, Time, PathSize)
+
+	return Direction
+end
+
 function Behavior:Start(mob: Model, class: Types.Entity)
 	if BehaviorManager.Active[mob] then
 		return
@@ -45,35 +83,35 @@ function Behavior:Start(mob: Model, class: Types.Entity)
 		local targetRootPart = targetCharacter and (targetCharacter:FindFirstChild("HumanoidRootPart") :: BasePart)
 
 		if targetCharacter and targetRootPart then
-			BehaviorManager:Move(Humanoid, targetRootPart.Position)
+			if not IsAttacking then
+				BehaviorManager:Move(Humanoid, targetRootPart.Position)
+			end
 
 			if Functions:getDistance(RootPart, targetRootPart) > 50 then
 				BehaviorManager:Reset(mob)
 				break
 			end
 
-			if not IsAttacking then
+			if not IsAttacking and not CooldownSystem:IsInCooldown(mob, "SpecialAttack") then
 				local ChosenAttack = Functions:RollAttack(Attacks)
 
 				if ChosenAttack == "Spin" then
 					IsAttacking = true
-					RemoteManager.SendClientEvent(
-						"Indicator",
-						{ All = true },
-						"Cylinder",
-						{ Main = Color3.fromRGB(199, 8, 8), Display = Color3.fromRGB(255, 0, 0) },
-						RootPart.Position + Vector3.new(0, -3.5, 0),
-						2
-					)
+					CooldownSystem:StartCooldown(mob, "SpecialAttack", SPECIAL_ATTACK_COOLDOWN)
+
+					local Size = Vector3.new(5, 5, 5)
+					local Offset = nil
+
+					SendSquareIndicator(RootPart, Offset, Size, WINDUP_TIME)
 
 					Humanoid.WalkSpeed = 0
 
-					task.delay(2, function()
+					task.delay(WINDUP_TIME, function()
 						if BehaviorManager.Active[mob] and RootPart and RootPart.Parent then
 							Hitbox:Create({
-								Size = Vector3.new(5, 5, 5),
+								Size = Size,
 								Part = RootPart,
-								Offset = nil,
+								Offset = Offset,
 								Time = nil,
 								Caster = mob,
 								Drag = false,
@@ -89,23 +127,21 @@ function Behavior:Start(mob: Model, class: Types.Entity)
 					end)
 				elseif ChosenAttack == "Slam" then
 					IsAttacking = true
-					RemoteManager.SendClientEvent(
-						"Indicator",
-						{ All = true },
-						"Square",
-						{ Main = Color3.fromRGB(199, 8, 8), Display = Color3.fromRGB(255, 0, 0) },
-						RootPart.Position + Vector3.new(0, -3.5, -3),
-						2
-					)
+					CooldownSystem:StartCooldown(mob, "SpecialAttack", SPECIAL_ATTACK_COOLDOWN)
+
+					local Size = Vector3.new(9, 9, 9)
+					local Offset = CFrame.new(0, 0, -3)
+
+					SendSquareIndicator(RootPart, Offset, Size, WINDUP_TIME)
 
 					Humanoid.WalkSpeed = 0
 
-					task.delay(2, function()
+					task.delay(WINDUP_TIME, function()
 						if BehaviorManager.Active[mob] and RootPart and RootPart.Parent then
 							Hitbox:Create({
-								Size = Vector3.new(9, 9, 9),
+								Size = Size,
 								Part = RootPart,
-								Offset = CFrame.new(0, 0, -3),
+								Offset = Offset,
 								Time = nil,
 								Caster = mob,
 								Drag = false,
@@ -121,33 +157,32 @@ function Behavior:Start(mob: Model, class: Types.Entity)
 					end)
 				elseif ChosenAttack == "Dash" then
 					IsAttacking = true
-					RemoteManager.SendClientEvent(
-						"Indicator",
-						{ All = true },
-						"Square",
-						{ Main = Color3.fromRGB(199, 8, 8), Display = Color3.fromRGB(255, 0, 0) },
-						RootPart.Position + Vector3.new(0, -3.5, -3.5),
-						2
-					)
+					CooldownSystem:StartCooldown(mob, "SpecialAttack", SPECIAL_ATTACK_COOLDOWN)
+
+					local Size = Vector3.new(9, 9, 9)
+					local DashDistance = 15
+
+					local Direction = SendDashPathIndicator(RootPart, Size, DashDistance, WINDUP_TIME)
 
 					Humanoid.WalkSpeed = 0
 
-					task.delay(2, function()
+					task.delay(WINDUP_TIME, function()
 						if BehaviorManager.Active[mob] and RootPart and RootPart.Parent then
 							Hitbox:Create({
-								Size = Vector3.new(9, 9, 9),
+								Size = Size,
 								Part = RootPart,
 								Offset = nil,
-								Time = 2,
+								Time = DashDistance / 7.5,
 								Caster = mob,
 								Drag = true,
 								OnHit = function(_, HitEntity)
 									DamageHandler:dealDamage(class, HitEntity)
 								end,
 							})
-							local DashTweenInfo = TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+							local DashTweenInfo =
+								TweenInfo.new(DashDistance / 7.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
 							TweenService:Create(RootPart, DashTweenInfo, {
-								Position = RootPart.Position + Vector3.new(0, 0, -15),
+								Position = RootPart.Position + Direction * DashDistance,
 							}):Play()
 						end
 						IsAttacking = false

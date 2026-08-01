@@ -8,6 +8,8 @@ local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 
 local Types = require(script.Parent.Types)
 
+local ENTITY_COLLISION_GROUP = "Entities"
+
 function Functions:getDistance(part1: BasePart, part2: BasePart): number
 	return (part1.Position - part2.Position).Magnitude
 end
@@ -178,17 +180,6 @@ function Functions:GetGroundCFrame(
 
 	local FilterList: { Instance } = {}
 
-	local MobsFolder = workspace:FindFirstChild("Mobs")
-	if MobsFolder then
-		table.insert(FilterList, MobsFolder)
-	end
-
-	for _, player in Players:GetPlayers() do
-		if player.Character then
-			table.insert(FilterList, player.Character)
-		end
-	end
-
 	if ignoreList then
 		for _, instance in ignoreList do
 			table.insert(FilterList, instance)
@@ -199,7 +190,20 @@ function Functions:GetGroundCFrame(
 	Params.FilterType = Enum.RaycastFilterType.Exclude
 	Params.FilterDescendantsInstances = FilterList
 
-	local Result = self:Raycast(Origin, Direction, Params)
+	local Result: RaycastResult? = nil
+	local Guard = 0
+	local MAX_ATTEMPTS = 25
+
+	repeat
+		Guard += 1
+		Result = self:Raycast(Origin, Direction, Params)
+
+		if Result and Result.Instance and Result.Instance.CollisionGroup == ENTITY_COLLISION_GROUP then
+			table.insert(FilterList, Result.Instance)
+			Params.FilterDescendantsInstances = FilterList
+			Result = nil
+		end
+	until Result ~= nil or Guard >= MAX_ATTEMPTS
 
 	local RotationOnly = keepRotation and (keepRotation - keepRotation.Position) or CFrame.new()
 

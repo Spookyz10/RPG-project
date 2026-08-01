@@ -61,8 +61,8 @@ function Indicators:CreateIndicator(
 		end
 
 		FakeIndicator.Material = Enum.Material.Neon
-		Debris:AddItem(FakeIndicator, 1)
-		Debris:AddItem(Indicator, 0)
+		Debris:AddItem(FakeIndicator, 2)
+		Debris:AddItem(Indicator, 2)
 	end)
 end
 
