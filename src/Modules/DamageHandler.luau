@@ -4,6 +4,7 @@ local Data = require(ReplicatedStorage.Shared.Data).server
 local BuffsManager = require(script.Parent.BuffsManager)
 
 local MobClass = require(ReplicatedStorage.Shared.MobClass)
+local PlayerClass = require(ReplicatedStorage.Shared.PlayerClass)
 
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
@@ -11,6 +12,22 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local DamageHandler = {}
 
 local baseCriticalMultiplier = 2
+
+local function SetEntityHP(entity: Types.Entity, newHP: number)
+	if Functions:isClassMob(entity) then
+		local UUID = entity.Model:FindFirstChild("UUID")
+		if not UUID then
+			return
+		end
+		MobClass.setHP(UUID.Value, newHP)
+	else
+		local EntityPlayer = Players:GetPlayerFromCharacter(entity.Model)
+		if not EntityPlayer then
+			return
+		end
+		PlayerClass.setHP(EntityPlayer, newHP)
+	end
+end
 
 function DamageHandler:calculateDamage(caster: Types.Entity, victim: Types.Entity, multi: number): (number, boolean)
 	local CasterPlayer = Players:GetPlayerFromCharacter(caster.Model)
@@ -57,7 +74,7 @@ end
 
 function DamageHandler:dealDamage(caster: Types.Entity, victim: Types.Entity, multi: number)
 	local Damage, isCrit = self:calculateDamage(caster, victim, multi)
-	victim:SetHP(victim.HP - Damage)
+	SetEntityHP(victim, victim.HP - Damage)
 
 	if Functions:isClassMob(victim) then
 		local CasterPlayer = Players:GetPlayerFromCharacter(caster.Model)
@@ -82,7 +99,7 @@ function DamageHandler:heal(_caster: Types.Entity, victim: Types.Entity, amount:
 	end
 
 	local HealAmount = math.min(amount, victim.MaxHP - victim.HP)
-	victim:SetHP(victim.HP + HealAmount)
+	SetEntityHP(victim, victim.HP + HealAmount)
 
 	RemoteManager.SendClientEvent("Damage", { All = true }, victim.Model, HealAmount, { Heal = true })
 	return HealAmount

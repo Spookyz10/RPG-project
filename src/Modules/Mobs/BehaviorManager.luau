@@ -19,7 +19,7 @@ function Behavior:Reset(mobModel: Model)
 	end
 
 	local origin = nil
-	for _, spawnPart: BasePart in workspace:FindFirstChild("mobSpawns") do
+	for _, spawnPart: BasePart in workspace:FindFirstChild("mobSpawns"):GetChildren() do
 		local ID = spawnPart:FindFirstChild("UUID")
 		if not ID then
 			continue

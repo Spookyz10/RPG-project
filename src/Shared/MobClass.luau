@@ -20,6 +20,10 @@ function MobClass.addMob(mobData: Types.Entity)
 	Value.Parent = mobData.Model
 	Value.Name = "UUID"
 	Value.Value = GenertaedID
+
+	mobData.Model:SetAttribute("HP", mobData.HP)
+	mobData.Model:SetAttribute("MaxHP", mobData.MaxHP)
+
 	mobAdded:Fire(mobData)
 	return GenertaedID
 end
@@ -58,6 +62,8 @@ function MobClass.setHP(ID: string, newHP: number)
 	local oldHP = data.HP
 	data.HP = newHP
 
+	data.Model:SetAttribute("HP", newHP)
+
 	if newHP ~= oldHP then
 		data._HPChangedEvent:Fire(newHP, oldHP)
 	end
@@ -75,6 +81,8 @@ function MobClass.setMaxHP(ID: string, newMaxHP: number)
 
 	local oldMaxHP = data.MaxHP
 	data.MaxHP = newMaxHP
+
+	data.Model:SetAttribute("MaxHP", newMaxHP)
 
 	if newMaxHP ~= oldMaxHP then
 		data._MaxHPChangedEvent:Fire(newMaxHP, oldMaxHP)
