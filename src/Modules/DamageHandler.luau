@@ -74,16 +74,15 @@ end
 
 function DamageHandler:dealDamage(caster: Types.Entity, victim: Types.Entity, multi: number)
 	local Damage, isCrit = self:calculateDamage(caster, victim, multi)
-	SetEntityHP(victim, victim.HP - Damage)
 
 	if Functions:isClassMob(victim) then
 		local CasterPlayer = Players:GetPlayerFromCharacter(caster.Model)
-		if not CasterPlayer then
-			return
+		if CasterPlayer then
+			MobClass.FireDamaged(victim, CasterPlayer, Damage)
 		end
-
-		MobClass.FireDamaged(victim, CasterPlayer, Damage)
 	end
+
+	SetEntityHP(victim, victim.HP - Damage)
 
 	RemoteManager.SendClientEvent("Damage", { All = true }, victim.Model, Damage, { Crit = isCrit })
 	return Damage, isCrit

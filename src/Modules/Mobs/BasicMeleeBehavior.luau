@@ -106,7 +106,7 @@ function BasicMeleeBehavior:Start(mob: Model, class: Types.Entity)
 								Time = 0,
 								Caster = mob,
 								OnHit = function(_, HitEntity)
-									if Functions:isEntityAlive(HitEntity) then
+									if Functions:isEntityAlive(HitEntity) and not Functions:isClassMob(HitEntity) then
 										DamageHandler:dealDamage(class, HitEntity)
 									end
 								end,

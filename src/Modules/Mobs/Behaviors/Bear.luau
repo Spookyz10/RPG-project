@@ -123,7 +123,9 @@ function Behavior:Start(mob: Model, class: Types.Entity)
 									Caster = mob,
 									Drag = false,
 									OnHit = function(_, HitEntity)
-										DamageHandler:dealDamage(class, HitEntity)
+										if not Functions:isClassMob(HitEntity) then
+											DamageHandler:dealDamage(class, HitEntity)
+										end
 									end,
 								})
 								if Humanoid and Humanoid.Parent then
@@ -153,7 +155,9 @@ function Behavior:Start(mob: Model, class: Types.Entity)
 									Caster = mob,
 									Drag = false,
 									OnHit = function(_, HitEntity)
-										DamageHandler:dealDamage(class, HitEntity)
+										if not Functions:isClassMob(HitEntity) then
+											DamageHandler:dealDamage(class, HitEntity)
+										end
 									end,
 								})
 								if Humanoid and Humanoid.Parent then
@@ -183,7 +187,9 @@ function Behavior:Start(mob: Model, class: Types.Entity)
 									Caster = mob,
 									Drag = true,
 									OnHit = function(_, HitEntity)
-										DamageHandler:dealDamage(class, HitEntity)
+										if not Functions:isClassMob(HitEntity) then
+											DamageHandler:dealDamage(class, HitEntity)
+										end
 									end,
 								})
 								local DashTweenInfo =

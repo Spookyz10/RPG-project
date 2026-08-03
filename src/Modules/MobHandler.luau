@@ -99,6 +99,7 @@ function MobHandler:StartBehavior(mobModel: Model, class: Types.Entity)
 end
 
 local function Reward(player: Player, MobInfo: Types.MobInfo, MobName: string)
+	print("Rewarding player", player.Name, "for killing mob", MobName)
 	local results = RewardManager:RollTable(MobInfo.Drops, player)
 	for item, amount in results do
 		InventoryManager:AddItem(player, item, amount)
@@ -140,7 +141,8 @@ MobClass.Died:Connect(function(mob: Types.Entity, hitlist: { [Player]: number })
 		return
 	end
 
-	MobHandler:RemoveMob(mob)
+	print("Mob", MobName, "has died. Processing rewards for players in hitlist.")
+	print(hitlist)
 
 	if MobInfo.GlobalDrops then
 		for _, player in Players:GetPlayers() do
@@ -148,9 +150,12 @@ MobClass.Died:Connect(function(mob: Types.Entity, hitlist: { [Player]: number })
 		end
 	else
 		for player, _ in hitlist do
+			print(player.Name, "is in the hitlist for mob", MobName)
 			Reward(player, MobInfo, MobName)
 		end
 	end
+
+	MobHandler:RemoveMob(mob)
 
 	task.delay(MobInfo.RespawnTime or 5, function()
 		MobHandler:AddMob(MobName)

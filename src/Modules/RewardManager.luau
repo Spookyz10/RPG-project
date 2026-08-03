@@ -8,7 +8,8 @@ local getCappedInfo = require(ReplicatedStorage.Shared.getCappedInfo)
 local RewardManager = {}
 
 function RewardManager:RollTable(itemsTable: Types.ItemTable, Player: Player): { [string]: { Amount: number } }?
-	local PlayerLuck = Data.Service:waitForData(Player).Stats.Luck()
+	local PlayerLuck = Data.Service:waitForData(Player).ExtraStats.Luck()
+	print("Rolling loot table for player:", Player.Name, "with Luck:", PlayerLuck)
 	local LuckBoost = Events:GetEventMultipliers().Luck + PlayerLuck
 	local Results = {}
 	for _ = 1, 1 + LuckBoost do
