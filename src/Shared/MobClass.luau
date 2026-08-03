@@ -49,7 +49,18 @@ function MobClass.FireDied(ID: string)
 	end
 end
 
-function MobClass.FireDamaged(mobInstance: Types.Entity, casterPlayer: Player?, amount: number)
+function MobClass.FireDamaged(ID: string, casterPlayer: Player?, amount: number)
+	local mobInstance = LoadedMobs[ID]
+	if not mobInstance then
+		return
+	end
+
+	print(casterPlayer, casterPlayer.Character, casterPlayer.Parent)
+
+	if casterPlayer then
+		mobInstance.HitList[casterPlayer] = (mobInstance.HitList[casterPlayer] or 0) + amount
+	end
+
 	damaged:Fire(mobInstance, casterPlayer, amount)
 end
 

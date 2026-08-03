@@ -99,8 +99,9 @@ function MobHandler:StartBehavior(mobModel: Model, class: Types.Entity)
 end
 
 local function Reward(player: Player, MobInfo: Types.MobInfo, MobName: string)
-	print("Rewarding player", player.Name, "for killing mob", MobName)
+	print("Rewarding player", player, "for killing mob", MobName)
 	local results = RewardManager:RollTable(MobInfo.Drops, player)
+	print(results)
 	for item, amount in results do
 		InventoryManager:AddItem(player, item, amount)
 	end
@@ -125,24 +126,22 @@ function MobHandler:InitializeSpawns()
 	end
 end
 
-MobClass.Damaged:Connect(function(mob: Types.Entity, casterPlayer: Player?, amount: number)
-	if casterPlayer then
-		mob.HitList[casterPlayer] = (mob.HitList[casterPlayer] or 0) + amount
-	end
-
+MobClass.Damaged:Connect(function(mob: Types.Entity)
 	MobHandler:StartBehavior(mob.Model, mob)
 end)
 
-MobClass.Died:Connect(function(mob: Types.Entity, hitlist: { [Player]: number })
+MobClass.Died:Connect(function(mob: Types.Entity)
 	local MobName = mob.Model.Name
+	local hitlist = mob.HitList
 	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 	local MobInfo = MobsData[MobName] :: Types.MobInfo
 	if not MobInfo then
 		return
 	end
 
-	print("Mob", MobName, "has died. Processing rewards for players in hitlist.")
 	print(hitlist)
+
+	MobHandler:RemoveMob(mob)
 
 	if MobInfo.GlobalDrops then
 		for _, player in Players:GetPlayers() do
@@ -150,12 +149,10 @@ MobClass.Died:Connect(function(mob: Types.Entity, hitlist: { [Player]: number })
 		end
 	else
 		for player, _ in hitlist do
-			print(player.Name, "is in the hitlist for mob", MobName)
+			print(player)
 			Reward(player, MobInfo, MobName)
 		end
 	end
-
-	MobHandler:RemoveMob(mob)
 
 	task.delay(MobInfo.RespawnTime or 5, function()
 		MobHandler:AddMob(MobName)

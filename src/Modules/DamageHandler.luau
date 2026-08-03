@@ -78,7 +78,10 @@ function DamageHandler:dealDamage(caster: Types.Entity, victim: Types.Entity, mu
 	if Functions:isClassMob(victim) then
 		local CasterPlayer = Players:GetPlayerFromCharacter(caster.Model)
 		if CasterPlayer then
-			MobClass.FireDamaged(victim, CasterPlayer, Damage)
+			local UUID = victim.Model:FindFirstChild("UUID")
+			if UUID then
+				MobClass.FireDamaged(UUID.Value, CasterPlayer, Damage)
+			end
 		end
 	end
 

@@ -45,6 +45,7 @@ function RewardManager:AddCurrency(player: Player, currency: string, amount: num
 end
 
 function RewardManager:AddXP(player: Player, amount: number, mobData: Types.MobInfo?)
+	print("test")
 	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
 	if not PlayerData then
 		return
