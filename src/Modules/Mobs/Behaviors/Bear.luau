@@ -12,9 +12,15 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Behavior = {}
 
-local SPECIAL_ATTACK_COOLDOWN = 4
 local WINDUP_TIME = 2
+local SKILL_RANGE = 20
 local INDICATOR_COLOR = { Main = Color3.fromRGB(199, 8, 8), Display = Color3.fromRGB(255, 0, 0) }
+
+local SkillCooldowns = {
+	Spin = 6,
+	Slam = 6,
+	Dash = 8,
+}
 
 local function SendSquareIndicator(RootPart: BasePart, Offset: CFrame?, Size: Vector3, Time: number)
 	local HitboxCFrame = Offset and (RootPart.CFrame * Offset) or RootPart.CFrame
@@ -62,8 +68,8 @@ function Behavior:Start(mob: Model, class: Types.Entity)
 	end
 
 	local Attacks = {
-		["Spin"] = 50,
-		["Slam"] = 20,
+		["Spin"] = 40,
+		["Slam"] = 30,
 		["Dash"] = 30,
 	}
 
@@ -92,101 +98,103 @@ function Behavior:Start(mob: Model, class: Types.Entity)
 				break
 			end
 
-			if not IsAttacking and not CooldownSystem:IsInCooldown(mob, "SpecialAttack") then
+			if not IsAttacking and Functions:getDistance(RootPart, targetRootPart) <= SKILL_RANGE then
 				local ChosenAttack = Functions:RollAttack(Attacks)
 
-				if ChosenAttack == "Spin" then
-					IsAttacking = true
-					CooldownSystem:StartCooldown(mob, "SpecialAttack", SPECIAL_ATTACK_COOLDOWN)
+				if ChosenAttack and not CooldownSystem:IsInCooldown(mob, ChosenAttack) then
+					if ChosenAttack == "Spin" then
+						IsAttacking = true
+						CooldownSystem:StartCooldown(mob, "Spin", SkillCooldowns.Spin)
 
-					local Size = Vector3.new(5, 5, 5)
-					local Offset = nil
+						local Size = Vector3.new(5, 5, 5)
+						local Offset = nil
 
-					SendSquareIndicator(RootPart, Offset, Size, WINDUP_TIME)
+						SendSquareIndicator(RootPart, Offset, Size, WINDUP_TIME)
 
-					Humanoid.WalkSpeed = 0
+						Humanoid.WalkSpeed = 0
 
-					task.delay(WINDUP_TIME, function()
-						if BehaviorManager.Active[mob] and RootPart and RootPart.Parent then
-							Hitbox:Create({
-								Size = Size,
-								Part = RootPart,
-								Offset = Offset,
-								Time = nil,
-								Caster = mob,
-								Drag = false,
-								OnHit = function(_, HitEntity)
-									DamageHandler:dealDamage(class, HitEntity)
-								end,
-							})
-							if Humanoid and Humanoid.Parent then
-								Humanoid.WalkSpeed = 16
+						task.delay(WINDUP_TIME, function()
+							if BehaviorManager.Active[mob] and RootPart and RootPart.Parent then
+								Hitbox:Create({
+									Size = Size,
+									Part = RootPart,
+									Offset = Offset,
+									Time = nil,
+									Caster = mob,
+									Drag = false,
+									OnHit = function(_, HitEntity)
+										DamageHandler:dealDamage(class, HitEntity)
+									end,
+								})
+								if Humanoid and Humanoid.Parent then
+									Humanoid.WalkSpeed = 16
+								end
 							end
-						end
-						IsAttacking = false
-					end)
-				elseif ChosenAttack == "Slam" then
-					IsAttacking = true
-					CooldownSystem:StartCooldown(mob, "SpecialAttack", SPECIAL_ATTACK_COOLDOWN)
+							IsAttacking = false
+						end)
+					elseif ChosenAttack == "Slam" then
+						IsAttacking = true
+						CooldownSystem:StartCooldown(mob, "Slam", SkillCooldowns.Slam)
 
-					local Size = Vector3.new(9, 9, 9)
-					local Offset = CFrame.new(0, 0, -3)
+						local Size = Vector3.new(9, 9, 9)
+						local Offset = CFrame.new(0, 0, -3)
 
-					SendSquareIndicator(RootPart, Offset, Size, WINDUP_TIME)
+						SendSquareIndicator(RootPart, Offset, Size, WINDUP_TIME)
 
-					Humanoid.WalkSpeed = 0
+						Humanoid.WalkSpeed = 0
 
-					task.delay(WINDUP_TIME, function()
-						if BehaviorManager.Active[mob] and RootPart and RootPart.Parent then
-							Hitbox:Create({
-								Size = Size,
-								Part = RootPart,
-								Offset = Offset,
-								Time = nil,
-								Caster = mob,
-								Drag = false,
-								OnHit = function(_, HitEntity)
-									DamageHandler:dealDamage(class, HitEntity)
-								end,
-							})
-							if Humanoid and Humanoid.Parent then
-								Humanoid.WalkSpeed = 16
+						task.delay(WINDUP_TIME, function()
+							if BehaviorManager.Active[mob] and RootPart and RootPart.Parent then
+								Hitbox:Create({
+									Size = Size,
+									Part = RootPart,
+									Offset = Offset,
+									Time = nil,
+									Caster = mob,
+									Drag = false,
+									OnHit = function(_, HitEntity)
+										DamageHandler:dealDamage(class, HitEntity)
+									end,
+								})
+								if Humanoid and Humanoid.Parent then
+									Humanoid.WalkSpeed = 16
+								end
 							end
-						end
-						IsAttacking = false
-					end)
-				elseif ChosenAttack == "Dash" then
-					IsAttacking = true
-					CooldownSystem:StartCooldown(mob, "SpecialAttack", SPECIAL_ATTACK_COOLDOWN)
+							IsAttacking = false
+						end)
+					elseif ChosenAttack == "Dash" then
+						IsAttacking = true
+						CooldownSystem:StartCooldown(mob, "Dash", SkillCooldowns.Dash)
 
-					local Size = Vector3.new(9, 9, 9)
-					local DashDistance = 15
+						local Size = Vector3.new(9, 9, 9)
+						local DashDistance = 15
 
-					local Direction = SendDashPathIndicator(RootPart, Size, DashDistance, WINDUP_TIME)
+						local Direction = SendDashPathIndicator(RootPart, Size, DashDistance, WINDUP_TIME)
 
-					Humanoid.WalkSpeed = 0
+						Humanoid.WalkSpeed = 0
 
-					task.delay(WINDUP_TIME, function()
-						if BehaviorManager.Active[mob] and RootPart and RootPart.Parent then
-							Hitbox:Create({
-								Size = Size,
-								Part = RootPart,
-								Offset = nil,
-								Time = DashDistance / 7.5,
-								Caster = mob,
-								Drag = true,
-								OnHit = function(_, HitEntity)
-									DamageHandler:dealDamage(class, HitEntity)
-								end,
-							})
-							local DashTweenInfo =
-								TweenInfo.new(DashDistance / 7.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-							TweenService:Create(RootPart, DashTweenInfo, {
-								Position = RootPart.Position + Direction * DashDistance,
-							}):Play()
-						end
-						IsAttacking = false
-					end)
+						task.delay(WINDUP_TIME, function()
+							if BehaviorManager.Active[mob] and RootPart and RootPart.Parent then
+								Hitbox:Create({
+									Size = Size,
+									Part = RootPart,
+									Offset = nil,
+									Time = DashDistance / 7.5,
+									Caster = mob,
+									Drag = true,
+									OnHit = function(_, HitEntity)
+										DamageHandler:dealDamage(class, HitEntity)
+									end,
+								})
+								local DashTweenInfo =
+									TweenInfo.new(DashDistance / 7.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+								TweenService:Create(RootPart, DashTweenInfo, {
+									Position = RootPart.Position + Direction * DashDistance,
+								}):Play()
+							end
+							IsAttacking = false
+						end)
+					end
 				end
 			end
 

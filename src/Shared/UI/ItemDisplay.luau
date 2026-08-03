@@ -11,6 +11,13 @@ local PlayerGui = LocalPlayer.PlayerGui
 local Inventory = PlayerGui:WaitForChild("Main").Inventory
 local InfoFrame = Inventory:FindFirstChild("InfoFrame") :: Frame
 
+local InfoFrameClose = InfoFrame and InfoFrame:FindFirstChild("Close")
+if InfoFrameClose then
+	InfoFrameClose.MouseButton1Click:Connect(function()
+		InfoFrame.Visible = false
+	end)
+end
+
 local ItemDisplay = {}
 
 local function PopulateItemInfo(FloatingItem: Frame, ItemData: Types.Item)

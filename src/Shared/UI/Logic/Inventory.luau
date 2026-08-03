@@ -37,6 +37,13 @@ function UI.Init()
 	local SellMultiple = UIConstants.Main.SellMultiple
 	local SellMultipleItemContainer = SellMultiple.ItemContainer
 
+	local ContainerClose = InventoryFrame.InventoryContainer:FindFirstChild("Close")
+	if ContainerClose then
+		ContainerClose.MouseButton1Click:Connect(function()
+			UIFunctions:CloseUI()
+		end)
+	end
+
 	local function ClearSelection()
 		for _, Entry in SelectedItems do
 			if Entry.Clone then

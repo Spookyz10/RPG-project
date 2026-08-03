@@ -12,6 +12,7 @@ local Remotes = {
 	AcceptQuest = "Server",
 	AbandonQuest = "Server",
 	SellItem = "Server",
+	SpawnItem = "Server",
 
 	SkillVFX = "Client",
 	Damage = "Client",

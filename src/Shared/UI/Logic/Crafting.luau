@@ -38,6 +38,25 @@ function UI.Init()
 	local SelectedRecipe: string? = nil
 	local IngredientDisconnect: (() -> ())? = nil
 
+	local RecipesClose = RecipesFrame:FindFirstChild("Close")
+	if RecipesClose then
+		RecipesClose.MouseButton1Click:Connect(function()
+			UIFunctions:CloseUI()
+		end)
+	end
+
+	local ItemInfoClose = ItemInfo:FindFirstChild("Close")
+	if ItemInfoClose then
+		ItemInfoClose.MouseButton1Click:Connect(function()
+			ItemInfo.Visible = false
+			SelectedRecipe = nil
+			if IngredientDisconnect then
+				IngredientDisconnect()
+				IngredientDisconnect = nil
+			end
+		end)
+	end
+
 	local function ShowTab(tabName: string)
 		RecipeContentFrame.Visible = tabName == "Recipe"
 		StatsContentFrame.Visible = tabName == "Stats"

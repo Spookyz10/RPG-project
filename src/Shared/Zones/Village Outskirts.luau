@@ -3,7 +3,7 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Zone: Types.Zone = {
 	Level = 1,
-	MaxLevel = 1,
+	MaxLevel = 12,
 	Description = "A bilalge",
 	Icon = "",
 	Mobs = { "Bushling", "Wolf", "Boar", "Bear" },

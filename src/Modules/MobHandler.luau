@@ -78,6 +78,17 @@ function MobHandler:RemoveMob(mobInfo: Types.Entity)
 	local UUID = MobModel:FindFirstChild("UUID")
 	MobClass:removeMob(UUID.Value)
 	MobModel:Destroy()
+	for _, spawnPart: BasePart in workspace:FindFirstChild("mobSpawns"):GetDescendants() do
+		local ID = spawnPart:FindFirstChild("ID")
+		if not ID then
+			continue
+		end
+
+		if ID.Value == UUID.Value then
+			ID.Value = ""
+			break
+		end
+	end
 end
 
 function MobHandler:StartBehavior(mobModel: Model, class: Types.Entity)

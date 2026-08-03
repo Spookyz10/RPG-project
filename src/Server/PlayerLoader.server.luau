@@ -2,10 +2,11 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 local PlayerClass = require(ReplicatedStorage.Shared.PlayerClass)
-local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
+
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local CollisionGroups = require(ReplicatedStorage.Shared.CollisionGroups)
 local WeaponLoader = require(ServerStorage.Modules.WeaponLoader)
+local HealthManager = require(ServerStorage.Modules.HealthManager)
 
 local Data = require(ReplicatedStorage.Shared.Data).server
 local InventoryManager = require(ServerStorage.Modules.InventoryManager)
@@ -32,6 +33,10 @@ local function LoadPlayer(Player: Player)
 	WeaponLoader:Listen(Player)
 
 	Player:LoadCharacterAsync()
+
+	local InitialHealth = HealthManager:GetMaxHealth(Player, PlayerData)
+	PlayerClass.addPlayer(Player, InitialHealth)
+	HealthManager:Listen(Player)
 end
 
 local function SetupRespawn(Player: Player, Character: Model)
@@ -61,8 +66,6 @@ Players.PlayerAdded:Connect(function(player: Player)
 	end)
 
 	LoadPlayer(player)
-	local PlayerStats = Functions:GetTotalStats(nil, Data.Service:waitForData(player))
-	PlayerClass.addPlayer(player, PlayerStats.Health + 100)
 end)
 
 Players.PlayerRemoving:Connect(function(player: Player)

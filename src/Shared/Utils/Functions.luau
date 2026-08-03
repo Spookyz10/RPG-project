@@ -174,7 +174,7 @@ function Functions:GetGroundCFrame(
 	maxDistance: number?,
 	keepRotation: CFrame?
 ): CFrame
-	local Distance = maxDistance or 100
+	local Distance = maxDistance or 300
 	local Origin = position + Vector3.new(0, Distance * 0.5, 0)
 	local Direction = Vector3.new(0, -Distance, 0)
 
@@ -189,6 +189,7 @@ function Functions:GetGroundCFrame(
 	local Params = RaycastParams.new()
 	Params.FilterType = Enum.RaycastFilterType.Exclude
 	Params.FilterDescendantsInstances = FilterList
+	Params.IgnoreWater = true
 
 	local Result: RaycastResult? = nil
 	local Guard = 0
@@ -198,7 +199,12 @@ function Functions:GetGroundCFrame(
 		Guard += 1
 		Result = self:Raycast(Origin, Direction, Params)
 
-		if Result and Result.Instance and Result.Instance.CollisionGroup == ENTITY_COLLISION_GROUP then
+		if
+			Result
+			and Result.Instance
+			and Result.Instance:IsA("BasePart")
+			and Result.Instance.CollisionGroup == ENTITY_COLLISION_GROUP
+		then
 			table.insert(FilterList, Result.Instance)
 			Params.FilterDescendantsInstances = FilterList
 			Result = nil

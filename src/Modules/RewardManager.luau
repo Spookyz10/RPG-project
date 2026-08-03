@@ -49,17 +49,30 @@ function RewardManager:AddXP(player: Player, amount: number, mobData: Types.MobI
 		return
 	end
 
+	print("Adding XP to player:", player.Name, "Amount:", amount, "MobData:", mobData)
+
 	if mobData then
-		if mobData.Level > PlayerData.Level() then
+		print(
+			"Checking mob level requirements for player:",
+			player.Name,
+			"Mob Level:",
+			mobData.Level,
+			"Player Level:",
+			PlayerData.Level()
+		)
+		if mobData.Level < PlayerData.Level() then
+			print("Player level is higher than mob level. No XP awarded.")
 			return
 		end
 
-		if mobData.MaxLevel < PlayerData.Level() then
+		if mobData.MaxLevel > PlayerData.Level() then
+			print("Player level is below mob max level. No XP awarded.")
 			return
 		end
 	end
 
 	if PlayerData.Level() >= getCappedInfo.Level then
+		print("Player has reached the maximum level. No XP awarded.")
 		return
 	end
 
@@ -67,6 +80,8 @@ function RewardManager:AddXP(player: Player, amount: number, mobData: Types.MobI
 	PlayerData.XP(function(currentXP)
 		return currentXP + amount
 	end)
+
+	print("Player:", player.Name, "New XP:", PlayerData.XP())
 
 	while true do
 		if PlayerData.Level() >= getCappedInfo.Level then
