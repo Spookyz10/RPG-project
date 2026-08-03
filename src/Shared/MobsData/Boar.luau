@@ -2,11 +2,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Mob: Types.MobInfo = {
-	HP = 100,
-	MaxHP = 100,
+	HP = 30,
+	MaxHP = 30,
 	Level = 1,
 	MaxLevel = 15,
-	XP = 10,
+	XP = 120,
 	RespawnTime = 10,
 	GlobalDrops = false,
 

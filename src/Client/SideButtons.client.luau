@@ -19,7 +19,7 @@ local function TeleportHome()
 		return
 	end
 
-	Character:PivotTo(LobbyTP.PrimaryPart.CFrame)
+	Character:PivotTo(LobbyTP.CFrame)
 end
 
 for _, Button: ImageButton in SideButtons:GetChildren() do

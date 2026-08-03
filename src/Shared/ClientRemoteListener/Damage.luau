@@ -18,7 +18,12 @@ function Remote:Activate(entityHurt: Model, amount: number, params: {})
 	local DamageLabel = DamageTemplate.Damage :: TextLabel
 	local Stroke = DamageLabel:FindFirstChildOfClass("UIStroke")
 
-	DamageLabel.Text = (params.Heal and "+" or "") .. Abbreviation:Number(amount)
+	if amount <= 0 then
+		DamageLabel.Text = "Too weak"
+	else
+		DamageLabel.Text = (params.Heal and "+" or "") .. Abbreviation:Number(amount)
+	end
+
 	DamageTemplate.Parent = PrimaryPart
 
 	for _, child in DamageLabel:GetChildren() do

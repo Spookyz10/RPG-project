@@ -6,7 +6,7 @@ local Zone: Types.Zone = {
 	MaxLevel = 1,
 	Description = "A bilalge",
 	Icon = "",
-	Mobs = { "Wolf" },
+	Mobs = { "Bushling", "Wolf", "Boar", "Bear" },
 }
 
 function Zone.getLighting()

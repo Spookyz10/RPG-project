@@ -6,7 +6,7 @@ local Mob: Types.MobInfo = {
 	MaxHP = 100,
 	Level = 1,
 	MaxLevel = 15,
-	XP = 10,
+	XP = 200,
 	RespawnTime = 10,
 	GlobalDrops = false,
 

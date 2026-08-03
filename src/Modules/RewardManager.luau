@@ -3,6 +3,8 @@ local Data = require(ReplicatedStorage.Shared.Data).server
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Events = require(script.Parent.Events)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
+local getCappedInfo = require(ReplicatedStorage.Shared.getCappedInfo)
+
 local RewardManager = {}
 
 function RewardManager:RollTable(itemsTable: Types.ItemTable, Player: Player): { [string]: { Amount: number } }?
@@ -57,12 +59,20 @@ function RewardManager:AddXP(player: Player, amount: number, mobData: Types.MobI
 		end
 	end
 
+	if PlayerData.Level() >= getCappedInfo.Level then
+		return
+	end
+
 	amount *= Events:GetEventMultipliers().XP
 	PlayerData.XP(function(currentXP)
 		return currentXP + amount
 	end)
 
 	while true do
+		if PlayerData.Level() >= getCappedInfo.Level then
+			break
+		end
+
 		local XPNeeded = Functions:GetXPNeeded(PlayerData.Level())
 		local CurrentXP = PlayerData.XP()
 		if XPNeeded <= CurrentXP then

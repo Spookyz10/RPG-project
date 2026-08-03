@@ -121,9 +121,18 @@ function InventoryManager:EquipSkill(player: Player, skill: string, slot: string
 	end
 
 	local CanEquipSkill = SkillInfo:Elligable(PlayerData)
-	if CanEquipSkill then
-		PlayerData.Skills[slot](skill)
+	if not CanEquipSkill then
+		return
 	end
+
+	local EquippedSkills = PlayerData.Skills()
+	for equippedSlot, equippedSkill in EquippedSkills do
+		if equippedSkill == skill and equippedSlot ~= slot then
+			PlayerData.Skills[equippedSlot]("")
+		end
+	end
+
+	PlayerData.Skills[slot](skill)
 end
 
 function InventoryManager:ItemAction(player: Player, UUID: string)
