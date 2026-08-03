@@ -76,7 +76,7 @@ function MobHandler:RemoveMob(mobInfo: Types.Entity)
 	CooldownSystem:ResetAllCooldowns(MobModel)
 
 	local UUID = MobModel:FindFirstChild("UUID")
-	MobClass:removeMob(UUID.Value)
+	MobClass.removeMob(UUID.Value)
 	MobModel:Destroy()
 	for _, spawnPart: BasePart in workspace:FindFirstChild("mobSpawns"):GetDescendants() do
 		local ID = spawnPart:FindFirstChild("ID")
@@ -99,9 +99,8 @@ function MobHandler:StartBehavior(mobModel: Model, class: Types.Entity)
 end
 
 local function Reward(player: Player, MobInfo: Types.MobInfo, MobName: string)
-	print("Rewarding player", player, "for killing mob", MobName)
 	local results = RewardManager:RollTable(MobInfo.Drops, player)
-	print(results)
+
 	for item, amount in results do
 		InventoryManager:AddItem(player, item, amount)
 	end
@@ -126,11 +125,19 @@ function MobHandler:InitializeSpawns()
 	end
 end
 
-MobClass.Damaged:Connect(function(mob: Types.Entity)
-	MobHandler:StartBehavior(mob.Model, mob)
+MobClass.Damaged:Connect(function(ID: string)
+	local mob = MobClass.getMob(ID)
+	if mob then
+		MobHandler:StartBehavior(mob.Model, mob)
+	end
 end)
 
-MobClass.Died:Connect(function(mob: Types.Entity)
+MobClass.Died:Connect(function(ID: string)
+	local mob = MobClass.getMob(ID)
+	if not mob then
+		return
+	end
+
 	local MobName = mob.Model.Name
 	local hitlist = mob.HitList
 	local MobsData = require(ReplicatedStorage.Shared.MobsData)
@@ -138,8 +145,6 @@ MobClass.Died:Connect(function(mob: Types.Entity)
 	if not MobInfo then
 		return
 	end
-
-	print(hitlist)
 
 	MobHandler:RemoveMob(mob)
 
@@ -149,7 +154,6 @@ MobClass.Died:Connect(function(mob: Types.Entity)
 		end
 	else
 		for player, _ in hitlist do
-			print(player)
 			Reward(player, MobInfo, MobName)
 		end
 	end

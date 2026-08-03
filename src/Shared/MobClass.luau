@@ -24,7 +24,7 @@ function MobClass.addMob(mobData: Types.Entity)
 	mobData.Model:SetAttribute("HP", mobData.HP)
 	mobData.Model:SetAttribute("MaxHP", mobData.MaxHP)
 
-	mobAdded:Fire(mobData)
+	mobAdded:Fire(GenertaedID)
 	return GenertaedID
 end
 
@@ -55,13 +55,11 @@ function MobClass.FireDamaged(ID: string, casterPlayer: Player?, amount: number)
 		return
 	end
 
-	print(casterPlayer, casterPlayer.Character, casterPlayer.Parent)
-
 	if casterPlayer then
 		mobInstance.HitList[casterPlayer] = (mobInstance.HitList[casterPlayer] or 0) + amount
 	end
 
-	damaged:Fire(mobInstance, casterPlayer, amount)
+	damaged:Fire(ID, casterPlayer, amount)
 end
 
 function MobClass.setHP(ID: string, newHP: number)
@@ -80,7 +78,7 @@ function MobClass.setHP(ID: string, newHP: number)
 	end
 
 	if newHP <= 0 and oldHP > 0 then
-		died:Fire(data, data.HitList)
+		died:Fire(ID)
 	end
 end
 

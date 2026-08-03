@@ -8,8 +8,14 @@ local getCappedInfo = require(ReplicatedStorage.Shared.getCappedInfo)
 local RewardManager = {}
 
 function RewardManager:RollTable(itemsTable: Types.ItemTable, Player: Player): { [string]: { Amount: number } }?
-	local PlayerLuck = Data.Service:waitForData(Player).ExtraStats.Luck()
-	print("Rolling loot table for player:", Player.Name, "with Luck:", PlayerLuck)
+	local PlayerData = Data.Service:waitForData(Player)
+
+	if not PlayerData then
+		return {}
+	end
+
+	local PlayerLuck = PlayerData.ExtraStats.Luck()
+
 	local LuckBoost = Events:GetEventMultipliers().Luck + PlayerLuck
 	local Results = {}
 	for _ = 1, 1 + LuckBoost do
@@ -45,36 +51,22 @@ function RewardManager:AddCurrency(player: Player, currency: string, amount: num
 end
 
 function RewardManager:AddXP(player: Player, amount: number, mobData: Types.MobInfo?)
-	print("test")
 	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
 	if not PlayerData then
 		return
 	end
 
-	print("Adding XP to player:", player.Name, "Amount:", amount, "MobData:", mobData)
-
 	if mobData then
-		print(
-			"Checking mob level requirements for player:",
-			player.Name,
-			"Mob Level:",
-			mobData.Level,
-			"Player Level:",
-			PlayerData.Level()
-		)
 		if mobData.Level < PlayerData.Level() then
-			print("Player level is higher than mob level. No XP awarded.")
 			return
 		end
 
 		if mobData.MaxLevel > PlayerData.Level() then
-			print("Player level is below mob max level. No XP awarded.")
 			return
 		end
 	end
 
 	if PlayerData.Level() >= getCappedInfo.Level then
-		print("Player has reached the maximum level. No XP awarded.")
 		return
 	end
 
@@ -82,8 +74,6 @@ function RewardManager:AddXP(player: Player, amount: number, mobData: Types.MobI
 	PlayerData.XP(function(currentXP)
 		return currentXP + amount
 	end)
-
-	print("Player:", player.Name, "New XP:", PlayerData.XP())
 
 	while true do
 		if PlayerData.Level() >= getCappedInfo.Level then
