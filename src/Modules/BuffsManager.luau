@@ -1,10 +1,16 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local BuffsManager = {}
 
 local Buffed: { [Model]: { [string]: number } } = {}
 
-function BuffsManager:AddBuff(Entity: Model, Stat: string, Duration: number, Amount: number)
+function BuffsManager:AddBuff(Entity: Model, Stat: string, Duration: number, Amount: number, CustomName: string?)
 	Buffed[Entity] = Buffed[Entity] or {}
 	Buffed[Entity][Stat] = Amount
+
+	if CustomName then
+		RemoteManager.SendClientEvent("BuffVFX", { All = true }, CustomName, Entity, "Start")
+	end
 
 	task.delay(Duration, function()
 		local EntityBuffs = Buffed[Entity]
@@ -16,6 +22,10 @@ function BuffsManager:AddBuff(Entity: Model, Stat: string, Duration: number, Amo
 
 		if next(EntityBuffs) == nil then
 			Buffed[Entity] = nil
+		end
+
+		if CustomName then
+			RemoteManager.SendClientEvent("BuffVFX", { All = true }, CustomName, Entity, "End")
 		end
 	end)
 end

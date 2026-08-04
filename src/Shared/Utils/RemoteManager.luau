@@ -19,6 +19,7 @@ local Remotes = {
 	SkillCooldown = "Client",
 	LeaderboardUpdate = "Client",
 	Indicator = "Client",
+	BuffVFX = "Client",
 }
 
 local RemoteFunctions = {

@@ -30,7 +30,8 @@ function Skill:Activate(class: Types.Entity)
 					HitEntity,
 					"Defense",
 					5,
-					Functions:GetTotalStats(HitEntity, Player and Data.Service:waitForData(Player)).Defense * 0.1
+					Functions:GetTotalStats(HitEntity, Player and Data.Service:waitForData(Player)).Defense * 0.1,
+					"Vital Jab"
 				)
 			end,
 		})

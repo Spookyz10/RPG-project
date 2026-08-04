@@ -120,6 +120,7 @@ function MobHandler:InitializeSpawns()
 			local value = Instance.new("StringValue")
 			value.Name = "ID"
 			value.Parent = mobPart
+			value.Value = ""
 			MobHandler:AddMob(mobPart.Name)
 		end
 	end
@@ -143,6 +144,7 @@ MobClass.Died:Connect(function(ID: string)
 	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 	local MobInfo = MobsData[MobName] :: Types.MobInfo
 	if not MobInfo then
+		print("MobInfo not found for mob: " .. MobName)
 		return
 	end
 
