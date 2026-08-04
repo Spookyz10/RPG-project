@@ -14,7 +14,7 @@ local Quest: Types.QuestInfo = {
 	},
 	Rewards = {
 		Currencies = { Gold = 40, VillagePoints = 20 },
-		XP = 15,
+		XP = 50,
 	},
 }
 
