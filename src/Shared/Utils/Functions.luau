@@ -10,6 +10,11 @@ local Types = require(script.Parent.Types)
 
 local ENTITY_COLLISION_GROUP = "Entities"
 
+local NON_UPGRADABLE_STATS = {
+	Luck = true,
+	Speed = true,
+}
+
 function Functions:getDistance(part1: BasePart, part2: BasePart): number
 	return (part1.Position - part2.Position).Magnitude
 end
@@ -45,7 +50,13 @@ local function getTotalStats(Data: Types.PlayerData, StatName: string)
 
 		local ItemInfo = ItemsData[KeyEntry.Name] :: Types.Equipment
 		if ItemInfo then
-			Stat += ItemInfo.Stats[StatName]
+			local StatValue = ItemInfo.Stats[StatName]
+
+			if not NON_UPGRADABLE_STATS[StatName] then
+				StatValue *= 1 + (KeyEntry.Upgrades or 0) * 0.1
+			end
+
+			Stat += StatValue
 		end
 	end
 
