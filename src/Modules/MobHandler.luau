@@ -110,7 +110,7 @@ local function Reward(player: Player, MobInfo: Types.MobInfo, MobName: string)
 	end
 
 	RewardManager:AddMisc(player, "Kills", 1)
-	RewardManager:AddXP(player, MobInfo.XP)
+	RewardManager:AddXP(player, MobInfo.XP, { ["MobData"] = MobInfo })
 	QuestManager:OnMobKilled(player, MobName)
 end
 

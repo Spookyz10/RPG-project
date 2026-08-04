@@ -9,6 +9,7 @@ local Quest: Types.QuestInfo = {
 	RequiredLevel = 1,
 	RequiredQuest = nil,
 	SkipIfOverleveled = false,
+	MaxLevel = 15,
 	Objectives = {
 		{ Type = "KillMob", Target = "Wolf", Amount = 5 },
 	},

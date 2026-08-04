@@ -13,6 +13,7 @@ local Item: Types.Equipment = {
 		Health = 0,
 	},
 	Passive = "",
+	WeaponType = "Solo",
 	Data = {
 		SellsFor = 10,
 		ItemType = "Equipment",

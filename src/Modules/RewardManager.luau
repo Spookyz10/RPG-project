@@ -50,11 +50,19 @@ function RewardManager:AddCurrency(player: Player, currency: string, amount: num
 	end
 end
 
-function RewardManager:AddXP(player: Player, amount: number, mobData: Types.MobInfo?)
+type XPParams = {
+	["MobData"]: Types.MobInfo,
+	["QuestInfo"]: Types.QuestInfo,
+}
+
+function RewardManager:AddXP(player: Player, amount: number, params: XPParams)
 	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
 	if not PlayerData then
 		return
 	end
+
+	local mobData = params.MobData
+	local questData = params.QuestInfo
 
 	if mobData then
 		if mobData.Level < PlayerData.Level() then
@@ -62,6 +70,12 @@ function RewardManager:AddXP(player: Player, amount: number, mobData: Types.MobI
 		end
 
 		if mobData.MaxLevel > PlayerData.Level() then
+			return
+		end
+	end
+
+	if questData then
+		if questData.MaxLevel and questData.MaxLevel > PlayerData.Level() then
 			return
 		end
 	end

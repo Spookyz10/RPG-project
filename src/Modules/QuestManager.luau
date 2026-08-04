@@ -75,7 +75,7 @@ function QuestManager:GrantRewards(player: Player, rewards: Types.QuestReward?)
 	end
 
 	if rewards.XP then
-		RewardManager:AddXP(player, rewards.XP)
+		RewardManager:AddXP(player, rewards.XP, { ["QuestInfo"] = rewards })
 	end
 
 	if rewards.Items then

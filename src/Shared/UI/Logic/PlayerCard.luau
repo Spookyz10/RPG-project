@@ -3,23 +3,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
 local UIFunctions = require(ReplicatedStorage.Shared.UI.UIFunctions)
+local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 
 local UI = {}
 
 local EquipmentEntries = {}
-
-local function FormatTime(seconds: number): string
-	if seconds < 60 then
-		return math.floor(seconds) .. "s"
-	elseif seconds < 3600 then
-		return (string.format("%.1f", seconds / 60):gsub("%.0$", "")) .. "m"
-	elseif seconds < 86400 then
-		return (string.format("%.1f", seconds / 3600):gsub("%.0$", "")) .. "h"
-	else
-		return (string.format("%.1f", seconds / 86400):gsub("%.0$", "")) .. "d"
-	end
-end
 
 function UI.Init()
 	local Card = UIConstants.PlayerGui:WaitForChild("Overlap").PlayerCard
@@ -54,7 +43,7 @@ function UI.Open(targetPlayer: Player)
 	local Misc = Card.Stats.Misc
 	Misc.Gold.Text = "Gold: " .. Data.Gold
 	Misc.Gems.Text = "Gems: " .. Data.Gems
-	Misc.PlayTime.Text = "Play Time: " .. FormatTime(Data.PlayTime)
+	Misc.PlayTime.Text = "Play Time: " .. Functions.FormatTime(Data.PlayTime)
 	Misc.Deaths.Text = "Deaths: " .. Data.Deaths
 	Misc.Kills.Text = "Kills: " .. Data.Kills
 

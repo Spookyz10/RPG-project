@@ -220,4 +220,31 @@ function Functions:GetGroundCFrame(
 	return CFrame.new(position) * RotationOnly
 end
 
+function Functions:TypeWrite(Label: TextLabel, Text: string)
+	Label.MaxVisibleGraphemes = 0
+	Label.Text = Text
+
+	for i = 1, #Text do
+		Label.MaxVisibleGraphemes = i
+	end
+
+	task.wait(3)
+
+	for i = #Text, 0, -1 do
+		Label.MaxVisibleGraphemes = i
+	end
+end
+
+function Functions.FormatTime(seconds: number): string
+	if seconds < 60 then
+		return math.floor(seconds) .. "s"
+	elseif seconds < 3600 then
+		return (string.format("%.1f", seconds / 60):gsub("%.0$", "")) .. "m"
+	elseif seconds < 86400 then
+		return (string.format("%.1f", seconds / 3600):gsub("%.0$", "")) .. "h"
+	else
+		return (string.format("%.1f", seconds / 86400):gsub("%.0$", "")) .. "d"
+	end
+end
+
 return Functions

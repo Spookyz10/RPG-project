@@ -13,6 +13,7 @@ local Remotes = {
 	AbandonQuest = "Server",
 	SellItem = "Server",
 	SpawnItem = "Server",
+	ClaimDaily = "Server",
 
 	SkillVFX = "Client",
 	Damage = "Client",
@@ -20,6 +21,7 @@ local Remotes = {
 	LeaderboardUpdate = "Client",
 	Indicator = "Client",
 	BuffVFX = "Client",
+	Notification = "Client",
 }
 
 local RemoteFunctions = {

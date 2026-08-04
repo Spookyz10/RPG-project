@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
+local DailyReward = require(ServerStorage.Modules.DailyReward)
 local PlayerClass = require(ReplicatedStorage.Shared.PlayerClass)
 
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
@@ -37,6 +38,8 @@ local function LoadPlayer(Player: Player)
 	local InitialHealth = HealthManager:GetMaxHealth(Player, PlayerData)
 	PlayerClass.addPlayer(Player, InitialHealth)
 	HealthManager:Listen(Player)
+
+	DailyReward.ResetDailyStreak(Player)
 end
 
 local function SetupRespawn(Player: Player, Character: Model)

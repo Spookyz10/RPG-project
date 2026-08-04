@@ -2,6 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
+local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Data = require(ReplicatedStorage.Shared.Data).server
 
@@ -138,21 +139,25 @@ end
 function InventoryManager:ItemAction(player: Player, UUID: string)
 	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
 	if not PlayerData then
+		RemoteManager.SendClientEvent("Notification", { Player = player }, "No player data?")
 		return
 	end
 
 	local Item = PlayerData.Inventory[UUID]()
 	if not Item then
+		RemoteManager.SendClientEvent("Notification", { Player = player }, "You don't have that item silly!")
 		return
 	end
 
 	local Info = ItemsData[Item.Name] :: Types.Item
 	if not Info then
+		RemoteManager.SendClientEvent("Notification", { Player = player }, "Item has no info, how.")
 		return
 	end
 
 	local canEquip = Info:Elligable(PlayerData)
 	if not canEquip then
+		RemoteManager.SendClientEvent("Notification", { Player = player }, "You don't meet the item's requirements")
 		return
 	end
 
@@ -172,11 +177,13 @@ function InventoryManager:UnequipItem(player: Player, UUID: string)
 
 	local Item = PlayerData.Inventory[UUID]()
 	if not Item then
+		RemoteManager.SendClientEvent("Notification", { Player = player }, "You don't have that item silly!")
 		return
 	end
 
 	local Info = ItemsData[Item.Name] :: Types.Item
 	if not Info then
+		RemoteManager.SendClientEvent("Notification", { Player = player }, "Item has no info, how.")
 		return
 	end
 

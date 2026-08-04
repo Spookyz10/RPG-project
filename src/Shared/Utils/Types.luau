@@ -80,6 +80,7 @@ export type Equipment = ItemBase<Equipment> & {
 	Kind: "Equipment",
 	Stats: Stats,
 	Passive: string,
+	WeaponType: string,
 }
 
 export type Consumable = ItemBase<Consumable> & {
@@ -126,6 +127,9 @@ export type PlayerData = {
 	MobIndex: { [string]: number },
 	Quests: { [string]: QuestProgress },
 	CompletedQuests: { [string]: QuestCompletion },
+	LastDailyReward: number,
+	TotalDailyRewards: number,
+	DailyStreak: number,
 }
 
 export type SkillData = {
@@ -221,6 +225,7 @@ export type QuestInfo = {
 	Repeatable: boolean,
 	Cooldown: number?,
 	RequiredLevel: number?,
+	MaxLevel: number?,
 	RequiredQuest: string?,
 	SkipIfOverleveled: boolean?,
 	Objectives: { QuestObjective },

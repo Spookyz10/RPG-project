@@ -2,6 +2,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
+local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local Data = require(ReplicatedStorage.Shared.Data).client
 
 local Player = Players.LocalPlayer
