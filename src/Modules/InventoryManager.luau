@@ -57,6 +57,7 @@ function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: numb
 			Amount = ToAdd,
 			Enchants = {},
 			Upgrades = 0,
+			UpgradeCap = math.random(3, 10),
 		}
 
 		PlayerData.Inventory[UUID](NewItem)
