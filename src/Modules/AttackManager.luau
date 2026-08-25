@@ -14,12 +14,7 @@ local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 
 local AttackManager = {}
 
-function AttackManager:Swing(class: Types.Entity)
-	local Player = Players:GetPlayerFromCharacter(class.Model)
-	if not Player then
-		return
-	end
-
+function AttackManager:Swing(Player: Player)
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
 	local Weapon = PlayerData.Equipment.Weapon()
 

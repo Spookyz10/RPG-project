@@ -1,5 +1,3 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local MobClass = require(ReplicatedStorage.Shared.MobClass)
 local Behavior = {}
 
 Behavior.Active = {} :: { [Model]: boolean }
@@ -33,9 +31,13 @@ function Behavior:Reset(mobModel: Model)
 
 	if origin then
 		self:Cancel(mobModel)
-		local mobClass = MobClass.getMob(UUID.Value)
-		mobClass.HP = mobClass.MaxHP
-		mobModel.Humanoid.WalkSpeed = 16
+
+		local Humanoid = mobModel:FindFirstChildOfClass("Humanoid")
+		if Humanoid then
+			Humanoid.Health = Humanoid.MaxHealth
+			Humanoid.WalkSpeed = 16
+		end
+
 		mobModel:PivotTo(origin.CFrame)
 	end
 end

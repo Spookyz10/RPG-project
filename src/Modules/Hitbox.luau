@@ -1,17 +1,15 @@
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
-local MobClass = require(ReplicatedStorage.Shared.MobClass)
-local PlayerClass = require(ReplicatedStorage.Shared.PlayerClass)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Hitbox = {}
 
 type HitboxResults = {
-	Players: { [Model]: Types.Entity },
-	Mobs: { [Model]: Types.Entity },
+	Players: { [Model]: Model },
+	Mobs: { [Model]: Model },
 }
 
 local DebugBool = ServerScriptService:FindFirstChild("DebugHitboxes") :: BoolValue
@@ -31,34 +29,19 @@ function Hitbox.GetHitModels(hitbox: BasePart): HitboxResults
 		if not Character then
 			continue
 		end
-		local Humanoid = Character:FindFirstChild("Humanoid")
+		local Humanoid = Character:FindFirstChildOfClass("Humanoid")
 		if Humanoid then
-			local isMob = Character:FindFirstChild("UUID") :: BoolValue
+			if Humanoid.Health <= 0 then
+				continue
+			end
+
+			local isMob = Character:FindFirstChild("UUID")
 			if isMob then
-				local MobData = MobClass.getMob(isMob.Value)
-
-				if not MobData then
-					continue
-				end
-
-				if MobData.HP <= 0 then
-					continue
-				end
-
-				MobsHit[Character] = MobData
+				MobsHit[Character] = Character
 			else
 				local player = Players:GetPlayerFromCharacter(Character)
 				if player then
-					local PlayerData = PlayerClass.getPlayerInfo(player)
-					if not PlayerData then
-						continue
-					end
-
-					if PlayerData.HP <= 0 then
-						continue
-					end
-
-					PlayersHit[Character] = PlayerData
+					PlayersHit[Character] = Character
 				end
 			end
 		end
@@ -88,33 +71,33 @@ function Hitbox:Create(info: Types.HitboxInfo): (BasePart, HitboxResults)
 	Part.Color = Color3.fromRGB(255, 0, 0)
 
 	local HitList: { [Model]: true } = {}
-	local AllPlayersHit: { [Model]: Types.Entity } = {}
-	local AllMobsHit: { [Model]: Types.Entity } = {}
+	local AllPlayersHit: { [Model]: Model } = {}
+	local AllMobsHit: { [Model]: Model } = {}
 
 	local function ProcessHits()
 		local Results = Hitbox.GetHitModels(Part)
 
-		for Model, PlayerInfo in Results.Players do
+		for Model in Results.Players do
 			if HitList[Model] or Model == info.Caster then
 				continue
 			end
 			HitList[Model] = true
-			AllPlayersHit[Model] = PlayerInfo
+			AllPlayersHit[Model] = Model
 
 			if info.OnHit then
-				info.OnHit(Model, PlayerInfo)
+				info.OnHit(Model, Model)
 			end
 		end
 
-		for Model, MobInfo in Results.Mobs do
+		for Model in Results.Mobs do
 			if HitList[Model] or Model == info.Caster then
 				continue
 			end
 			HitList[Model] = true
-			AllMobsHit[Model] = MobInfo
+			AllMobsHit[Model] = Model
 
 			if info.OnHit then
-				info.OnHit(Model, MobInfo)
+				info.OnHit(Model, Model)
 			end
 		end
 	end

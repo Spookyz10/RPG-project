@@ -36,8 +36,6 @@ local template: Types.PlayerData = {
 		Speed = 0,
 		Attack = 0,
 		CriticalChance = 0,
-		CriticalPower = 0,
-		Luck = 0,
 		Defense = 0,
 	},
 	MobIndex = {},
@@ -49,4 +47,4 @@ local template: Types.PlayerData = {
 	DailyStreak = 0,
 }
 
-return DataService({ template = template, profileStoreIndex = "PlayerData3" })
+return DataService({ template = template, profileStoreIndex = "PlayerData4" })

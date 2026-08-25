@@ -6,7 +6,7 @@ local BehaviorManager = require(ServerStorage.Modules.Mobs.BehaviorManager)
 local CooldownSystem = require(ServerStorage.Modules.CooldownSystem)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
-local Types = require(ReplicatedStorage.Shared.Utils.Types)
+local Players = game:GetService("Players")
 
 local ATTACK_RANGE = 4
 local WINDUP_TIME = 1
@@ -32,7 +32,7 @@ function BasicMeleeBehavior.new(config: Config?)
 	return self
 end
 
-function BasicMeleeBehavior:Start(mob: Model, class: Types.Entity)
+function BasicMeleeBehavior:Start(mob: Model)
 	if BehaviorManager.Active[mob] then
 		return
 	end
@@ -48,7 +48,17 @@ function BasicMeleeBehavior:Start(mob: Model, class: Types.Entity)
 	local IsAttacking = false
 
 	while mob and mob.Parent and RootPart and RootPart.Parent and BehaviorManager.Active[mob] do
-		local Hitlist = class.HitList
+		local Hitlist = {}
+		local HitListFolder = mob:FindFirstChild("HitList")
+		if HitListFolder then
+			for _, entry in HitListFolder:GetChildren() do
+				local player = Players:GetPlayerByUserId(tonumber(entry.Name))
+				if player then
+					Hitlist[player] = true
+				end
+			end
+		end
+
 		local targetPlayer = Functions:GetTargetPlayer(mob, Hitlist)
 		if not targetPlayer then
 			BehaviorManager:Reset(mob)
@@ -107,7 +117,7 @@ function BasicMeleeBehavior:Start(mob: Model, class: Types.Entity)
 								Caster = mob,
 								OnHit = function(_, HitEntity)
 									if Functions:isEntityAlive(HitEntity) and not Functions:isClassMob(HitEntity) then
-										DamageHandler:dealDamage(class, HitEntity)
+										DamageHandler:dealDamage(mob, HitEntity)
 									end
 								end,
 							})
