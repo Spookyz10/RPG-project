@@ -1,0 +1,155 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local UIFunctions = require(script.Parent.UIFunctions)
+local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
+local Skills = require(ReplicatedStorage.Shared.Skills)
+local Types = require(ReplicatedStorage.Shared.Utils.Types)
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer.PlayerGui
+local Inventory = PlayerGui:WaitForChild("Main").Inventory
+local InfoFrame = Inventory:FindFirstChild("InfoFrame") :: Frame
+
+local InfoFrameClose = InfoFrame and InfoFrame:FindFirstChild("Close")
+if InfoFrameClose then
+	InfoFrameClose.MouseButton1Click:Connect(function()
+		InfoFrame.Visible = false
+	end)
+end
+
+local ItemDisplay = {}
+
+local function PopulateItemInfo(FloatingItem: Frame, ItemData: Types.Item)
+	FloatingItem.ImageContainer.Icon.Image = ItemData.Data.Icon
+
+	UIFunctions:ApplyRarityGradient(FloatingItem.ImageContainer.Rarity, ItemData.Data.Rarity)
+	UIFunctions:ApplyRarityGradient(FloatingItem.ItemName, ItemData.Data.Rarity)
+	UIFunctions:ApplyRarityGradient(FloatingItem.Rarity, ItemData.Data.Rarity)
+
+	FloatingItem.ItemName.Text = ItemData.Data.Name
+	FloatingItem.Level.Text = "Level: " .. ItemData.Data.Level
+	FloatingItem.Rarity.Text = ItemData.Data.Rarity
+
+	if ItemData.Kind == "Equipment" then
+		FloatingItem.Stats.Visible = true
+		FloatingItem.Description.Visible = false
+		UIFunctions:UpdateStatsContainer(FloatingItem.Stats.Info, ItemData.Stats)
+	else
+		FloatingItem.Stats.Visible = false
+		FloatingItem.Description.Visible = true
+		FloatingItem.Description.Text = ItemData.Data.Description
+	end
+end
+
+local function PopulateSkillInfo(FloatingItem: Frame, SkillInfo: Types.SkillData)
+	FloatingItem.ImageContainer.Icon.Image = SkillInfo.Icon
+
+	UIFunctions:ApplyRarityGradient(FloatingItem.ImageContainer.Rarity, nil)
+	UIFunctions:ApplyRarityGradient(FloatingItem.ItemName, nil)
+	UIFunctions:ApplyRarityGradient(FloatingItem.Rarity, nil)
+
+	FloatingItem.ItemName.Text = SkillInfo.Name
+	FloatingItem.Level.Text = "Level: " .. SkillInfo.LevelRequirement
+	FloatingItem.Rarity.Text = ""
+
+	FloatingItem.Stats.Visible = false
+	FloatingItem.Description.Visible = true
+	FloatingItem.Description.Text = SkillInfo.Description
+end
+
+function ItemDisplay:Hover(Button: ImageButton, InventoryEntry: Types.ItemData)
+	if not InventoryEntry then
+		return
+	end
+
+	local ItemData = ItemsData[InventoryEntry.Name] :: Types.Item
+
+	if not ItemData then
+		return
+	end
+
+	UIFunctions:Hover(Button, function(FloatingItem: Frame)
+		FloatingItem.ImageContainer.Visible = true
+		FloatingItem.ItemName.Visible = true
+		FloatingItem.Level.Visible = true
+		FloatingItem.Rarity.Visible = true
+
+		PopulateItemInfo(FloatingItem, ItemData)
+
+		if InventoryEntry.Upgrades and InventoryEntry.Upgrades > 0 and FloatingItem:FindFirstChild("Upgrades") then
+			FloatingItem.Upgrades.Visible = true
+			FloatingItem.Upgrades.Text = "+" .. InventoryEntry.Upgrades
+		end
+	end)
+end
+
+function ItemDisplay:HoverShopItem(Button: GuiObject, itemName: string, itemType: string)
+	UIFunctions:Hover(Button, function(FloatingItem: Frame)
+		FloatingItem.ImageContainer.Visible = true
+		FloatingItem.ItemName.Visible = true
+		FloatingItem.Level.Visible = true
+		FloatingItem.Rarity.Visible = true
+
+		if itemType == "Skill" then
+			local SkillInfo = Skills[itemName] :: Types.SkillData
+			if not SkillInfo then
+				return
+			end
+
+			PopulateSkillInfo(FloatingItem, SkillInfo)
+		else
+			local ItemData = ItemsData[itemName] :: Types.Item
+			if not ItemData then
+				return
+			end
+
+			PopulateItemInfo(FloatingItem, ItemData)
+		end
+	end)
+end
+
+function ItemDisplay:ShowInfo(InventoryEntry: Types.ItemData, UUID: string)
+	if not InfoFrame then
+		return
+	end
+
+	if not InventoryEntry then
+		return
+	end
+
+	local ItemData = ItemsData[InventoryEntry.Name] :: Types.Item
+
+	if not ItemData then
+		return
+	end
+
+	InfoFrame.Visible = true
+	InfoFrame.ImageContainer.Icon.Image = ItemData.Data.Icon
+
+	UIFunctions:ApplyRarityGradient(InfoFrame.ImageContainer.Rarity, ItemData.Data.Rarity)
+	UIFunctions:ApplyRarityGradient(InfoFrame.ItemName, ItemData.Data.Rarity)
+	UIFunctions:ApplyRarityGradient(InfoFrame.Rarity, ItemData.Data.Rarity)
+
+	InfoFrame.ItemName.Text = ItemData.Data.Name
+	InfoFrame.Level.Text = "Level: " .. ItemData.Data.Level
+	InfoFrame.Rarity.Text = ItemData.Data.Rarity
+	InfoFrame.Description.Text = ItemData.Data.Description
+	if ItemData.Data.ActionName then
+		InfoFrame.Action.ActionName.Text = ItemData.Data.ActionName
+		InfoFrame.Action.Visible = true
+	else
+		InfoFrame.Action.Visible = false
+	end
+	local Action = InfoFrame.Action :: ImageButton
+
+	Action.MouseButton1Click:Connect(function()
+		if ItemData.Action then
+			ItemData:Action(UUID)
+		end
+	end)
+
+	UIFunctions:UpdateStatsContainer(InfoFrame.Stats.Info, ItemData.Kind == "Equipment" and ItemData.Stats or {})
+end
+
+return ItemDisplay

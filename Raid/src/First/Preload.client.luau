@@ -1,0 +1,32 @@
+local ReplicatedFirst = game:GetService("ReplicatedFirst")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ContentProvider = game:GetService("ContentProvider")
+
+local PreloadStatus = require(ReplicatedFirst:WaitForChild("First"):WaitForChild("PreloadStatus"))
+
+require(ReplicatedStorage:WaitForChild("Shared").CollisionGroups)
+
+if not game:IsLoaded() then
+	game.Loaded:Wait()
+end
+
+local Assets = ReplicatedStorage:WaitForChild("Assets")
+local WeaponsFolder = Assets:WaitForChild("Weapons")
+local AnimationsFolder = Assets:WaitForChild("Animations")
+
+local function PreloadFolder(folder: Instance, label: string)
+	local items = folder:GetDescendants()
+
+	local loaded = 0
+	ContentProvider:PreloadAsync(items, function(_assetId, _)
+		loaded += 1
+	end)
+end
+
+PreloadFolder(WeaponsFolder, "Weapons")
+PreloadFolder(AnimationsFolder, "Animations")
+PreloadFolder(workspace, "Workspace")
+
+PreloadStatus:MarkComplete()
+
+ReplicatedFirst:RemoveDefaultLoadingScreen()
