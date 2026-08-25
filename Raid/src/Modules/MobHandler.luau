@@ -106,7 +106,7 @@ function MobHandler:OnMobDied(mobModel: Model)
 	end)
 end
 
-function MobHandler:AddMob(mobName: string)
+function MobHandler:AddMob(mobName: string | { string })
 	local MobModel = Functions:getMob(mobName)
 
 	if not MobModel then

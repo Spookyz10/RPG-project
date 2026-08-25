@@ -12,10 +12,6 @@ local Data = require(ReplicatedStorage.Shared.Data).server
 local InventoryManager = require(ServerStorage.Modules.InventoryManager)
 local SkillManager = require(ServerStorage.Modules.SkillManager)
 
-local RESPAWN_TIME = 6
-
-Players.CharacterAutoLoads = false
-
 local function LoadPlayer(Player: Player)
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
 	if not PlayerData then
@@ -24,7 +20,7 @@ local function LoadPlayer(Player: Player)
 	end
 
 	if PlayerData.FirstTimeJoined() then
-		InventoryManager:AddItem(Player, "Wooden Sword", 1)
+		InventoryManager:AddItem(Player, "Paper Sword", 1)
 		PlayerData.FirstTimeJoined(false)
 	end
 
@@ -53,11 +49,6 @@ local function SetupCharacter(Player: Player, Character: Model)
 			PlayerData.Deaths(function(current)
 				return current + 1
 			end)
-		end
-
-		task.wait(RESPAWN_TIME)
-		if Player and Player.Parent then
-			Player:LoadCharacterAsync()
 		end
 	end)
 end
