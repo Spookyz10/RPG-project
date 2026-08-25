@@ -1,7 +1,7 @@
 export type Stats = {
 	Attack: number,
 	Defense: number,
-	CriticalChance: number,
+	Critical: number,
 	Speed: number,
 	Health: number,
 }

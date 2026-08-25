@@ -5,24 +5,24 @@ local getCappedInfo = require(ReplicatedStorage.Shared.getCappedInfo)
 local Item: Types.Consumable = {
 	Kind = "Consumable",
 	Amount = 1,
-	Stat = "Attack",
+	Stat = "Health",
 	Data = {
 		SellsFor = 10,
 		ItemType = "Consumable",
 		SubType = "Potion",
 		Name = script.Name,
 		Stackable = true,
-		Cap = 25,
-		Icon = "rbxassetid://99188339640927",
+		Cap = 999,
+		Icon = "rbxassetid://94300846571768",
 		Rarity = "Common",
 		Level = 1,
-		Description = "Drink this to gain +1 Attack",
+		Description = "Drink this to gain +1 Health",
 		ActionName = "Use",
 	},
 }
 
 function Item:Elligable(PlayerData: Types.PlayerData): boolean
-	return PlayerData and PlayerData.Level() >= 1
+	return PlayerData and PlayerData.Level() >= Item.Data.Level
 end
 
 function Item:Action(UUID: string)

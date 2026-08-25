@@ -5,10 +5,11 @@ local Logic = require(ReplicatedStorage.Shared.UI.Logic)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 
 local Player = Players.LocalPlayer
+local Humanoid = nil :: Humanoid
 
 local function UpdateHP()
-	local HP = Player:GetAttribute("HP") or 0
-	local MaxHP = Player:GetAttribute("MaxHP") or 1
+	local HP = Humanoid.Health
+	local MaxHP = Humanoid.MaxHealth
 	Logic["Bars"].UpdateBar(HP, MaxHP, "HP")
 end
 
@@ -17,6 +18,17 @@ Player:GetAttributeChangedSignal("MaxHP"):Connect(UpdateHP)
 
 Data.XP.Changed(function(NewXp)
 	Logic["Bars"].UpdateBar(NewXp, Functions:GetXPNeeded(Data.Level()), "XP")
+end)
+
+if Player.Character then
+	if Player.Character:FindFirstChild("Humanoid") then
+		Humanoid = Player.Character:FindFirstChild("Humanoid")
+	end
+end
+
+Player.CharacterAdded:Connect(function()
+	local hum = Player.Character:WaitForChild("Humanoid")
+	Humanoid = hum
 end)
 
 UpdateHP()

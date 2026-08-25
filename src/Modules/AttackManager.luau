@@ -1,4 +1,3 @@
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Data = require(ReplicatedStorage.Shared.Data).server
 
@@ -15,9 +14,17 @@ local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local AttackManager = {}
 
 function AttackManager:Swing(Player: Player)
-	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
-	local Weapon = PlayerData.Equipment.Weapon()
+	local Character = Player.Character
+	if not Character then
+		return
+	end
 
+	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
+	if not PlayerData then
+		return
+	end
+
+	local Weapon = PlayerData.Equipment.Weapon()
 	if Weapon == "" then
 		return
 	end
@@ -26,43 +33,55 @@ function AttackManager:Swing(Player: Player)
 		return
 	end
 
-	local WeaponData = ItemsData[PlayerData.Inventory[Weapon]().Name] :: Types.Equipment
+	local WeaponEntry = PlayerData.Inventory[Weapon]()
+	if not WeaponEntry then
+		return
+	end
 
+	local WeaponData = ItemsData[WeaponEntry.Name] :: Types.Equipment
 	if not WeaponData then
 		return
 	end
 
-	if Functions:isEntityAlive(class) then
-		CooldownSystem:StartCooldown(Player, "Swing", 0.6)
-		local PrimaryPart = class.Model.PrimaryPart
-		if PrimaryPart then
-			Hitbox:Create({
-				Size = Vector3.new(5, 5, 5),
-				Part = PrimaryPart,
-				Offset = CFrame.new(0, 0, -3),
-				Time = 0.5,
-				Caster = class.Model,
-				Drag = true,
-				OnHit = function(_, HitEntity)
-					DamageHandler:dealDamage(class, HitEntity)
-					if WeaponData.Swing then
-						WeaponData.Swing()
-					end
-				end,
-			})
-		end
+	if not Functions:isEntityAlive(Character) then
+		return
 	end
+
+	local PrimaryPart = Character.PrimaryPart
+	if not PrimaryPart then
+		return
+	end
+
+	CooldownSystem:StartCooldown(Player, "Swing", 0.6)
+
+	Hitbox:Create({
+		Size = Vector3.new(5, 5, 5),
+		Part = PrimaryPart,
+		Offset = CFrame.new(0, 0, -3),
+		Time = 0.5,
+		Caster = Character,
+		Drag = true,
+		OnHit = function(_, HitEntity)
+			DamageHandler:dealDamage(Character, HitEntity)
+			if WeaponData.Swing then
+				WeaponData.Swing()
+			end
+		end,
+	})
 end
 
-function AttackManager:UseSkill(class: Types.Entity, slot: string)
-	local Player = Players:GetPlayerFromCharacter(class.Model)
-	if not Player then
+function AttackManager:UseSkill(Player: Player, slot: string)
+	local Character = Player.Character
+	if not Character then
 		return
 	end
 
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
-	local EquippedSkills = PlayerData.Skills()
+	if not PlayerData then
+		return
+	end
 
+	local EquippedSkills = PlayerData.Skills()
 	local SkillInfo = Skills[EquippedSkills[slot]] :: Types.Skill
 	if not SkillInfo then
 		return
@@ -74,13 +93,19 @@ function AttackManager:UseSkill(class: Types.Entity, slot: string)
 		return
 	end
 
+	if not Functions:isEntityAlive(Character) then
+		return
+	end
+
 	CooldownSystem:StartCooldown(Player, key, SkillInfo.Cooldown)
 
 	RemoteManager.SendClientEvent("SkillCooldown", { Player = Player }, slot, SkillInfo.Cooldown)
 
-	SkillInfo:Activate(class)
+	local Entity = { Model = Character } :: Types.Entity
 
-	ComboManager:RecordSkill(Player, class, SkillInfo.Name)
+	SkillInfo:Activate(Entity)
+
+	ComboManager:RecordSkill(Player, Entity, SkillInfo.Name)
 end
 
 return AttackManager

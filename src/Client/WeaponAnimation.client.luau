@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
+local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Data = require(ReplicatedStorage.Shared.Data).client
 
 local Player = Players.LocalPlayer
@@ -30,11 +31,15 @@ local function UpdateIdle()
 		return
 	end
 	HasWeapon = ShouldPlay
+	local WeaponData = ItemsData[Data.Equipment.Weapon()] :: Types.Equipment
 
-	if ShouldPlay then
-		Handler:Play("Idle")
-	else
-		Handler:Stop("Idle")
+	if WeaponData then
+		local Animation = WeaponData.WeaponType
+		if ShouldPlay then
+			Handler:Play(Animation)
+		else
+			Handler:StopAllIdles()
+		end
 	end
 end
 

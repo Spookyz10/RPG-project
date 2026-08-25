@@ -56,19 +56,27 @@ local function SetupMob(mob: Instance)
 		return
 	end
 
+	local Humanoid = mob:FindFirstChild("Humanoid") :: Humanoid
+
+	if not Humanoid then
+		return
+	end
+
 	local Overhead = Template:Clone()
 	Overhead.Adornee = mob.PrimaryPart
 	Overhead.MobName.Text = mob.Name
 	Overhead.Parent = mob
 
 	local function Refresh()
-		local HP = mob:GetAttribute("HP") or 0
-		local MaxHP = mob:GetAttribute("MaxHP") or 1
-		UpdateHPBar(Overhead, HP, MaxHP)
+		if Humanoid then
+			local HP = Humanoid.Health
+			local MaxHP = Humanoid.MaxHealth
+			UpdateHPBar(Overhead, HP, MaxHP)
+		end
 	end
 
-	mob:GetAttributeChangedSignal("HP"):Connect(Refresh)
-	mob:GetAttributeChangedSignal("MaxHP"):Connect(Refresh)
+	Humanoid.HealthChanged:Connect(Refresh)
+	Humanoid:GetAttributeChangedSignal("MaxHealth"):Connect(Refresh)
 
 	Refresh()
 

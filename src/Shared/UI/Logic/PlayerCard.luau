@@ -34,8 +34,7 @@ function UI.Open(targetPlayer: Player)
 	local StatsInfo = Card.Stats.Info
 	StatsInfo.Attack.Text = "Attack: " .. Data.Stats.Attack
 	StatsInfo.Defense.Text = "Defense: " .. Data.Stats.Defense
-	StatsInfo.CriticalChance.Text = "Critical Chance: " .. Data.Stats.CriticalChance
-	StatsInfo.CriticalPower.Text = "Critical Power: " .. Data.Stats.CriticalPower
+	StatsInfo.Critical.Text = "Critical Chance: " .. Data.Stats.CriticalChance
 	StatsInfo.Luck.Text = "Luck: " .. Data.Stats.Luck
 	StatsInfo.Speed.Text = "Speed: " .. Data.Stats.Speed
 	StatsInfo.Health.Text = "Health: " .. Data.Stats.Health

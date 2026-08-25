@@ -2,33 +2,31 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Mob: Types.MobInfo = {
-	HP = 30,
-	MaxHP = 30,
 	Level = 1,
 	MaxLevel = 15,
-	XP = 120,
-	RespawnTime = 10,
+	XP = 15,
+	RespawnTime = 5,
 	GlobalDrops = false,
 
 	Data = {
 		Stats = {
-			Attack = 10,
-			Defense = 1,
-			CriticalChance = 0,
-			Health = 10,
+			Attack = 5,
+			Defense = 0,
+			Critical = 0,
+			Health = 0,
 			Speed = 0,
 		},
 	},
 
 	Currencies = {
 		Gold = 10,
-		VillagePoints = 10,
 	},
 
 	Drops = {
-		["Talisman of the Wild"] = { Chance = 8, Amount = 1 },
-		["Wilderbone"] = { Chance = 15, Amount = 1 },
-		["Small Defense Potion"] = { Chance = 50, Amount = 1 },
+		["Small Health Potion"] = { Chance = 50, Amount = 1 },
+		["Rusty Blade"] = { Chance = 40, Amount = 1 },
+		["Emerald Trinket"] = { Chance = 15, Amount = 1 },
+		["Holy Necklace"] = { Chance = 15, Amount = 1 },
 	},
 }
 

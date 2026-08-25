@@ -2,7 +2,6 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Data = require(ReplicatedStorage.Shared.Data).server
-local PlayerClass = require(ReplicatedStorage.Shared.PlayerClass)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
@@ -26,17 +25,22 @@ function HealthManager:Refresh(player: Player)
 		return
 	end
 
-	local Entity = PlayerClass.getPlayerInfo(player)
-	if not Entity then
+	local Character = player.Character
+	if not Character then
+		return
+	end
+
+	local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+	if not Humanoid then
 		return
 	end
 
 	local NewMaxHP = self:GetMaxHealth(player, PlayerData)
 
-	PlayerClass.setMaxHP(player, NewMaxHP)
+	Humanoid.MaxHealth = NewMaxHP
 
-	if Entity.HP > NewMaxHP then
-		PlayerClass.setHP(player, NewMaxHP)
+	if Humanoid.Health > NewMaxHP then
+		Humanoid.Health = NewMaxHP
 	end
 end
 
@@ -54,19 +58,18 @@ local function StartRegen(player: Player)
 				break
 			end
 
-			local Entity = PlayerClass.getPlayerInfo(player)
-			if not Entity then
+			local Character = player.Character
+			local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
+			if not Humanoid then
 				continue
 			end
 
-			if Entity.HP <= 0 or Entity.HP >= Entity.MaxHP then
+			if Humanoid.Health <= 0 or Humanoid.Health >= Humanoid.MaxHealth then
 				continue
 			end
 
-			local RegenAmount = math.ceil(Entity.MaxHP * REGEN_PERCENT)
-			local NewHP = math.min(Entity.MaxHP, Entity.HP + RegenAmount)
-
-			PlayerClass.setHP(player, NewHP)
+			local RegenAmount = math.ceil(Humanoid.MaxHealth * REGEN_PERCENT)
+			Humanoid.Health = math.min(Humanoid.MaxHealth, Humanoid.Health + RegenAmount)
 		end
 	end)
 end

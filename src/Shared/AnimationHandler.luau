@@ -12,6 +12,11 @@ AnimationHandler.__index = AnimationHandler
 
 local ActiveHandlers: { [Model]: any } = {}
 
+local WeaponIdles = {
+	"Idle",
+	"Dual",
+}
+
 function AnimationHandler:_WaitReady(): boolean
 	local Character = self.Character
 
@@ -37,7 +42,8 @@ function AnimationHandler:_WaitReady(): boolean
 		Animator = Humanoid:WaitForChild("Animator", 5) :: Animator?
 	end
 	if not Animator then
-		Animator = Instance.new("Animator", Humanoid)
+		Animator = Instance.new("Animator")
+		Animator.Parent = Humanoid
 	end
 	if self._Destroyed then
 		return false
@@ -172,6 +178,15 @@ function AnimationHandler:StopAll(fadeTime: number?)
 	for _, Track in self.Tracks do
 		if Track.IsPlaying then
 			Track:Stop(fadeTime or 0.2)
+		end
+	end
+end
+
+function AnimationHandler:StopAllIdles()
+	for _, animName in WeaponIdles do
+		local Track = self.Tracks[animName]
+		if Track and Track.IsPlaying then
+			Track:Stop(0.2)
 		end
 	end
 end

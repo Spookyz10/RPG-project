@@ -20,7 +20,7 @@ function Events:GetEventMultipliers()
 				Gold = 2,
 			},
 			XP = 2,
-			Luck = 1,
+			Luck = 1.2,
 		}
 	else
 		return EventMultipliers

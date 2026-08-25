@@ -37,10 +37,9 @@ function DamageHandler:calculateDamage(caster: Model, victim: Model, multi: numb
 		CasterAttack *= 1 + DamageBuff / 100
 	end
 
-	local isCrit = math.random() * 100
-		<= CasterStats.CriticalChance + BuffsManager:GetBuffAmount(caster, "CriticalChance") + 5
+	local isCrit = math.random() * 100 <= CasterStats.Critical + BuffsManager:GetBuffAmount(caster, "Critical") + 5
 	if isCrit then
-		CasterAttack *= (baseCriticalMultiplier * (1 + CasterStats.CriticalPower / 100))
+		CasterAttack *= baseCriticalMultiplier
 	end
 
 	local FinalDamage = CasterAttack - VictimDefense

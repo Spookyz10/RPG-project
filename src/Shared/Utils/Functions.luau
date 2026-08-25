@@ -19,12 +19,17 @@ function Functions:getDistance(part1: BasePart, part2: BasePart): number
 	return (part1.Position - part2.Position).Magnitude
 end
 
-function Functions:isEntityAlive(class: Types.Entity): boolean
-	return class.HP > 0
+function Functions:isEntityAlive(character: Model): boolean
+	if not character then
+		return false
+	end
+
+	local Humanoid = character:FindFirstChildOfClass("Humanoid")
+	return Humanoid ~= nil and Humanoid.Health > 0
 end
 
-function Functions:isClassMob(class: Types.Entity): boolean
-	return not Players:GetPlayerFromCharacter(class.Model)
+function Functions:isClassMob(character: Model): boolean
+	return not Players:GetPlayerFromCharacter(character)
 end
 
 function Functions:GenUUID(): string
@@ -78,9 +83,8 @@ function Functions:GetTotalStats(entity: Model, Data: Types.PlayerData): Types.S
 			return {
 				Attack = getTotalStats(Data, "Attack"),
 				Defense = getTotalStats(Data, "Defense"),
-				CriticalChance = getTotalStats(Data, "CriticalChance"),
-				CriticalPower = getTotalStats(Data, "CriticalPower"),
-				Luck = getTotalStats(Data, "Luck"),
+				Critical = getTotalStats(Data, "Critical"),
+
 				Health = getTotalStats(Data, "Health"),
 				Speed = getTotalStats(Data, "Speed"),
 			}
@@ -91,7 +95,6 @@ function Functions:GetTotalStats(entity: Model, Data: Types.PlayerData): Types.S
 		Attack = 0,
 		Defense = 0,
 		CriticalChance = 0,
-		CriticalPower = 0,
 		Luck = 0,
 		Health = 0,
 		Speed = 0,
@@ -121,12 +124,12 @@ end
 
 function Functions:GetTargetPlayer(mobModel: Model, hitlist: { [Player]: number }?): Player?
 	if hitlist then
-		local PlayerClass = require(ReplicatedStorage.Shared.PlayerClass)
 		local HighestDamage = -1
 		local HighestPlayer = nil
+
 		for player, damage in hitlist do
-			local playerClass = PlayerClass.getPlayerInfo(player)
-			if not playerClass or not Functions:isEntityAlive(playerClass) then
+			local Character = player.Character
+			if not Character or not self:isEntityAlive(Character) then
 				continue
 			end
 

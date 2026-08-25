@@ -2,7 +2,6 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 local DailyReward = require(ServerStorage.Modules.DailyReward)
-local PlayerClass = require(ReplicatedStorage.Shared.PlayerClass)
 
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local CollisionGroups = require(ReplicatedStorage.Shared.CollisionGroups)
@@ -32,20 +31,30 @@ local function LoadPlayer(Player: Player)
 	SkillManager:GrantSkill(Player, "Whirlwind")
 	SkillManager:Listen(Player)
 	WeaponLoader:Listen(Player)
+	HealthManager:Listen(Player)
 
 	Player:LoadCharacterAsync()
-
-	local InitialHealth = HealthManager:GetMaxHealth(Player, PlayerData)
-	PlayerClass.addPlayer(Player, InitialHealth)
-	HealthManager:Listen(Player)
 
 	DailyReward.ResetDailyStreak(Player)
 end
 
-local function SetupRespawn(Player: Player, Character: Model)
+local function SetupCharacter(Player: Player, Character: Model)
 	local Humanoid = Character:WaitForChild("Humanoid") :: Humanoid
 
+	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
+	if PlayerData then
+		local MaxHealth = HealthManager:GetMaxHealth(Player, PlayerData)
+		Humanoid.MaxHealth = MaxHealth
+		Humanoid.Health = MaxHealth
+	end
+
 	Humanoid.Died:Connect(function()
+		if PlayerData then
+			PlayerData.Deaths(function(current)
+				return current + 1
+			end)
+		end
+
 		task.wait(RESPAWN_TIME)
 		if Player and Player.Parent then
 			Player:LoadCharacterAsync()
@@ -53,24 +62,11 @@ local function SetupRespawn(Player: Player, Character: Model)
 	end)
 end
 
-PlayerClass.Died:Connect(function(player: Player)
-	local PlayerData = Data.Service:waitForData(player)
-	if PlayerData then
-		PlayerData.Deaths(function(current)
-			return current + 1
-		end)
-	end
-end)
-
 Players.PlayerAdded:Connect(function(player: Player)
 	player.CharacterAdded:Connect(function(character)
 		CollisionGroups:Apply(character)
-		SetupRespawn(player, character)
+		SetupCharacter(player, character)
 	end)
 
 	LoadPlayer(player)
-end)
-
-Players.PlayerRemoving:Connect(function(player: Player)
-	PlayerClass.removePlayer(player)
 end)
