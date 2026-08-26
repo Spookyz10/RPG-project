@@ -75,7 +75,7 @@ end
 function Functions:GetTotalStats(entity: Model, Data: Types.PlayerData): Types.Stats
 	if entity then
 		local isMob = entity:FindFirstChild("UUID")
-
+		print(Data)
 		if isMob then
 			local MobsData = require(ReplicatedStorage.Shared.MobsData)
 			return MobsData[entity.Name] and MobsData[entity.Name].Data.Stats
@@ -84,7 +84,6 @@ function Functions:GetTotalStats(entity: Model, Data: Types.PlayerData): Types.S
 				Attack = getTotalStats(Data, "Attack"),
 				Defense = getTotalStats(Data, "Defense"),
 				Critical = getTotalStats(Data, "Critical"),
-
 				Health = getTotalStats(Data, "Health"),
 				Speed = getTotalStats(Data, "Speed"),
 			}

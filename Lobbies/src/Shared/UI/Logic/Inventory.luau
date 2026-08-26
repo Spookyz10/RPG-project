@@ -2,6 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
+local UIFunctions = require(ReplicatedStorage.Shared.UI.UIFunctions)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Inventory = {}
@@ -29,6 +30,8 @@ local function UpdateEntry(Button: TextButton, ItemData: Types.ItemData)
 	if Amount then
 		Amount.Text = tostring(ItemData.Amount)
 	end
+
+	UIFunctions:ApplyRarity(Button, ItemInfo.Data.Rarity)
 end
 
 local function CreateEntry(UUID: string, ItemData: Types.ItemData)

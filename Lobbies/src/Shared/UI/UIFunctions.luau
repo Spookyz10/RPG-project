@@ -1,5 +1,4 @@
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local UIFunctions = {}
 
@@ -19,7 +18,7 @@ local RarityColors = {
 	["Ascendant"] = Color3.fromRGB(106, 0, 255),
 }
 
-function UIFunctions:ApplyRarityGradient(container: Instance, rarity: string)
+function UIFunctions:ApplyRarity(container: Instance, rarity: string)
 	local RarityTag = container:FindFirstChild("RarityTag") :: ImageLabel
 	if RarityTag then
 		RarityTag.ImageColor3 = RarityColors[rarity]
