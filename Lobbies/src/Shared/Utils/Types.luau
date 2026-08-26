@@ -163,6 +163,8 @@ export type Zone = {
 	Level: number,
 	MaxLevel: number,
 	Mobs: { string },
+	Order: number,
+	Theme: Color3,
 	getLighting: () -> (),
 }
 

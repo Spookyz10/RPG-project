@@ -1,4 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local TouchManager = require(ReplicatedStorage.Shared.TouchManager)
 local UIModules = require(ReplicatedStorage.Shared.UI.Logic)
 
 for _, UIModule in UIModules do
@@ -6,3 +8,5 @@ for _, UIModule in UIModules do
 		UIModule.Init()
 	end
 end
+
+TouchManager.Init()
