@@ -10,6 +10,3 @@ for _, UIModule in UIModules do
 end
 
 TouchManager.Init()
-
-local data = require(game.ReplicatedStorage.Shared.Data).client
-print(data)

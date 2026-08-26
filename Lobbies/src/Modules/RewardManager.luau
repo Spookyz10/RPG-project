@@ -63,11 +63,7 @@ function RewardManager:AddXP(player: Player, amount: number, params: XPParams)
 	local questData = params.QuestInfo
 
 	if mobData then
-		if mobData.Level < PlayerData.Level() then
-			return
-		end
-
-		if mobData.MaxLevel > PlayerData.Level() then
+		if PlayerData.Level() > mobData.MaxLevel then
 			return
 		end
 	end

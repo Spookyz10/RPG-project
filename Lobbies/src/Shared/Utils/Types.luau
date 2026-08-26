@@ -26,6 +26,10 @@ export type PlayerData = {
 		Aura: string,
 		Rune: string,
 	},
+	Vanity: {
+		Weapon: string,
+		Aura: string,
+	},
 	MaxInventorySpace: number,
 	CurrentInventorySpace: number,
 	Skills: {

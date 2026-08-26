@@ -37,6 +37,10 @@ local template: Types.PlayerData = {
 		["Raid Coins"] = 0,
 		Tokens = 0,
 	},
+	Vanity = {
+		Weapon = "",
+		Aura = "",
+	},
 	UnlockedRecipes = {},
 	ExtraStats = {
 		Health = 0,

@@ -8,6 +8,10 @@ local Data = require(ReplicatedStorage.Shared.Data).server
 
 local InventoryManager = {}
 
+local VanitySlots = {
+	Weapon = true,
+}
+
 function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: number): (string, string?)
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
 	local ItemInfo = ItemsData[ItemName] :: Types.Item
@@ -195,6 +199,52 @@ function InventoryManager:UnequipItem(player: Player, UUID: string)
 		PlayerData.Equipment[Info.Data.SubType]("")
 		PlayerData.Inventory[UUID].Equipped(false)
 	end
+end
+
+function InventoryManager:VanityEquip(player: Player, UUID: string)
+	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
+	if not PlayerData then
+		return
+	end
+
+	local Item = PlayerData.Inventory[UUID]()
+	if not Item then
+		RemoteManager.SendClientEvent("Notification", { Player = player }, "You don't have that item silly!")
+		return
+	end
+
+	local Info = ItemsData[Item.Name] :: Types.Item
+	if not Info or Info.Kind ~= "Equipment" then
+		RemoteManager.SendClientEvent("Notification", { Player = player }, "This item cannot be used as a vanity")
+		return
+	end
+
+	local SubType = Info.Data.SubType
+	if not VanitySlots[SubType] then
+		RemoteManager.SendClientEvent("Notification", { Player = player }, "This item type doesn't support vanity yet")
+		return
+	end
+
+	local canEquip = Info:Elligable(PlayerData)
+	if not canEquip then
+		RemoteManager.SendClientEvent("Notification", { Player = player }, "You don't meet the item's requirements")
+		return
+	end
+
+	PlayerData.Vanity[SubType](UUID)
+end
+
+function InventoryManager:VanityUnequip(player: Player, slot: string)
+	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
+	if not PlayerData then
+		return
+	end
+
+	if not VanitySlots[slot] then
+		return
+	end
+
+	PlayerData.Vanity[slot]("")
 end
 
 return InventoryManager
