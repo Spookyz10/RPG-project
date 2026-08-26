@@ -40,7 +40,7 @@ function RewardManager:AddCurrency(player: Player, currency: string, amount: num
 
 	local Currencies = PlayerData.Currencies()
 	if Currencies[currency] then
-		PlayerData.Currencies()[currency](function(currentAmount)
+		PlayerData.Currencies[currency](function(currentAmount)
 			return currentAmount + amount
 		end)
 	else

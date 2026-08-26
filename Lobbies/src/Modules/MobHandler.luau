@@ -154,8 +154,6 @@ function MobHandler:AddMob(mobName: string | { string }): Model?
 		end
 
 		Origin:FindFirstChild("ID").Value = UUID.Value
-
-		self:StartBehavior(MobModel)
 	end
 
 	return MobModel

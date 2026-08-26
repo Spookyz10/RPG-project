@@ -31,7 +31,12 @@ local template: Types.PlayerData = {
 		R = "",
 	},
 	UnlockedSkills = {}, -- {"Skill1" , "Skill2"},
-	Currencies = {}, -- {[Currency] = Amount}
+	Currencies = {
+		Gold = 0,
+		["Rune Crystals"] = 0,
+		["Raid Coins"] = 0,
+		Tokens = 0,
+	},
 	UnlockedRecipes = {},
 	ExtraStats = {
 		Health = 0,
