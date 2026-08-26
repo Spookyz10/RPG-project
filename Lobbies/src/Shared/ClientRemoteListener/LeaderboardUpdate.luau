@@ -110,7 +110,10 @@ function Remote:Activate(board: Types.LeaderboardBoard, entries: { Types.Leaderb
 		return
 	end
 
-	local Leaderboards = UIConstants.PlayerGui:WaitForChild("Leaderboards")
+	local Leaderboards = UIConstants.PlayerGui:FindFirstChild("Leaderboards")
+	if not Leaderboards then
+		return
+	end
 	local BoardFrame = Leaderboards:FindFirstChild(FolderName)
 	if not BoardFrame then
 		return

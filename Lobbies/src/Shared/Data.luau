@@ -47,4 +47,4 @@ local template: Types.PlayerData = {
 	DailyStreak = 0,
 }
 
-return DataService({ template = template, profileStoreIndex = "PlayersData" })
+return DataService({ template = template, profileStoreIndex = "PlayersData2" })

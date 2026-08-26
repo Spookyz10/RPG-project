@@ -6,7 +6,7 @@ local Touched = require(ReplicatedStorage.Shared.Touched)
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 
-local TouchZones = workspace:WaitForChild("touchZones")
+local TouchZones = workspace:WaitForChild("Touchies")
 
 local ActiveTouches = {} :: { [Instance]: number }
 

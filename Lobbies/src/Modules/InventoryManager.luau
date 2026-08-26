@@ -8,15 +8,16 @@ local Data = require(ReplicatedStorage.Shared.Data).server
 
 local InventoryManager = {}
 
-function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: number): string
+function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: number): (string, string?)
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
 	local ItemInfo = ItemsData[ItemName] :: Types.Item
 
 	if not PlayerData or not ItemInfo then
-		return "Invalid player data or itemInfo", PlayerData, ItemInfo
+		return "Invalid player data or itemInfo", nil
 	end
 
 	local Remaining = Amount
+	local LastUUID: string? = nil
 
 	if ItemInfo.OnDropped then
 		ItemInfo:OnDropped(PlayerData)
@@ -40,13 +41,14 @@ function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: numb
 				local ToAdd = math.min(SpaceInStack, Remaining)
 				PlayerData.Inventory[key].Amount(itemData.Amount + ToAdd)
 				Remaining -= ToAdd
+				LastUUID = key
 			end
 		end
 	end
 
 	while Remaining > 0 do
 		if PlayerData.CurrentInventorySpace() >= PlayerData.MaxInventorySpace() then
-			return "Inventory full"
+			return "Inventory full", LastUUID
 		end
 
 		local UUID = Functions:GenUUID()
@@ -63,10 +65,11 @@ function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: numb
 		PlayerData.Inventory[UUID](NewItem)
 		PlayerData.CurrentInventorySpace(PlayerData.CurrentInventorySpace() + 1)
 
+		LastUUID = UUID
 		Remaining -= ToAdd
 	end
 
-	return "Successfully added item"
+	return "Successfully added item", LastUUID
 end
 
 function InventoryManager:RemoveItem(Player: Player, ItemName: string, Amount: number): string

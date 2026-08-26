@@ -19,7 +19,7 @@ local function getHand(character: Model): BasePart?
 end
 
 local function getGripOffset(): CFrame
-	return CFrame.Angles(math.rad(60), math.rad(-200), math.rad(90))
+	return CFrame.Angles(math.rad(190), math.rad(-180), math.rad(0))
 end
 
 local function clearWeapon(player: Player)
@@ -77,6 +77,10 @@ local function attachWeapon(character: Model, weaponName: string): Model?
 		if descendant:IsA("BasePart") then
 			descendant.CanCollide = false
 			descendant.Massless = true
+
+			if descendant ~= Handle then
+				WeldSystem:Weld(Handle, descendant)
+			end
 		end
 	end
 

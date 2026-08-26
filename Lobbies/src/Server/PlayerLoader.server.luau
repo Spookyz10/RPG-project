@@ -24,11 +24,14 @@ local function LoadPlayer(Player: Player)
 	end
 
 	if PlayerData.FirstTimeJoined() then
-		InventoryManager:AddItem(Player, "Wooden Sword", 1)
+		local _, UUID = InventoryManager:AddItem(Player, "Paper Sword", 1)
+		if UUID then
+			InventoryManager:ItemAction(Player, UUID)
+		end
 		PlayerData.FirstTimeJoined(false)
 	end
 
-	SkillManager:GrantSkill(Player, "Whirlwind")
+	SkillManager:GrantSkill(Player, "Cyclone")
 	SkillManager:Listen(Player)
 	WeaponLoader:Listen(Player)
 	HealthManager:Listen(Player)
