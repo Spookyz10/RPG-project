@@ -113,6 +113,30 @@ function InventoryManager:RemoveItem(Player: Player, ItemName: string, Amount: n
 	return "Successfully deleted item"
 end
 
+function InventoryManager:RemoveItemByUUID(Player: Player, UUID: string, Amount: number): string
+	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
+	if not PlayerData then
+		return "Invalid player data"
+	end
+
+	local ItemEntry = PlayerData.Inventory[UUID]()
+	if not ItemEntry then
+		return "Item not found"
+	end
+
+	local ToRemove = math.min(Amount, ItemEntry.Amount)
+	local ResultingAmount = ItemEntry.Amount - ToRemove
+
+	if ResultingAmount <= 0 then
+		PlayerData.Inventory[UUID](nil)
+		PlayerData.CurrentInventorySpace(PlayerData.CurrentInventorySpace() - 1)
+	else
+		PlayerData.Inventory[UUID].Amount(ResultingAmount)
+	end
+
+	return "Successfully deleted item"
+end
+
 function InventoryManager:EquipSkill(player: Player, skill: string, slot: string)
 	local Skills = require(script.Parent.Skills)
 	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
@@ -199,6 +223,10 @@ function InventoryManager:UnequipItem(player: Player, UUID: string)
 	if Info.Data.ItemType == "Equipment" then
 		PlayerData.Equipment[Info.Data.SubType]("")
 		PlayerData.Inventory[UUID].Equipped(false)
+
+		if Info.Data.SubType == "Weapon" then
+			PlayerData.Vanity.Weapon("")
+		end
 	end
 end
 
@@ -223,6 +251,25 @@ function InventoryManager:VanityEquip(player: Player, UUID: string)
 	local SubType = Info.Data.SubType
 	if not VanitySlots[SubType] then
 		RemoteManager.SendClientEvent("Notification", { Player = player }, "This item type doesn't support vanity yet")
+		return
+	end
+
+	local EquippedUUID = PlayerData.Equipment[SubType]()
+	if not EquippedUUID or EquippedUUID == "" then
+		RemoteManager.SendClientEvent(
+			"Notification",
+			{ Player = player },
+			"You need a " .. SubType .. " equipped to use vanity"
+		)
+		return
+	end
+
+	if UUID == EquippedUUID then
+		RemoteManager.SendClientEvent(
+			"Notification",
+			{ Player = player },
+			"This item is already equipped, pick a different one for vanity"
+		)
 		return
 	end
 
@@ -292,7 +339,7 @@ function InventoryManager:ConsumeItem(player: Player, UUID: string, useAll: bool
 	local NewStat = math.min(Current + UsesToApply * ItemInfo.Amount, Cap)
 	PlayerData.ExtraStats[Stat](NewStat)
 
-	InventoryManager:RemoveItem(player, ItemEntry.Name, UsesToApply)
+	InventoryManager:RemoveItemByUUID(player, UUID, UsesToApply)
 
 	return "Used item"
 end

@@ -95,14 +95,20 @@ local function refresh(player: Player, PlayerData: Types.PlayerData)
 
 	clearWeapon(player)
 
-	local UUID = PlayerData.Equipment.Weapon()
-	if not UUID or UUID == "" then
+	local WeaponUUID = PlayerData.Equipment.Weapon()
+	if not WeaponUUID or WeaponUUID == "" then
 		return
 	end
 
-	local ItemEntry = PlayerData.Inventory[UUID]()
+	local VanityUUID = PlayerData.Vanity.Weapon()
+	local DisplayUUID = (VanityUUID and VanityUUID ~= "") and VanityUUID or WeaponUUID
+
+	local ItemEntry = PlayerData.Inventory[DisplayUUID]()
 	if not ItemEntry then
-		return
+		ItemEntry = PlayerData.Inventory[WeaponUUID]()
+		if not ItemEntry then
+			return
+		end
 	end
 
 	local WeaponModel = attachWeapon(Character, ItemEntry.Name)
@@ -123,6 +129,10 @@ function WeaponLoader:Listen(player: Player)
 	end
 
 	PlayerData.Equipment.Weapon.Changed(function()
+		refresh(player, PlayerData)
+	end)
+
+	PlayerData.Vanity.Weapon.Changed(function()
 		refresh(player, PlayerData)
 	end)
 

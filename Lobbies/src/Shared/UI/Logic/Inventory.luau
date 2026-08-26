@@ -38,7 +38,29 @@ local EquippedLabelColors: { [string]: Color3 } = {
 	Armor = Color3.fromRGB(255, 255, 255),
 	Aura = Color3.fromRGB(255, 255, 25),
 	Rune = Color3.fromRGB(106, 0, 255),
+	["Pet Gem"] = Color3.fromRGB(0, 255, 170),
+	WeaponVanity = Color3.fromRGB(255, 255, 255),
+	AuraVanity = Color3.fromRGB(255, 255, 25),
 }
+
+local SlotOrder: { [string]: number } = {
+	Weapon = 1,
+	Ring = 2,
+	Necklace = 3,
+	Armor = 4,
+	Aura = 5,
+	Rune = 6,
+	["Pet Gem"] = 7,
+	WeaponVanity = 8,
+	AuraVanity = 9,
+}
+
+local VanitySlotKeys: { [string]: string } = {
+	Weapon = "WeaponVanity",
+	Aura = "AuraVanity",
+}
+
+local DEFAULT_LAYOUT_ORDER = 100
 
 local function DisconnectAll(connections: { RBXScriptConnection })
 	for _, connection in connections do
@@ -61,33 +83,52 @@ local function UpdateEntry(Button: TextButton, ItemData: Types.ItemData)
 	end
 
 	if Amount then
+		Amount.Visible = ItemInfo.Data.Stackable == true
 		Amount.Text = tostring(ItemData.Amount)
 	end
 
 	UIFunctions:ApplyRarity(Button, ItemInfo.Data.Rarity)
 end
 
-local function UpdateEquippedLabel(UUID: string, Button: TextButton)
-	local EquippedLabel = Button:FindFirstChild("EquippedLabel") :: ImageLabel?
-	if not EquippedLabel then
-		return
-	end
-
+local function FindEquippedKey(UUID: string): string?
 	local Equipment = UIConstants.Data.Equipment()
-
-	Button.BorderColor3 = Color3.fromRGB(255, 255, 255)
-
 	for slot, EquippedUUID in Equipment do
 		if EquippedUUID == UUID then
-			EquippedLabel.Visible = true
-			EquippedLabel.ImageColor3 = EquippedLabelColors[slot] or Color3.fromRGB(255, 255, 255)
-			Button.BorderSizePixel = 1
-			return
+			return slot
 		end
 	end
 
-	EquippedLabel.Visible = false
-	Button.BorderSizePixel = 0
+	local Vanity = UIConstants.Data.Vanity()
+	for slot, VanityUUID in Vanity do
+		if VanityUUID == UUID then
+			return VanitySlotKeys[slot] or slot
+		end
+	end
+
+	return nil
+end
+
+local function UpdateEquippedLabel(UUID: string, Button: TextButton)
+	local EquippedLabel = Button:FindFirstChild("EquippedLabel") :: ImageLabel?
+
+	Button.BorderColor3 = Color3.fromRGB(255, 255, 255)
+
+	local Key = FindEquippedKey(UUID)
+
+	if Key then
+		if EquippedLabel then
+			EquippedLabel.Visible = true
+			EquippedLabel.ImageColor3 = EquippedLabelColors[Key] or Color3.fromRGB(255, 255, 255)
+		end
+		Button.BorderSizePixel = 1
+		Button.LayoutOrder = SlotOrder[Key] or DEFAULT_LAYOUT_ORDER
+	else
+		if EquippedLabel then
+			EquippedLabel.Visible = false
+		end
+		Button.BorderSizePixel = 0
+		Button.LayoutOrder = DEFAULT_LAYOUT_ORDER
+	end
 end
 
 local function RefreshAllEquippedLabels()
@@ -282,6 +323,7 @@ local function CreateEntry(UUID: string, ItemData: Types.ItemData)
 
 	local Button = Template:Clone()
 	Button.Name = UUID
+	Button.LayoutOrder = DEFAULT_LAYOUT_ORDER
 	Button.Parent = Container
 
 	UpdateEntry(Button, ItemData)
@@ -474,6 +516,11 @@ function Inventory.Init()
 	UsableFrame.Visible = false
 	VanitiesFrame.Visible = false
 
+	local GridLayout = Container:FindFirstChildOfClass("UIGridLayout")
+	if GridLayout then
+		GridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	end
+
 	for UUID, ItemData in UIConstants.Data.Inventory() do
 		CreateEntry(UUID, ItemData)
 	end
@@ -511,6 +558,7 @@ function Inventory.Init()
 		for slot, UUID in NewVanity do
 			UpdateVanitySlot(slot, UUID)
 		end
+		RefreshAllEquippedLabels()
 	end)
 
 	SetupVanityUnequip()
