@@ -1,5 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
+
 local Templates = ReplicatedStorage.Resources.UI.Templates
 local MobsFolder = workspace:WaitForChild("Mobs")
 
@@ -13,6 +15,12 @@ local function UpdateHP(Overhead: BillboardGui, Humanoid: Humanoid)
 
 	Bar.Size = UDim2.new(Percent, 0, Bar.Size.Y.Scale, Bar.Size.Y.Offset)
 	Health.Text = math.floor(math.max(Humanoid.Health, 0)) .. "/" .. math.floor(Humanoid.MaxHealth)
+end
+
+local function PlayDeathAnimation(mobModel: Model)
+	local Handler = AnimationHandler.GetOrCreate(mobModel)
+	Handler:StopAll(0)
+	Handler:Play("Die", 0.1)
 end
 
 local function SetupMob(mobModel: Model)
@@ -39,11 +47,17 @@ local function SetupMob(mobModel: Model)
 		UpdateHP(Overhead, Humanoid)
 	end)
 
+	local DiedConnection = Humanoid.Died:Connect(function()
+		Overhead.Enabled = false
+		PlayDeathAnimation(mobModel)
+	end)
+
 	ActiveOverheads[mobModel] = Overhead
 
 	mobModel.Destroying:Connect(function()
 		HealthConnection:Disconnect()
 		MaxHealthConnection:Disconnect()
+		DiedConnection:Disconnect()
 		ActiveOverheads[mobModel] = nil
 	end)
 end

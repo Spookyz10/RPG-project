@@ -48,6 +48,8 @@ local function Reward(player: Player, MobInfo: Types.MobInfo, MobName: string)
 	QuestManager:OnMobKilled(player, MobName)
 end
 
+local DEATH_ANIMATION_DELAY = 0.6
+
 function MobHandler:RemoveMob(mobModel: Model)
 	local Connection = DiedConnections[mobModel]
 	if Connection then
@@ -60,7 +62,6 @@ function MobHandler:RemoveMob(mobModel: Model)
 	CooldownSystem:ResetAllCooldowns(mobModel)
 
 	local UUID = mobModel:FindFirstChild("UUID")
-
 	for _, spawnPart: BasePart in workspace:FindFirstChild("MobSpawns"):GetDescendants() do
 		local ID = spawnPart:FindFirstChild("ID")
 		if not ID then
@@ -73,7 +74,11 @@ function MobHandler:RemoveMob(mobModel: Model)
 		end
 	end
 
-	mobModel:Destroy()
+	task.delay(DEATH_ANIMATION_DELAY, function()
+		if mobModel and mobModel.Parent then
+			mobModel:Destroy()
+		end
+	end)
 end
 
 function MobHandler:OnMobDied(mobModel: Model)

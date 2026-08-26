@@ -14,15 +14,13 @@ function RewardManager:RollTable(itemsTable: Types.ItemTable, Player: Player): {
 		return {}
 	end
 
-	local PlayerLuck = PlayerData.ExtraStats.Luck()
+	local LuckMultiplier = Events:GetEventMultipliers().Luck
 
-	local LuckBoost = Events:GetEventMultipliers().Luck + PlayerLuck
 	local Results = {}
-	for _ = 1, 1 + LuckBoost do
-		for item, info in itemsTable do
-			if math.random() * 100 < info.Chance then
-				Results[item] = info.Chance
-			end
+	for item, info in itemsTable do
+		local BoostedChance = math.min(info.Chance * LuckMultiplier, 100)
+		if math.random() * 100 < BoostedChance then
+			Results[item] = info.Amount
 		end
 	end
 
