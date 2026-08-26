@@ -10,7 +10,7 @@ if not game:IsLoaded() then
 	game.Loaded:Wait()
 end
 
-local Assets = ReplicatedStorage:WaitForChild("Assets")
+local Assets = ReplicatedStorage:WaitForChild("Resources")
 local WeaponsFolder = Assets:WaitForChild("Weapons")
 local AnimationsFolder = Assets:WaitForChild("Animations")
 

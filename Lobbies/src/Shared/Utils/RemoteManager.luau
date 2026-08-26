@@ -22,7 +22,6 @@ local Remotes = {
 	LeaderboardUpdate = "Client",
 	Indicator = "Client",
 	BuffVFX = "Client",
-	Notification = "Client",
 }
 
 local RemoteFunctions = {

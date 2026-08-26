@@ -7,7 +7,7 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local WeaponLoader = {}
 
-local WeaponsFolder = ReplicatedStorage.Assets.Weapons
+local WeaponsFolder = ReplicatedStorage.Resources.Weapons
 
 local GRIP_ATTACHMENT_NAME = "GripPoint"
 

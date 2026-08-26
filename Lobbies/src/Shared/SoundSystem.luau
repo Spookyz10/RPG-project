@@ -3,7 +3,7 @@ local SoundSystem = {}
 
 local Sounds = {} :: { Sound }
 
-for _, Sound: Sound in ReplicatedStorage.Assets.SFX:GetDescendants() do
+for _, Sound: Sound in ReplicatedStorage.Resources.SFX:GetDescendants() do
 	if Sound:IsA("Sound") then
 		Sounds[Sound] = true
 	end

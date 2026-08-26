@@ -75,7 +75,10 @@ local function CreateEntry(
 	data: Types.LeaderboardEntry,
 	Container: Instance
 )
-	local Template = ReplicatedStorage.Assets.UI.Templates.Leaderboard
+	local Template = ReplicatedStorage.Resources.UI.Templates:FindFirstChild("Leaderboard")
+	if not Template then
+		return
+	end
 	local Entry = Template:Clone() :: Frame
 
 	ApplyRank(Entry, rank)

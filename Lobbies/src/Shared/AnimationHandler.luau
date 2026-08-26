@@ -2,7 +2,7 @@ local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local AnimationsFolder = ReplicatedStorage.Assets.Animations
+local AnimationsFolder = ReplicatedStorage.Resources.Animations
 local PreloadStatus = RunService:IsClient()
 		and require(ReplicatedFirst:WaitForChild("First"):WaitForChild("PreloadStatus"))
 	or nil

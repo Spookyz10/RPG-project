@@ -4,7 +4,7 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Zones = require(script.Parent.Zones)
 local LightingManager = {}
 
-local LightingPresets = ReplicatedStorage:WaitForChild("Assets"):FindFirstChild("Lighting")
+local LightingPresets = ReplicatedStorage:WaitForChild("Resources"):FindFirstChild("Lighting")
 
 local function getPresetFolder(name: string)
 	for _, preset in LightingPresets:GetDescendants() do

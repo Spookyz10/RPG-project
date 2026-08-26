@@ -5,31 +5,43 @@ local Logic = require(ReplicatedStorage.Shared.UI.Logic)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 
 local Player = Players.LocalPlayer
-local Humanoid = nil :: Humanoid
+local Humanoid = nil :: Humanoid?
+local HumanoidConnections: { RBXScriptConnection } = {}
 
 local function UpdateHP()
-	local HP = Humanoid.Health
-	local MaxHP = Humanoid.MaxHealth
-	Logic["Bars"].UpdateBar(HP, MaxHP, "HP")
+	if not Humanoid then
+		return
+	end
+	Logic["Bars"].UpdateBar(Humanoid.Health, Humanoid.MaxHealth, "HP")
 end
 
-Player:GetAttributeChangedSignal("HP"):Connect(UpdateHP)
-Player:GetAttributeChangedSignal("MaxHP"):Connect(UpdateHP)
+local function DisconnectHumanoidSignals()
+	for _, connection in HumanoidConnections do
+		connection:Disconnect()
+	end
+	HumanoidConnections = {}
+end
+
+local function BindHumanoid(character: Model)
+	local newHumanoid = character:WaitForChild("Humanoid") :: Humanoid
+
+	DisconnectHumanoidSignals()
+	Humanoid = newHumanoid
+
+	table.insert(HumanoidConnections, Humanoid.HealthChanged:Connect(UpdateHP))
+	table.insert(HumanoidConnections, Humanoid:GetPropertyChangedSignal("MaxHealth"):Connect(UpdateHP))
+
+	UpdateHP()
+end
 
 Data.XP.Changed(function(NewXp)
 	Logic["Bars"].UpdateBar(NewXp, Functions:GetXPNeeded(Data.Level()), "XP")
 end)
 
 if Player.Character then
-	if Player.Character:FindFirstChild("Humanoid") then
-		Humanoid = Player.Character:FindFirstChild("Humanoid")
-	end
+	BindHumanoid(Player.Character)
 end
 
-Player.CharacterAdded:Connect(function()
-	local hum = Player.Character:WaitForChild("Humanoid")
-	Humanoid = hum
-end)
+Player.CharacterAdded:Connect(BindHumanoid)
 
-UpdateHP()
 Logic["Bars"].UpdateBar(Data.XP(), Functions:GetXPNeeded(Data.Level()), "XP")

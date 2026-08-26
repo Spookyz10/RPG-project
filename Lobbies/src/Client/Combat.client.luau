@@ -27,6 +27,6 @@ end)
 
 RunService.Heartbeat:Connect(function()
 	if IsHolding then
-		RemoteManager.SendServerEvent("Attack", nil)
+		RemoteManager.SendServerEvent("Attack")
 	end
 end)

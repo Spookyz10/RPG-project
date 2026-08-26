@@ -18,7 +18,7 @@ local MobHandler = {}
 local DiedConnections: { [Model]: RBXScriptConnection } = {}
 
 local function getEmptySlot(mobName: string): BasePart?
-	for _, spawnPart: BasePart in workspace:FindFirstChild("mobSpawns"):GetDescendants() do
+	for _, spawnPart: BasePart in workspace:FindFirstChild("MobSpawns"):GetDescendants() do
 		local ID = spawnPart:FindFirstChild("ID")
 		if not ID then
 			continue
@@ -106,17 +106,24 @@ function MobHandler:OnMobDied(mobModel: Model)
 	end)
 end
 
-function MobHandler:AddMob(mobName: string)
+function MobHandler:AddMob(mobName: string | { string }): Model?
+	if typeof(mobName) == "table" then
+		for _, name in mobName do
+			MobHandler:AddMob(name)
+		end
+		return nil
+	end
+
 	local MobModel = Functions:getMob(mobName)
 
 	if not MobModel then
-		return
+		return nil
 	end
 	MobModel = MobModel:Clone()
 	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 	local MobInfo = MobsData[MobModel.Name] :: Types.MobInfo
 	if not MobInfo then
-		return
+		return nil
 	end
 	local Origin = getEmptySlot(MobModel.Name)
 	if Origin then
@@ -137,6 +144,8 @@ function MobHandler:AddMob(mobName: string)
 
 		Origin:FindFirstChild("ID").Value = Functions:GenUUID()
 	end
+
+	return MobModel
 end
 
 function MobHandler:StartBehavior(mobModel: Model)
@@ -147,7 +156,7 @@ function MobHandler:StartBehavior(mobModel: Model)
 end
 
 function MobHandler:InitializeSpawns()
-	for _, mobPart: BasePart in workspace:FindFirstChild("mobSpawns"):GetDescendants() do
+	for _, mobPart: BasePart in workspace:FindFirstChild("MobSpawns"):GetDescendants() do
 		if mobPart:IsA("BasePart") then
 			local value = Instance.new("StringValue")
 			value.Name = "ID"

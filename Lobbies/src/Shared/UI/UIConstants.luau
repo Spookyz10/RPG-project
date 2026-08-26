@@ -5,7 +5,6 @@ local UIConstants = {}
 
 UIConstants.Player = Players.LocalPlayer
 UIConstants.PlayerGui = UIConstants.Player:WaitForChild("PlayerGui")
-UIConstants.Main = UIConstants.PlayerGui:WaitForChild("Main")
 
 UIConstants.Data = require(ReplicatedStorage.Shared.Data).client
 
