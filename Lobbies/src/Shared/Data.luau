@@ -20,6 +20,8 @@ local template: Types.PlayerData = {
 		Armor = "",
 		Ring = "",
 		Necklace = "",
+		Aura = "",
+		Rune = "",
 	},
 	MaxInventorySpace = 100,
 	CurrentInventorySpace = 0,

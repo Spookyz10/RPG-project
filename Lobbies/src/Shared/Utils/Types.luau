@@ -6,6 +6,45 @@ export type Stats = {
 	Health: number,
 }
 
+export type PlayerData = {
+	FirstTimeJoined: boolean,
+	Level: number,
+	XP: number,
+	Kills: number,
+	Deaths: number,
+	PlayTime: number,
+	Inventory: { [string]: ItemData },
+	Settings: {
+		Music: boolean,
+		CameraShake: boolean,
+	},
+	Equipment: {
+		Weapon: string,
+		Armor: string,
+		Ring: string,
+		Necklace: string,
+		Aura: string,
+		Rune: string,
+	},
+	MaxInventorySpace: number,
+	CurrentInventorySpace: number,
+	Skills: {
+		Q: string,
+		E: string,
+		R: string,
+	},
+	UnlockedSkills: { string },
+	Currencies: { [string]: number },
+	UnlockedRecipes: { string },
+	ExtraStats: Stats,
+	MobIndex: { [string]: number },
+	Quests: { [string]: QuestProgress },
+	CompletedQuests: { [string]: QuestCompletion },
+	LastDailyReward: number,
+	TotalDailyRewards: number,
+	DailyStreak: number,
+}
+
 export type Entity = {
 	HP: number,
 	MaxHP: number,
@@ -92,43 +131,6 @@ export type Item = Equipment | Consumable
 
 export type ItemTable = {
 	[string]: { Chance: number, Amount: number },
-}
-
-export type PlayerData = {
-	FirstTimeJoined: boolean,
-	Level: number,
-	XP: number,
-	Kills: number,
-	Deaths: number,
-	PlayTime: number,
-	Inventory: { [string]: ItemData },
-	Settings: {
-		Music: boolean,
-		CameraShake: boolean,
-	},
-	Equipment: {
-		Weapon: string,
-		Armor: string,
-		Ring: string,
-		Necklace: string,
-	},
-	MaxInventorySpace: number,
-	CurrentInventorySpace: number,
-	Skills: {
-		Q: string,
-		E: string,
-		R: string,
-	},
-	UnlockedSkills: { string },
-	Currencies: { [string]: number },
-	UnlockedRecipes: { string },
-	ExtraStats: Stats,
-	MobIndex: { [string]: number },
-	Quests: { [string]: QuestProgress },
-	CompletedQuests: { [string]: QuestCompletion },
-	LastDailyReward: number,
-	TotalDailyRewards: number,
-	DailyStreak: number,
 }
 
 export type SkillData = {
