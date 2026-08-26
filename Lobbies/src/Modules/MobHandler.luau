@@ -60,8 +60,8 @@ function MobHandler:RemoveMob(mobModel: Model)
 	CooldownSystem:ResetAllCooldowns(mobModel)
 
 	local UUID = mobModel:FindFirstChild("UUID")
-	mobModel:Destroy()
-	for _, spawnPart: BasePart in workspace:FindFirstChild("mobSpawns"):GetDescendants() do
+
+	for _, spawnPart: BasePart in workspace:FindFirstChild("MobSpawns"):GetDescendants() do
 		local ID = spawnPart:FindFirstChild("ID")
 		if not ID then
 			continue
@@ -72,6 +72,8 @@ function MobHandler:RemoveMob(mobModel: Model)
 			break
 		end
 	end
+
+	mobModel:Destroy()
 end
 
 function MobHandler:OnMobDied(mobModel: Model)
@@ -79,7 +81,6 @@ function MobHandler:OnMobDied(mobModel: Model)
 	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 	local MobInfo = MobsData[MobName] :: Types.MobInfo
 	if not MobInfo then
-		print("MobInfo not found for mob: " .. MobName)
 		self:RemoveMob(mobModel)
 		return
 	end
@@ -131,6 +132,11 @@ function MobHandler:AddMob(mobName: string | { string }): Model?
 		MobModel:PivotTo(Origin.CFrame)
 		CollisionGroups:Apply(MobModel)
 
+		local UUID = Instance.new("StringValue")
+		UUID.Name = "UUID"
+		UUID.Value = Functions:GenUUID()
+		UUID.Parent = MobModel
+
 		local HitList = Instance.new("Folder")
 		HitList.Name = "HitList"
 		HitList.Parent = MobModel
@@ -142,7 +148,9 @@ function MobHandler:AddMob(mobName: string | { string }): Model?
 			end)
 		end
 
-		Origin:FindFirstChild("ID").Value = Functions:GenUUID()
+		Origin:FindFirstChild("ID").Value = UUID.Value
+
+		self:StartBehavior(MobModel)
 	end
 
 	return MobModel
@@ -151,7 +159,9 @@ end
 function MobHandler:StartBehavior(mobModel: Model)
 	local data = Mobs[mobModel.Name]
 	if data and data.Start then
-		data:Start(mobModel)
+		task.spawn(function()
+			data:Start(mobModel)
+		end)
 	end
 end
 

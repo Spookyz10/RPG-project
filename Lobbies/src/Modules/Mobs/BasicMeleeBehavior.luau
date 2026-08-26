@@ -5,19 +5,18 @@ local Hitbox = require(ServerStorage.Modules.Hitbox)
 local BehaviorManager = require(ServerStorage.Modules.Mobs.BehaviorManager)
 local CooldownSystem = require(ServerStorage.Modules.CooldownSystem)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
-local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Players = game:GetService("Players")
 
-local ATTACK_RANGE = 4
-local WINDUP_TIME = 1
 local ATTACK_COOLDOWN = 1.5
 
 local DEFAULT_SIZE = Vector3.new(6, 6, 6)
 local DEFAULT_OFFSET = CFrame.new(0, 0, -3)
+local DEFAULT_BUFFER = 4
 
 export type Config = {
 	Size: Vector3?,
 	Offset: CFrame?,
+	Buffer: number?,
 }
 
 local BasicMeleeBehavior = {}
@@ -28,6 +27,7 @@ function BasicMeleeBehavior.new(config: Config?)
 
 	self.Size = (config and config.Size) or DEFAULT_SIZE
 	self.Offset = (config and config.Offset) or DEFAULT_OFFSET
+	self.Buffer = (config and config.Buffer) or DEFAULT_BUFFER
 
 	return self
 end
@@ -45,21 +45,22 @@ function BasicMeleeBehavior:Start(mob: Model)
 
 	BehaviorManager.Active[mob] = true
 
-	local IsAttacking = false
-
 	while mob and mob.Parent and RootPart and RootPart.Parent and BehaviorManager.Active[mob] do
 		local Hitlist = {}
+		local HasHits = false
 		local HitListFolder = mob:FindFirstChild("HitList")
 		if HitListFolder then
 			for _, entry in HitListFolder:GetChildren() do
 				local player = Players:GetPlayerByUserId(tonumber(entry.Name))
 				if player then
-					Hitlist[player] = true
+					Hitlist[player] = entry.Value
+					HasHits = true
 				end
 			end
 		end
 
-		local targetPlayer = Functions:GetTargetPlayer(mob, Hitlist)
+		local targetPlayer = Functions:GetTargetPlayer(mob, HasHits and Hitlist or nil)
+
 		if not targetPlayer then
 			BehaviorManager:Reset(mob)
 			break
@@ -69,67 +70,39 @@ function BasicMeleeBehavior:Start(mob: Model)
 		local targetRootPart = targetCharacter and (targetCharacter:FindFirstChild("HumanoidRootPart") :: BasePart)
 
 		if targetCharacter and targetRootPart then
-			if not IsAttacking then
-				BehaviorManager:Move(Humanoid, targetRootPart.Position)
-			end
+			local Distance = Functions:getDistance(RootPart, targetRootPart)
 
-			if Functions:getDistance(RootPart, targetRootPart) > 50 then
+			if Distance > 50 then
 				BehaviorManager:Reset(mob)
 				break
 			end
 
-			if
-				not IsAttacking
-				and Functions:getDistance(RootPart, targetRootPart) < ATTACK_RANGE
-				and not CooldownSystem:IsInCooldown(mob, "MeleeAttack")
-			then
-				IsAttacking = true
+			if Distance > self.Buffer then
+				Humanoid.WalkSpeed = 16
+				BehaviorManager:Move(Humanoid, targetRootPart.Position)
+			else
 				Humanoid.WalkSpeed = 0
 
-				local HitboxCFrame = RootPart.CFrame * self.Offset
-				local IndicatorSize = Vector3.new(self.Size.X, 0.3, self.Size.Z)
+				if not CooldownSystem:IsInCooldown(mob, "MeleeAttack") then
+					CooldownSystem:StartCooldown(mob, "MeleeAttack", ATTACK_COOLDOWN)
 
-				local GroundCFrame = Functions:GetGroundCFrame(HitboxCFrame.Position, { mob }, nil, HitboxCFrame)
-
-				RemoteManager.SendClientEvent(
-					"Indicator",
-					{ All = true },
-					"Square",
-					{ Main = Color3.fromRGB(199, 8, 8), Display = Color3.fromRGB(255, 0, 0) },
-					GroundCFrame,
-					WINDUP_TIME,
-					IndicatorSize
-				)
-
-				task.delay(WINDUP_TIME, function()
-					if mob and mob.Parent and RootPart and RootPart.Parent and BehaviorManager.Active[mob] then
-						local StillValid = targetCharacter.Parent and targetRootPart.Parent
-
-						if StillValid and Functions:getDistance(RootPart, targetRootPart) < ATTACK_RANGE then
-							CooldownSystem:StartCooldown(mob, "MeleeAttack", ATTACK_COOLDOWN)
-
-							Hitbox:Create({
-								Size = self.Size,
-								Part = RootPart,
-								Offset = self.Offset,
-								Drag = false,
-								Time = 0,
-								Caster = mob,
-								OnHit = function(_, HitEntity)
-									if Functions:isEntityAlive(HitEntity) and not Functions:isClassMob(HitEntity) then
-										DamageHandler:dealDamage(mob, HitEntity)
-									end
-								end,
-							})
-						end
-
-						if Humanoid and Humanoid.Parent then
-							Humanoid.WalkSpeed = 16
-						end
-					end
-					IsAttacking = false
-				end)
+					Hitbox:Create({
+						Size = self.Size,
+						Part = RootPart,
+						Offset = self.Offset,
+						Drag = false,
+						Time = 0,
+						Caster = mob,
+						OnHit = function(_, HitEntity)
+							if Functions:isEntityAlive(HitEntity) and not Functions:isClassMob(HitEntity) then
+								DamageHandler:dealDamage(mob, HitEntity)
+							end
+						end,
+					})
+				end
 			end
+		else
+			Humanoid.WalkSpeed = 16
 		end
 
 		task.wait(0.1)

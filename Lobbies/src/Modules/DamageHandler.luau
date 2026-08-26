@@ -62,20 +62,29 @@ function DamageHandler:dealDamage(caster: Model, victim: Model, multi: number)
 			if not Entry then
 				Entry = Instance.new("NumberValue")
 				Entry.Name = tostring(CasterPlayer.UserId)
+				Entry.Value = 0
 				Entry.Parent = HitList
 			end
-			Entry.Value = os.clock()
+			Entry.Value += Damage
 		end
 	end
 
 	local VictimHumanoid = victim:FindFirstChildOfClass("Humanoid")
 	VictimHumanoid.Health -= Damage
 
-	RemoteManager.SendClientEvent("Damage", { All = true }, victim, Damage, { Crit = isCrit })
+	if Functions:isClassMob(victim) and Functions:isEntityAlive(victim) then
+		local MobHandler = require(script.Parent.MobHandler)
+		MobHandler:StartBehavior(victim)
+	end
+
+	RemoteManager.SendClientEvent("Damage", { All = true }, victim, Damage, {
+		Type = isCrit and "Crit" or "Base",
+		CasterUserId = CasterPlayer and CasterPlayer.UserId,
+	})
 	return Damage, isCrit
 end
 
-function DamageHandler:heal(_caster: Model, victim: Model, amount: number): number
+function DamageHandler:heal(caster: Model, victim: Model, amount: number): number
 	if amount <= 0 then
 		return 0
 	end
@@ -88,7 +97,12 @@ function DamageHandler:heal(_caster: Model, victim: Model, amount: number): numb
 	local HealAmount = math.min(amount, VictimHumanoid.MaxHealth - VictimHumanoid.Health)
 	VictimHumanoid.Health += HealAmount
 
-	RemoteManager.SendClientEvent("Damage", { All = true }, victim, HealAmount, { Heal = true })
+	local CasterPlayer = caster and Players:GetPlayerFromCharacter(caster)
+
+	RemoteManager.SendClientEvent("Damage", { All = true }, victim, HealAmount, {
+		Type = "Heal",
+		CasterUserId = CasterPlayer and CasterPlayer.UserId,
+	})
 	return HealAmount
 end
 

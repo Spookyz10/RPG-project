@@ -7,7 +7,7 @@ local TutorialCutscene = {}
 local Pages = {
 	"Welcome to RPG Simulator. This is a game where you defeat monsters to get loot and become more powerful. I will be giving you a quick tour of the lobby.",
 	"Here we have the Item Shop. You can buy swords and potions here to help you out during your adventure. But you will earn better swords from defeating zone bosses.",
-	"This is where you can craft Runes. Runes increase the power of some skills. You will start crafting runes at Level 100.",
+	"This is where you can craft Runes. Runes increase the power of some skills.",
 	"This is the Zone Teleporter. You will start your adventure here and work your way up the zones to become more powerful. Monsters here will be dropping weapons and potions to boost your main stats.",
 	"This is the Boss Teleporter. Once you're strong enough, enter here solo or with a party to defeat bosses and get legendary loot.",
 	"Lastly, the World Teleporter. The moment you reach Level 250 you can teleport to World 2 and continue your journey.",
@@ -49,10 +49,6 @@ function TutorialCutscene:Play()
 	local Cameras = workspace:WaitForChild("Cameras")
 	local PlayerGui = LocalPlayer:WaitForChild("PlayerGui") :: PlayerGui
 	local TutorialUI = PlayerGui:WaitForChild("Tutorial") :: ScreenGui
-
-	-- repeat
-	-- 	task.wait()
-	-- until PlayerGui:FindFirstChild("LoadingScreen") == nil
 
 	Humanoid.WalkSpeed = 0
 	HideOtherGuis(PlayerGui, TutorialUI)

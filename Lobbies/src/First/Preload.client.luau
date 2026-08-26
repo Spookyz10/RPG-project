@@ -60,6 +60,8 @@ if Total > 0 then
 			UpdateProgress(Loaded / Total)
 		end
 	end)
+
+	UpdateProgress(1)
 end
 
 PreloadStatus:MarkComplete()

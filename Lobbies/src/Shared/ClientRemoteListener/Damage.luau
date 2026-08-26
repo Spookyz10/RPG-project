@@ -1,94 +1,136 @@
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local Debris = game:GetService("Debris")
+local Workspace = game:GetService("Workspace")
+
 local Abbreviation = require(ReplicatedStorage.Shared.Utils.Abbreviation)
 
 local Remote = {}
 
-local POP_TIME = 0.15
-local FLOAT_TIME = 0.8
+local LocalPlayer = Players.LocalPlayer
+
+local MAX_VISIBLE_DISTANCE = 100
+
+local POP_TWEEN = TweenInfo.new(0.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out)
+local SETTLE_TWEEN = TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+local FLOAT_TWEEN = TweenInfo.new(1.25, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+local FADE_TWEEN = TweenInfo.new(0.75, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+
+local POP_WAIT = 0.5
+local FLOAT_HEIGHT = 6
+local FADE_WAIT = 0.5
+local CLEANUP_TIME = 0.75
+
+local DamageTemplate = ReplicatedStorage.Resources.UI.Templates.Damage :: BillboardGui
 
 function Remote:Activate(entityHurt: Model, amount: number, params: {})
-	local PrimaryPart = entityHurt.PrimaryPart
-	if not PrimaryPart then
+	if not params.CasterUserId then
 		return
 	end
 
-	local DamageTemplate = ReplicatedStorage.Assets.UI.Templates.DamageUI:Clone() :: BillboardGui
-	local DamageLabel = DamageTemplate.Damage :: TextLabel
-	local Stroke = DamageLabel:FindFirstChildOfClass("UIStroke")
-
-	if amount <= 0 then
-		DamageLabel.Text = "Too weak"
-	else
-		DamageLabel.Text = (params.Heal and "+" or "") .. Abbreviation:Number(amount)
+	local RootPart = entityHurt:FindFirstChild("Head") or entityHurt.PrimaryPart
+	if not RootPart then
+		return
 	end
 
-	DamageTemplate.Parent = PrimaryPart
+	local Camera = Workspace.CurrentCamera
+	if Camera and (Camera.Focus.Position - RootPart.Position).Magnitude > MAX_VISIBLE_DISTANCE then
+		return
+	end
 
-	for _, child in DamageLabel:GetChildren() do
-		if child:IsA("UIGradient") then
-			child.Enabled = false
+	local Billboard = DamageTemplate:Clone()
+
+	local TargetFrame = Billboard:FindFirstChild(params.Type or "Base") :: GuiObject?
+	if not TargetFrame then
+		Billboard:Destroy()
+		return
+	end
+
+	for _, frame in Billboard:GetChildren() do
+		if frame:IsA("GuiObject") then
+			frame.Visible = frame == TargetFrame
 		end
 	end
 
-	if params.Crit then
-		DamageLabel:FindFirstChild("Critical").Enabled = true
-	elseif params.Heal then
-		DamageLabel:FindFirstChild("Heal").Enabled = true
-	else
-		DamageLabel:FindFirstChild("Damage").Enabled = true
+	local Label = TargetFrame:FindFirstChildWhichIsA("TextLabel", true) :: TextLabel?
+	if not Label then
+		Billboard:Destroy()
+		return
 	end
 
-	DamageLabel.TextTransparency = 1
-	local OriginalSize = DamageLabel.Size
-	DamageLabel.Size = UDim2.fromScale(0, 0)
+	if amount <= 0 and params.Type ~= "Heal" then
+		Label.Text = "Too weak"
+	else
+		Label.Text = (params.Type == "Heal" and "+" or "") .. Abbreviation:Number(amount)
+	end
+
+	local Stroke = Label:FindFirstChildOfClass("UIStroke")
+
+	local Part = Instance.new("Part")
+	Part.Size = Vector3.new(1, 1, 1)
+	Part.Anchored = true
+	Part.CanCollide = false
+	Part.Transparency = 1
+	Part.CastShadow = false
+
+	local OffsetX = math.random(-10, 10) / 10
+	local OffsetY = math.random(-10, 10) / 10
+	local OffsetZ = math.random(-10, 10) / 10
+	Part.Position = RootPart.Position + Vector3.new(OffsetX, OffsetY + 2, OffsetZ)
+	Part.Parent = Workspace.Debris
+
+	local WasCausedByMe = params.CasterUserId == LocalPlayer.UserId
+	local BaseTextTransparency = WasCausedByMe and 0 or 0.8
+	local BaseStrokeTransparency = WasCausedByMe and 0 or 0.65
+
+	Billboard.Adornee = Part
+	Billboard.Parent = Part
+
+	local OriginalLabelSize = Label.Size
+	local PopSize = UDim2.new(
+		OriginalLabelSize.X.Scale * 1.2,
+		OriginalLabelSize.X.Offset,
+		OriginalLabelSize.Y.Scale * 1.2,
+		OriginalLabelSize.Y.Offset
+	)
+
+	Label.Size = UDim2.fromScale(0, 0)
+	Label.TextTransparency = BaseTextTransparency
 
 	local OriginalThickness = Stroke and Stroke.Thickness or 0
 	if Stroke then
-		Stroke.Transparency = 1
-		Stroke.Thickness = params.Crit and OriginalThickness * 1.8 or OriginalThickness
+		Stroke.Transparency = BaseStrokeTransparency
+		Stroke.Thickness = params.Type == "Crit" and OriginalThickness * 1.8 or OriginalThickness
 	end
 
-	local StartOffset = DamageTemplate.StudsOffset
+	TweenService:Create(Label, POP_TWEEN, { Size = PopSize }):Play()
 
-	TweenService:Create(DamageLabel, TweenInfo.new(POP_TIME, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-		Size = OriginalSize,
-		TextTransparency = 0,
-	}):Play()
-
-	if Stroke then
-		TweenService:Create(Stroke, TweenInfo.new(POP_TIME, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-			Transparency = 0,
-			Thickness = OriginalThickness,
-		}):Play()
-	end
-
-	TweenService:Create(DamageTemplate, TweenInfo.new(FLOAT_TIME, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		StudsOffset = StartOffset + Vector3.new(0, 3, 0),
-	}):Play()
-
-	task.delay(FLOAT_TIME * 0.5, function()
-		if not DamageLabel or not DamageLabel.Parent then
+	task.delay(POP_WAIT, function()
+		if not Label or not Label.Parent then
 			return
 		end
 
-		TweenService
-			:Create(DamageLabel, TweenInfo.new(FLOAT_TIME * 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-				TextTransparency = 1,
-			})
-			:Play()
+		TweenService:Create(Label, SETTLE_TWEEN, { Size = OriginalLabelSize }):Play()
+	end)
+
+	TweenService:Create(Part, FLOAT_TWEEN, {
+		Position = Part.Position + Vector3.new(math.random(-5, 5) / 10, FLOAT_HEIGHT / 10, 0),
+	}):Play()
+
+	task.delay(POP_WAIT, function()
+		if not Label or not Label.Parent then
+			return
+		end
+
+		TweenService:Create(Label, FADE_TWEEN, { TextTransparency = 1 }):Play()
 
 		if Stroke then
-			TweenService
-				:Create(Stroke, TweenInfo.new(FLOAT_TIME * 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-					Transparency = 1,
-				})
-				:Play()
+			TweenService:Create(Stroke, FADE_TWEEN, { Transparency = 1 }):Play()
 		end
 	end)
 
-	Debris:AddItem(DamageTemplate, FLOAT_TIME + 0.3)
+	Debris:AddItem(Part, POP_WAIT + FADE_WAIT + CLEANUP_TIME)
 end
 
 return Remote
