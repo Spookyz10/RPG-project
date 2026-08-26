@@ -75,7 +75,6 @@ end
 
 local function UpdateEquippedSlot(slot: string, UUID: string)
 	if not EquippedContainer then
-		print("noooo")
 		return
 	end
 
