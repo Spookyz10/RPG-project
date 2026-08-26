@@ -10,22 +10,20 @@ local OpenUI: Frame = nil
 
 local TypingSessions = {} :: { [TextLabel]: number }
 
+local RarityColors = {
+	["Common"] = Color3.fromRGB(254, 255, 183),
+	["Uncommon"] = Color3.fromRGB(0, 255, 0),
+	["Rare"] = Color3.fromRGB(0, 255, 255),
+	["Legendary"] = Color3.fromRGB(255, 0, 166),
+	["Godly"] = Color3.fromRGB(255, 213, 0),
+	["Ascendant"] = Color3.fromRGB(106, 0, 255),
+}
+
 function UIFunctions:ApplyRarityGradient(container: Instance, rarity: string)
-	local CurrentGradient = container:FindFirstChildOfClass("UIGradient")
-	if CurrentGradient then
-		CurrentGradient:Destroy()
+	local RarityTag = container:FindFirstChild("RarityTag") :: ImageLabel
+	if RarityTag then
+		RarityTag.ImageColor3 = RarityColors[rarity]
 	end
-
-	if not rarity then
-		return
-	end
-
-	local RarityGradient = ReplicatedStorage.Assets.UI.Rarities:FindFirstChild(rarity) :: UIGradient?
-	if not RarityGradient then
-		return
-	end
-
-	RarityGradient:Clone().Parent = container
 end
 
 function UIFunctions:CloseUI()
@@ -69,7 +67,8 @@ function UIFunctions:TypeText(
 	local Delay = charDelay or 0.03
 	local Completed = false
 
-	label.Text = ""
+	label.Text = text
+	label.MaxVisibleGraphemes = 0
 
 	local function Finish()
 		if Completed or TypingSessions[label] ~= Session then
@@ -77,7 +76,7 @@ function UIFunctions:TypeText(
 		end
 
 		Completed = true
-		label.Text = text
+		label.MaxVisibleGraphemes = -1
 
 		if onComplete then
 			onComplete()
@@ -89,16 +88,14 @@ function UIFunctions:TypeText(
 	end
 
 	task.spawn(function()
-		for index = 1, #text do
-			if TypingSessions[label] ~= Session then
+		local GraphemeCount = utf8.len(text) or #text
+
+		for index = 1, GraphemeCount do
+			if TypingSessions[label] ~= Session or Completed then
 				return
 			end
 
-			if Completed then
-				return
-			end
-
-			label.Text = string.sub(text, 1, index)
+			label.MaxVisibleGraphemes = index
 			task.wait(Delay)
 		end
 
