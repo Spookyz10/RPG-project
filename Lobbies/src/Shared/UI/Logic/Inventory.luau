@@ -232,10 +232,21 @@ local function OpenUsableFrame(UUID: string, ItemData: Types.ItemData, ItemInfo:
 	table.insert(
 		UsableConnections,
 		Inner.Action.MouseButton1Click:Connect(function()
-			RemoteManager.SendServerEvent("EquipItem", UUID)
+			RemoteManager.SendServerEvent("UseItem", UUID, false)
 			CloseUsableFrame()
 		end)
 	)
+
+	local UseAllButton = Inner:FindFirstChild("Use All") :: TextButton?
+	if UseAllButton then
+		table.insert(
+			UsableConnections,
+			UseAllButton.MouseButton1Click:Connect(function()
+				RemoteManager.SendServerEvent("UseItem", UUID, true)
+				CloseUsableFrame()
+			end)
+		)
+	end
 
 	table.insert(UsableConnections, Inner.Cancel.MouseButton1Click:Connect(CloseUsableFrame))
 
@@ -436,6 +447,12 @@ local function SetupVanityToggle()
 	end)
 end
 
+local function SetupDrinkAll(DrinkButton: TextButton)
+	DrinkButton.MouseButton1Click:Connect(function()
+		RemoteManager.SendServerEvent("DrinkAllPotions")
+	end)
+end
+
 function Inventory.Init()
 	local Main = UIConstants.PlayerGui:WaitForChild("Inventory"):WaitForChild("Main")
 
@@ -498,6 +515,9 @@ function Inventory.Init()
 
 	SetupVanityUnequip()
 	SetupVanityToggle()
+
+	local DrinkButton = Main:WaitForChild("Bottom"):WaitForChild("Advanced"):WaitForChild("Drink") :: TextButton
+	SetupDrinkAll(DrinkButton)
 
 	SearchBox:GetPropertyChangedSignal("Text"):Connect(ApplySearchFilter)
 end

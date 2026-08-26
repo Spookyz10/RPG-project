@@ -5,6 +5,7 @@ local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Data = require(ReplicatedStorage.Shared.Data).server
+local getCappedInfo = require(ReplicatedStorage.Shared.getCappedInfo)
 
 local InventoryManager = {}
 
@@ -173,7 +174,7 @@ function InventoryManager:ItemAction(player: Player, UUID: string)
 		PlayerData.Equipment[Info.Data.SubType](UUID)
 		PlayerData.Inventory[UUID].Equipped(true)
 	elseif Info.Data.ItemType == "Consumable" then
-		Info:Use(PlayerData)
+		InventoryManager:ConsumeItem(player, UUID, false)
 	end
 end
 
@@ -245,6 +246,77 @@ function InventoryManager:VanityUnequip(player: Player, slot: string)
 	end
 
 	PlayerData.Vanity[slot]("")
+end
+
+function InventoryManager:ConsumeItem(player: Player, UUID: string, useAll: boolean?): string
+	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
+	if not PlayerData then
+		return "Invalid player data"
+	end
+
+	local ItemEntry = PlayerData.Inventory[UUID]()
+	if not ItemEntry then
+		RemoteManager.SendClientEvent("Notification", { Player = player }, "You don't have that item silly!")
+		return "Item not found"
+	end
+
+	local ItemInfo = ItemsData[ItemEntry.Name] :: Types.Consumable
+	if not ItemInfo or ItemInfo.Kind ~= "Consumable" then
+		RemoteManager.SendClientEvent("Notification", { Player = player }, "This item cannot be used")
+		return "Not a consumable"
+	end
+
+	local canUse = ItemInfo:Elligable(PlayerData)
+	if not canUse then
+		RemoteManager.SendClientEvent("Notification", { Player = player }, "You don't meet the item's requirements")
+		return "Requirements not met"
+	end
+
+	local Stat = ItemInfo.Stat
+	local Cap = getCappedInfo[Stat]
+	local Current = PlayerData.ExtraStats[Stat]()
+
+	if Current >= Cap then
+		RemoteManager.SendClientEvent("Notification", { Player = player }, "You're already at max " .. Stat)
+		return "Already at cap"
+	end
+
+	local RoomLeft = Cap - Current
+	local UsesWanted = math.ceil(RoomLeft / ItemInfo.Amount)
+	local UsesToApply = math.min(useAll and UsesWanted or 1, ItemEntry.Amount)
+
+	if UsesToApply <= 0 then
+		return "Nothing to use"
+	end
+
+	local NewStat = math.min(Current + UsesToApply * ItemInfo.Amount, Cap)
+	PlayerData.ExtraStats[Stat](NewStat)
+
+	InventoryManager:RemoveItem(player, ItemEntry.Name, UsesToApply)
+
+	return "Used item"
+end
+
+function InventoryManager:DrinkAllPotions(player: Player)
+	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
+	if not PlayerData then
+		return
+	end
+
+	local Inventory = PlayerData.Inventory()
+
+	for UUID, ItemEntry in Inventory do
+		local ItemInfo = ItemsData[ItemEntry.Name] :: Types.Item
+		if not ItemInfo or ItemInfo.Kind ~= "Consumable" then
+			continue
+		end
+
+		if ItemInfo.Data.SubType ~= "Potion" then
+			continue
+		end
+
+		InventoryManager:ConsumeItem(player, UUID, true)
+	end
 end
 
 return InventoryManager

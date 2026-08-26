@@ -17,6 +17,8 @@ local Remotes = {
 	UpgradeItem = "Server",
 	VanityEquip = "Server",
 	VanityUnequip = "Server",
+	UseItem = "Server",
+	DrinkAllPotions = "Server",
 
 	SkillVFX = "Client",
 	Damage = "Client",

@@ -52,7 +52,7 @@ end
 
 local function TryAttack()
 	local Style = GetAttackStyle()
-	local Cooldown = GetCooldown(Style) + 0.2
+	local Cooldown = GetCooldown(Style)
 	local Now = os.clock()
 
 	if Now - LastAttackTime < Cooldown then

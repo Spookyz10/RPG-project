@@ -53,7 +53,7 @@ function AttackManager:Swing(Player: Player)
 		return
 	end
 
-	CooldownSystem:StartCooldown(Player, "Swing", CombatConstants.SwingCooldown)
+	CooldownSystem:StartCooldown(Player, "Swing", CombatConstants.SwingCooldown - 0.2)
 
 	Hitbox:Create({
 		Size = Vector3.new(5, 5, 5),
