@@ -1,5 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Data = require(ReplicatedStorage.Shared.Data).server
+local CombatConstants = require(ReplicatedStorage.Shared.Combat.Constants)
 
 local CooldownSystem = require(script.Parent.CooldownSystem)
 local ComboManager = require(script.Parent.ComboManager)
@@ -52,7 +53,7 @@ function AttackManager:Swing(Player: Player)
 		return
 	end
 
-	CooldownSystem:StartCooldown(Player, "Swing", 0.6)
+	CooldownSystem:StartCooldown(Player, "Swing", CombatConstants.SwingCooldown)
 
 	Hitbox:Create({
 		Size = Vector3.new(5, 5, 5),

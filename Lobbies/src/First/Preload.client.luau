@@ -6,7 +6,7 @@ local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 
 local PreloadStatus = require(ReplicatedFirst:WaitForChild("First"):WaitForChild("PreloadStatus"))
-local Data = require(ReplicatedStorage.Shared.Data).client
+local Data = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Data")).client
 local TutorialCutscene = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("TutorialCutscene"))
 
 require(ReplicatedStorage:WaitForChild("Shared").CollisionGroups)
