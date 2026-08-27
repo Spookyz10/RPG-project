@@ -9,6 +9,7 @@ local template: Types.PlayerData = {
 	XP = 0,
 	Kills = 0,
 	Deaths = 0,
+	Honor = 0,
 	PlayTime = 0,
 	Inventory = {} :: { [string]: Types.ItemData },
 	Settings = {

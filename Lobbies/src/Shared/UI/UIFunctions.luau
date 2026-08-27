@@ -18,6 +18,8 @@ local RarityColors = {
 	["Ascendant"] = Color3.fromRGB(106, 0, 255),
 }
 
+UIFunctions.RarityColors = RarityColors
+
 function UIFunctions:ApplyRarity(container: Instance, rarity: string)
 	local RarityTag = container:FindFirstChild("RarityTag") :: ImageLabel
 	if RarityTag then

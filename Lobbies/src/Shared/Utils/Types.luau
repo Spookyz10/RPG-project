@@ -13,6 +13,7 @@ export type PlayerData = {
 	Kills: number,
 	Deaths: number,
 	PlayTime: number,
+	Honor: number,
 	Inventory: { [string]: ItemData },
 	Settings: {
 		Music: boolean,
