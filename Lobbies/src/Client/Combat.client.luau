@@ -10,6 +10,7 @@ local CombatConstants = require(ReplicatedStorage.Shared.Combat.Constants)
 local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
+local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
 
 local Player = Players.LocalPlayer
 
@@ -18,6 +19,14 @@ local DEFAULT_STYLE = "Solo"
 local ComboIndex = 0
 local LastAttackTime = 0
 local IsHolding = false
+
+local AttackGui = UIConstants.PlayerGui:WaitForChild("Attack")
+local AttackButton = AttackGui:WaitForChild("AttackButton")
+
+local IsMobile = UserInputService.TouchEnabled
+	and not (UserInputService.KeyboardEnabled or UserInputService.MouseEnabled or UserInputService.GamepadEnabled)
+
+AttackButton.Visible = IsMobile
 
 local function GetAttackStyle()
 	local UUID = Data.Equipment.Weapon()
@@ -87,6 +96,19 @@ UserInputService.InputEnded:Connect(function(input, gameProcessed)
 	end
 
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		IsHolding = false
+	end
+end)
+
+AttackButton.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch then
+		IsHolding = true
+		TryAttack()
+	end
+end)
+
+AttackButton.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch then
 		IsHolding = false
 	end
 end)

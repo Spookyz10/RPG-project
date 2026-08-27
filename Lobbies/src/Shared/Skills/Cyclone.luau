@@ -6,7 +6,7 @@ local Skill: Types.SkillDefinition = {
 	Cooldown = 5,
 	Multiplier = 1,
 	LevelRequirement = 1,
-	Icon = "",
+	Icon = "rbxassetid://3009018652",
 	Description = "Spin yourself in a circle to deal constant damage.",
 	SkillType = "Attack",
 }

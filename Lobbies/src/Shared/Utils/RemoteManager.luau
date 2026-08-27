@@ -21,6 +21,7 @@ local Remotes = {
 	DrinkAllPotions = "Server",
 
 	SkillVFX = "Client",
+	SkillAnimation = "Client",
 	Damage = "Client",
 	SkillCooldown = "Client",
 	LeaderboardUpdate = "Client",

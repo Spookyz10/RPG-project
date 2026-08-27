@@ -52,6 +52,7 @@ local function attachWeapon(character: Model, weaponName: string): Model?
 	end
 
 	local WeaponModel = Template:Clone()
+	WeaponModel.Name = "Sword"
 
 	local Handle = WeaponModel:FindFirstChild("Handle") :: BasePart?
 	if not Handle then

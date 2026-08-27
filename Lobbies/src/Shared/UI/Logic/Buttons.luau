@@ -5,6 +5,7 @@ local Buttons = {}
 
 local UIList = {
 	Inventory = UIConstants.PlayerGui:WaitForChild("Inventory").Main,
+	Skills = UIConstants.PlayerGui:WaitForChild("SkillSelector").Frame,
 }
 
 local CurrentOpen: Instance? = nil

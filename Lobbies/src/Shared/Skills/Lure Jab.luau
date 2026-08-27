@@ -6,9 +6,9 @@ local Skill: Types.SkillDefinition = {
 	Cooldown = 8,
 	Multiplier = 1,
 	LevelRequirement = 1,
-	Icon = "",
+	Icon = "rbxassetid://3009037877",
 	Description = "Jab the enemy to weaken their defense temporarily.",
-	SkillType = "Attack",
+	SkillType = "Support",
 }
 
 function Skill:Elligable(PlayerData: Types.PlayerData): boolean
