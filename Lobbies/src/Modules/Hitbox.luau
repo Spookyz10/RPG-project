@@ -75,7 +75,7 @@ function Hitbox:Create(info: Types.HitboxInfo): (BasePart, HitboxResults)
 	SetHitboxPosition(Part, info.Part, info.Offset)
 	Part.CanCollide = false
 	Part.Anchored = true
-	Part.Transparency = Debug and 0.6 or 1
+	Part.Transparency = Debug and RunService:IsStudio() and 0.6 or 1
 	Part.Color = Color3.fromRGB(255, 0, 0)
 
 	local HitList: { [Model]: true } = {}
