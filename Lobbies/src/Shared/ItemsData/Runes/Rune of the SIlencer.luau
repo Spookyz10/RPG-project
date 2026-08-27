@@ -25,6 +25,7 @@ local Item: Types.Equipment = {
 		Level = 1,
 		Description = "Empowers Lure Jab, making it deal far more bonus damage and heal you on hit.",
 		ActionName = "Equip",
+		ID = "Rune of the Silencer",
 	},
 }
 

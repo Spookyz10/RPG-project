@@ -29,7 +29,7 @@ function Remote:Invoke(_Player: Player, TargetPlayer: Player)
 			continue
 		end
 
-		local ItemInfo = ItemsData[ItemEntry.Name]
+		local ItemInfo = ItemsData[ItemEntry.ID]
 		if not ItemInfo then
 			continue
 		end

@@ -23,6 +23,7 @@ local Item: Types.Equipment = {
 		Level = 15,
 		Description = "arrr arrr arrr arrr",
 		ActionName = "Equip",
+		ID = "Pirate Scmitar",
 	},
 }
 
