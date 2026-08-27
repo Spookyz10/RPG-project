@@ -5,6 +5,7 @@ local Hitbox = require(ServerStorage.Modules.Hitbox)
 local BehaviorManager = require(ServerStorage.Modules.Mobs.BehaviorManager)
 local CooldownSystem = require(ServerStorage.Modules.CooldownSystem)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
+local MobAnimations = require(ReplicatedStorage.Shared.MobAnimations)
 local Players = game:GetService("Players")
 
 local ATTACK_COOLDOWN = 1.5
@@ -97,6 +98,8 @@ function BasicMeleeBehavior:Start(mob: Model)
 
 				if not CooldownSystem:IsInCooldown(mob, "MeleeAttack") then
 					CooldownSystem:StartCooldown(mob, "MeleeAttack", ATTACK_COOLDOWN)
+
+					MobAnimations:PlayHit(mob, 0.1)
 
 					Hitbox:Create({
 						Size = self.Size,

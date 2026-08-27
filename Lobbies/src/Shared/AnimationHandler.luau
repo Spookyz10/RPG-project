@@ -74,7 +74,7 @@ function AnimationHandler.new(character: Model)
 
 	self.Character = character
 	self.Animator = nil :: Animator?
-	self.Tracks = {} :: { [string]: AnimationTrack }
+	self.Tracks = {} :: { [string | Instance]: AnimationTrack }
 	self.Ready = false
 	self._Destroyed = false
 	self._ReadyEvent = Instance.new("BindableEvent")
@@ -129,6 +129,21 @@ function AnimationHandler:LoadTrack(animName: string): AnimationTrack?
 	return Track
 end
 
+function AnimationHandler:LoadTrackFromInstance(animInstance: Animation): AnimationTrack?
+	local Track = self.Tracks[animInstance]
+	if Track then
+		return Track
+	end
+
+	if not self.Animator then
+		return nil
+	end
+
+	Track = self.Animator:LoadAnimation(animInstance)
+	self.Tracks[animInstance] = Track
+	return Track
+end
+
 function AnimationHandler:Play(animName: string, fadeTime: number?, speed: number?): AnimationTrack?
 	if PreloadStatus then
 		PreloadStatus:WaitUntilReady()
@@ -147,6 +162,35 @@ function AnimationHandler:Play(animName: string, fadeTime: number?, speed: numbe
 	end
 
 	local Track = self:LoadTrack(animName)
+	if not Track then
+		return nil
+	end
+
+	if not Track.IsPlaying then
+		Track:Play(fadeTime or 0.2, 1, speed or 1)
+	end
+
+	return Track
+end
+
+function AnimationHandler:PlayInstance(animInstance: Animation, fadeTime: number?, speed: number?): AnimationTrack?
+	if PreloadStatus then
+		PreloadStatus:WaitUntilReady()
+	end
+
+	if not self.Character or not self.Character.Parent or self._Destroyed then
+		return nil
+	end
+
+	if not self:WaitUntilReady() then
+		return nil
+	end
+
+	if not self.Character or not self.Character.Parent or self._Destroyed then
+		return nil
+	end
+
+	local Track = self:LoadTrackFromInstance(animInstance)
 	if not Track then
 		return nil
 	end

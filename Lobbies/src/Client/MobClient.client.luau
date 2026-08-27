@@ -1,11 +1,15 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
+local MobAnimations = require(ReplicatedStorage.Shared.MobAnimations)
 
 local Templates = ReplicatedStorage.Resources.UI.Templates
 local MobsFolder = workspace:WaitForChild("Mobs")
 
 local ActiveOverheads: { [Model]: BillboardGui } = {}
+
+local MOVE_THRESHOLD = 1
 
 local function UpdateHP(Overhead: BillboardGui, Humanoid: Humanoid)
 	local Bar = Overhead.HP.Bar
@@ -20,37 +24,55 @@ end
 local function PlayDeathAnimation(mobModel: Model)
 	local Handler = AnimationHandler.GetOrCreate(mobModel)
 	Handler:StopAll(0)
-	Handler:Play("Die", 0.1)
+	MobAnimations:Play(mobModel, "Die", 0.1)
 end
 
 local function SetupMovementAnimation(mobModel: Model, Humanoid: Humanoid)
-	local Handler = AnimationHandler.GetOrCreate(mobModel)
-	local CurrentAnim: string? = nil
+	local RootPart = mobModel.PrimaryPart or (mobModel:FindFirstChild("HumanoidRootPart") :: BasePart?)
+
+	local CurrentAnimName: string? = nil
+	local CurrentTrack: AnimationTrack? = nil
+	local Alive = true
 
 	local function SetAnim(animName: string)
-		if CurrentAnim == animName then
+		if CurrentAnimName == animName and CurrentTrack then
 			return
 		end
 
-		if CurrentAnim then
-			Handler:Stop(CurrentAnim, 0.15)
+		local NewTrack = MobAnimations:Play(mobModel, animName, 0.15)
+		if not NewTrack then
+			return
 		end
 
-		Handler:Play(animName, 0.15)
-		CurrentAnim = animName
+		if CurrentTrack and CurrentTrack.IsPlaying and CurrentTrack ~= NewTrack then
+			CurrentTrack:Stop(0.15)
+		end
+
+		CurrentTrack = NewTrack
+		CurrentAnimName = animName
 	end
 
-	local RunningConnection = Humanoid.Running:Connect(function(speed: number)
-		if speed > 0.5 then
-			SetAnim("Walk")
-		else
-			SetAnim("Idle")
+	SetAnim("Idle")
+
+	local Connection = RunService.Heartbeat:Connect(function()
+		if not Alive or not RootPart or not RootPart.Parent then
+			return
 		end
+
+		if Humanoid.Health <= 0 then
+			return
+		end
+
+		local Speed = RootPart.AssemblyLinearVelocity.Magnitude
+		SetAnim(Speed > MOVE_THRESHOLD and "Walk" or "Idle")
 	end)
 
-	SetAnim(Humanoid.WalkSpeed > 0 and "Idle" or "Idle")
-
-	return RunningConnection
+	return {
+		Disconnect = function()
+			Alive = false
+			Connection:Disconnect()
+		end,
+	}
 end
 
 local function SetupMob(mobModel: Model)

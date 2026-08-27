@@ -50,6 +50,17 @@ end
 
 local DEATH_ANIMATION_DELAY = 0.6
 
+local function SetServerNetworkOwnership(mobModel: Model)
+	local RootPart = mobModel.PrimaryPart or mobModel:FindFirstChild("HumanoidRootPart")
+	if not RootPart or not RootPart:IsA("BasePart") then
+		return
+	end
+
+	pcall(function()
+		RootPart:SetNetworkOwner(nil)
+	end)
+end
+
 function MobHandler:RemoveMob(mobModel: Model)
 	local Connection = DiedConnections[mobModel]
 	if Connection then
@@ -136,6 +147,7 @@ function MobHandler:AddMob(mobName: string | { string }): Model?
 		MobModel.Parent = workspace:FindFirstChild("Mobs")
 		MobModel:PivotTo(Origin.CFrame)
 		CollisionGroups:Apply(MobModel)
+		SetServerNetworkOwnership(MobModel)
 
 		local UUID = Instance.new("StringValue")
 		UUID.Name = "UUID"
