@@ -138,7 +138,7 @@ function InventoryManager:RemoveItemByUUID(Player: Player, UUID: string, Amount:
 end
 
 function InventoryManager:EquipSkill(player: Player, skill: string, slot: string)
-	local Skills = require(script.Parent.Skills)
+	local Skills = require(ReplicatedStorage.Shared.Skills)
 	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
 	if not PlayerData then
 		return
@@ -149,7 +149,7 @@ function InventoryManager:EquipSkill(player: Player, skill: string, slot: string
 		return
 	end
 
-	local SkillInfo = Skills[skill] :: Types.Skill
+	local SkillInfo = Skills[skill] :: Types.SkillDefinition
 	if not SkillInfo then
 		return
 	end

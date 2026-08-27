@@ -1,13 +1,11 @@
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local ComboManager = {}
 
 local HistoryWindow = 4
 local ComboTimeout = 2.5
 
-export type ComboEffect = (player: Player, class: Types.Entity) -> ()
+export type ComboEffect = (player: Player) -> ()
 
 export type ComboDefinition = {
 	Sequence: { string },
@@ -56,14 +54,14 @@ function ComboManager:RegisterCombo(sequence: { string }, effect: ComboEffect)
 	table.insert(Combos, { Sequence = sequence, Effect = effect })
 end
 
-function ComboManager:RecordSkill(player: Player, class: Types.Entity, skillName: string)
+function ComboManager:RecordSkill(player: Player, skillName: string)
 	local History = getHistory(player)
 	table.insert(History, { Skill = skillName, Time = os.clock() })
 	trimHistory(History)
 
 	for _, combo in Combos do
 		if matchesSequence(History, combo.Sequence) then
-			combo.Effect(player, class)
+			combo.Effect(player)
 			table.clear(History)
 			break
 		end

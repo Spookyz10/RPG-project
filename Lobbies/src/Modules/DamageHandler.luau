@@ -1,7 +1,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Data = require(ReplicatedStorage.Shared.Data).server
-local BuffsManager = require(script.Parent.BuffsManager)
+local ModifierSystem = require(script.Parent.ModifierSystem)
 
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
@@ -26,18 +26,11 @@ function DamageHandler:calculateDamage(caster: Model, victim: Model, multi: numb
 		CasterAttack *= multi
 	end
 
-	local ExtraDefense = BuffsManager:GetBuffAmount(victim, "Defense")
+	VictimDefense = ModifierSystem:Aggregate(victim, "Defense", VictimDefense)
+	CasterAttack = ModifierSystem:Aggregate(caster, "Damage", CasterAttack)
 
-	if ExtraDefense then
-		VictimDefense += ExtraDefense
-	end
-
-	local DamageBuff = BuffsManager:GetBuffAmount(caster, "Damage")
-	if DamageBuff then
-		CasterAttack *= 1 + DamageBuff / 100
-	end
-
-	local isCrit = math.random() * 100 <= CasterStats.Critical + BuffsManager:GetBuffAmount(caster, "Critical") + 5
+	local CritChance = ModifierSystem:Aggregate(caster, "Critical", CasterStats.Critical) + 5
+	local isCrit = math.random() * 100 <= CritChance
 	if isCrit then
 		CasterAttack *= baseCriticalMultiplier
 	end

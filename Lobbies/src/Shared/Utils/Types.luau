@@ -49,15 +49,6 @@ export type PlayerData = {
 	DailyStreak: number,
 }
 
-export type Entity = {
-	HP: number,
-	MaxHP: number,
-	HitList: { [Player]: number },
-	Model: Model,
-	OnHPChanged: RBXScriptSignal<number, number>,
-	OnMaxHPChanged: RBXScriptSignal<number, number>,
-}
-
 export type Drop = {
 	[string]: { Chance: number, Amount: number },
 }
@@ -82,7 +73,7 @@ export type HitboxInfo = {
 	Drag: boolean,
 	Time: number,
 	Caster: Model?,
-	OnHit: ((Model, Entity) -> ())?,
+	OnHit: ((Model, Model) -> ())?,
 }
 
 export type ItemData = {
@@ -137,18 +128,19 @@ export type ItemTable = {
 	[string]: { Chance: number, Amount: number },
 }
 
-export type SkillData = {
+export type SkillDefinition = {
 	Name: string,
 	Cooldown: number,
 	Multiplier: number,
 	LevelRequirement: number,
+	Icon: string,
 	Description: string,
 	SkillType: string,
-	Elligable: (self: SkillData, Data: PlayerData) -> boolean,
+	Elligable: (self: SkillDefinition, Data: PlayerData) -> boolean,
 }
 
-export type Skill = SkillData & {
-	Activate: (self: Skill, Player: Entity) -> (),
+export type SkillBehavior = {
+	Execute: (self: SkillBehavior, caster: Player, definition: SkillDefinition) -> (),
 }
 
 export type Recipes = {

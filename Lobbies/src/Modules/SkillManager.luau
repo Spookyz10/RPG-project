@@ -4,9 +4,7 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local SkillManager = {}
 
-local LevelSkills = {
-	["Ground Break"] = 5,
-}
+local LevelSkills = {}
 
 function SkillManager:GrantSkill(player: Player, skill: string): boolean
 	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
