@@ -14,7 +14,6 @@ local Remotes = {
 	SellItem = "Server",
 	SpawnItem = "Server",
 	ClaimDaily = "Server",
-	UpgradeItem = "Server",
 	VanityEquip = "Server",
 	VanityUnequip = "Server",
 	UseItem = "Server",

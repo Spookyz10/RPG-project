@@ -21,6 +21,8 @@ function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: numb
 		return "Invalid player data or itemInfo", nil
 	end
 
+	local ID = ItemInfo.Data.ID
+
 	local Remaining = Amount
 	local LastUUID: string? = nil
 
@@ -37,7 +39,7 @@ function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: numb
 				break
 			end
 
-			if itemData.Name ~= ItemName then
+			if itemData.ID ~= ID then
 				continue
 			end
 
@@ -61,6 +63,7 @@ function InventoryManager:AddItem(Player: Player, ItemName: string, Amount: numb
 
 		local NewItem: Types.ItemData = {
 			Name = ItemName,
+			ID = ID,
 			Amount = ToAdd,
 			Enchants = {},
 			Upgrades = 0,
@@ -85,10 +88,12 @@ function InventoryManager:RemoveItem(Player: Player, ItemName: string, Amount: n
 		return "Invalid player data or itemInfo", PlayerData, ItemInfo
 	end
 
+	local ID = ItemInfo.Data.ID
+
 	local Remaining = Amount
 	local Inventory = PlayerData.Inventory()
 
-	local isInInventory, key = Functions:HasKeyWithValueIntable(Inventory, "Name", ItemName)
+	local isInInventory, key = Functions:HasKeyWithValueIntable(Inventory, "ID", ID)
 	while isInInventory and Remaining > 0 do
 		local itemData = Inventory[key]
 		local ToRemove = math.min(itemData.Amount, Remaining)
@@ -103,7 +108,7 @@ function InventoryManager:RemoveItem(Player: Player, ItemName: string, Amount: n
 
 		Remaining -= ToRemove
 		Inventory = PlayerData.Inventory()
-		isInInventory, key = Functions:HasKeyWithValueIntable(Inventory, "Name", ItemName)
+		isInInventory, key = Functions:HasKeyWithValueIntable(Inventory, "ID", ID)
 	end
 
 	if Remaining > 0 then
@@ -182,7 +187,7 @@ function InventoryManager:ItemAction(player: Player, UUID: string)
 		return
 	end
 
-	local Info = ItemsData[Item.Name] :: Types.Item
+	local Info = ItemsData.ById[Item.ID] :: Types.Item
 	if not Info then
 		RemoteManager.SendClientEvent("Notification", { Player = player }, "Item has no info, how.")
 		return
@@ -214,7 +219,7 @@ function InventoryManager:UnequipItem(player: Player, UUID: string)
 		return
 	end
 
-	local Info = ItemsData[Item.Name] :: Types.Item
+	local Info = ItemsData.ById[Item.ID] :: Types.Item
 	if not Info then
 		RemoteManager.SendClientEvent("Notification", { Player = player }, "Item has no info, how.")
 		return
@@ -242,7 +247,7 @@ function InventoryManager:VanityEquip(player: Player, UUID: string)
 		return
 	end
 
-	local Info = ItemsData[Item.Name] :: Types.Item
+	local Info = ItemsData.ById[Item.ID] :: Types.Item
 	if not Info or Info.Kind ~= "Equipment" then
 		RemoteManager.SendClientEvent("Notification", { Player = player }, "This item cannot be used as a vanity")
 		return
@@ -307,7 +312,7 @@ function InventoryManager:ConsumeItem(player: Player, UUID: string, useAll: bool
 		return "Item not found"
 	end
 
-	local ItemInfo = ItemsData[ItemEntry.Name] :: Types.Consumable
+	local ItemInfo = ItemsData.ById[ItemEntry.ID] :: Types.Consumable
 	if not ItemInfo or ItemInfo.Kind ~= "Consumable" then
 		RemoteManager.SendClientEvent("Notification", { Player = player }, "This item cannot be used")
 		return "Not a consumable"
@@ -353,7 +358,7 @@ function InventoryManager:DrinkAllPotions(player: Player)
 	local Inventory = PlayerData.Inventory()
 
 	for UUID, ItemEntry in Inventory do
-		local ItemInfo = ItemsData[ItemEntry.Name] :: Types.Item
+		local ItemInfo = ItemsData.ById[ItemEntry.ID] :: Types.Item
 		if not ItemInfo or ItemInfo.Kind ~= "Consumable" then
 			continue
 		end

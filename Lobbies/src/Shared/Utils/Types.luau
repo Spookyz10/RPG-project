@@ -83,6 +83,7 @@ export type ItemData = {
 	Upgrades: number,
 	Amount: number,
 	Name: string,
+	ID: string,
 	Equipped: boolean,
 	UpgradeCap: number,
 }
@@ -92,6 +93,7 @@ export type ItemInfo = {
 	ItemType: string,
 	SubType: string?,
 	Name: string,
+	ID: string,
 	Stackable: boolean,
 	Cap: number?,
 	Icon: string,

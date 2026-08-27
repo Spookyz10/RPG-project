@@ -56,7 +56,7 @@ function Functions:GetEquippedItemInfo(PlayerData: Types.PlayerData, slot: strin
 		return nil
 	end
 
-	return ItemsData[ItemEntry.Name]
+	return ItemsData.ById[ItemEntry.ID]
 end
 
 local function getTotalStats(Data: Types.PlayerData, StatName: string)
@@ -67,7 +67,7 @@ local function getTotalStats(Data: Types.PlayerData, StatName: string)
 			continue
 		end
 
-		local ItemInfo = ItemsData[KeyEntry.Name] :: Types.Equipment
+		local ItemInfo = ItemsData.ById[KeyEntry.ID] :: Types.Equipment
 		if ItemInfo then
 			local StatValue = ItemInfo.Stats[StatName]
 
