@@ -3,6 +3,7 @@ local RunService = game:GetService("RunService")
 local RemoteManager = {}
 
 local Remotes = {
+	Admin = "Server",
 	Attack = "Server",
 	UseSkill = "Server",
 	EquipItem = "Server",
@@ -23,7 +24,6 @@ local Remotes = {
 	SkillAnimation = "Client",
 	Damage = "Client",
 	SkillCooldown = "Client",
-	LeaderboardUpdate = "Client",
 	Indicator = "Client",
 	BuffVFX = "Client",
 }

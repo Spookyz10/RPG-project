@@ -193,14 +193,6 @@ export type Shop = {
 	[string]: { Cost: { [string]: number }, itemType: string },
 }
 
-export type LeaderboardBoard = "Gold" | "Kills" | "PlayTime"
-
-export type LeaderboardEntry = {
-	UserId: number,
-	Name: string,
-	Value: number,
-}
-
 export type QuestObjectiveType = "KillMob" | "CraftItem"
 
 export type QuestObjective = {
