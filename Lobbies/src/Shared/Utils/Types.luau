@@ -114,6 +114,17 @@ export type Equipment = ItemBase<Equipment> & {
 	Stats: Stats,
 	Passive: string,
 	WeaponType: string,
+	SkillOverrides: {
+		[string]: {
+			Name: string?,
+			Icon: string?,
+			Description: string?,
+			Cooldown: number?,
+			EffectValue: number?,
+			EffectDuration: number?,
+			HealPercent: number?,
+		},
+	}?,
 }
 
 export type Consumable = ItemBase<Consumable> & {
@@ -236,6 +247,18 @@ export type RaidInfo = {
 	RequiredLevel: number,
 	Drops: { [string]: number },
 	HCDrops: { [string]: number },
+}
+
+export type DamageContext = {
+	Caster: Model,
+	Victim: Model,
+	CasterPlayer: Player?,
+	VictimPlayer: Player?,
+	Damage: number,
+	IsCrit: boolean,
+	Multiplier: number?,
+	Tags: { string },
+	Cancelled: boolean,
 }
 
 return {}

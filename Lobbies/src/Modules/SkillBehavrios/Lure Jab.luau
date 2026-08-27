@@ -1,24 +1,17 @@
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 local Data = require(ReplicatedStorage.Shared.Data).server
 local BuffsManager = require(ServerStorage.Modules.BuffsManager)
-local EventBus = require(ServerStorage.Modules.EventBus)
 local DamageHandler = require(ServerStorage.Modules.DamageHandler)
 local Hitbox = require(ServerStorage.Modules.Hitbox)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
-local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Behavior = {} :: Types.SkillBehavior
 
-local BUFF_ID = "LureJab"
-
-EventBus:Subscribe("BuffRemoved", function(target, buffId)
-	if buffId == BUFF_ID then
-		RemoteManager.SendClientEvent("BuffVFX", { All = true }, "Lure Jab", target, "End")
-	end
-end)
+local EFFECT_ID = "LureJab"
+local BASE_VALUE = 1.5
+local BASE_DURATION = 5
 
 function Behavior:Execute(caster: Player, definition: Types.SkillDefinition)
 	local Character = caster.Character
@@ -26,32 +19,43 @@ function Behavior:Execute(caster: Player, definition: Types.SkillDefinition)
 		return
 	end
 
-	if Functions:isEntityAlive(Character) then
-		Hitbox:Create({
-			Size = Vector3.new(10, 10, 10),
-			Part = Character.PrimaryPart,
-			Drag = true,
-			Offset = nil,
-			Time = 0.3,
-			Caster = Character,
-			OnHit = function(Model, HitEntity)
-				DamageHandler:dealDamage(Character, HitEntity, definition.Multiplier)
-				local Player = Players:GetPlayerFromCharacter(Model)
-				local Amount = Functions:GetTotalStats(HitEntity, Player and Data.Service:waitForData(Player)).Defense
-					* 0.1
-
-				BuffsManager:Apply(HitEntity, BUFF_ID, {
-					Property = "Defense",
-					Operation = "Add",
-					Value = Amount,
-					Duration = 5,
-					Source = "Lure Jab",
-				})
-
-				RemoteManager.SendClientEvent("BuffVFX", { All = true }, "Lure Jab", HitEntity, "Start")
-			end,
-		})
+	if not Functions:isEntityAlive(Character) then
+		return
 	end
+
+	local PlayerData = Data.Service:waitForData(caster) :: Types.PlayerData
+	local RuneInfo = PlayerData and Functions:GetEquippedItemInfo(PlayerData, "Rune")
+	local Override = RuneInfo and RuneInfo.EffectOverrides and RuneInfo.EffectOverrides[EFFECT_ID]
+
+	local EffectValue = (Override and Override.Value) or BASE_VALUE
+	local HealPercent = Override and Override.HealPercent
+
+	Hitbox:Create({
+		Size = Vector3.new(10, 10, 10),
+		Part = Character.PrimaryPart,
+		Drag = true,
+		Offset = nil,
+		Time = 0.3,
+		Caster = Character,
+		OnHit = function(_, HitEntity)
+			DamageHandler:dealDamage(Character, HitEntity, definition.Multiplier)
+
+			BuffsManager:Apply(HitEntity, EFFECT_ID, {
+				Property = "IncomingDamage",
+				Operation = "Multiply",
+				Value = EffectValue,
+				Duration = BASE_DURATION,
+				Source = caster,
+			})
+
+			if HealPercent then
+				local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+				if Humanoid then
+					DamageHandler:heal(Character, Character, Humanoid.MaxHealth * HealPercent)
+				end
+			end
+		end,
+	})
 end
 
 return Behavior

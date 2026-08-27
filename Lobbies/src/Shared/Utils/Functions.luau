@@ -45,6 +45,20 @@ function Functions:HasKeyWithValueIntable(table: {}, field: string, value: any):
 	return false, nil
 end
 
+function Functions:GetEquippedItemInfo(PlayerData: Types.PlayerData, slot: string): Types.Item?
+	local UUID = PlayerData.Equipment[slot]()
+	if not UUID or UUID == "" then
+		return nil
+	end
+
+	local ItemEntry = PlayerData.Inventory[UUID]()
+	if not ItemEntry then
+		return nil
+	end
+
+	return ItemsData[ItemEntry.Name]
+end
+
 local function getTotalStats(Data: Types.PlayerData, StatName: string)
 	local Stat = 0
 	for _, Item in Data.Equipment do
