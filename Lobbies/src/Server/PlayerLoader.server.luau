@@ -11,7 +11,6 @@ local HealthManager = require(ServerStorage.Modules.HealthManager)
 
 local Data = require(ReplicatedStorage.Shared.Data).server
 local InventoryManager = require(ServerStorage.Modules.InventoryManager)
-local SkillManager = require(ServerStorage.Modules.SkillManager)
 local StatsReplicator = require(ServerStorage.Modules.StatsReplicator)
 
 local RESPAWN_TIME = 6
@@ -31,8 +30,6 @@ local function LoadPlayer(Player: Player)
 		PlayerData.FirstTimeJoined(false)
 	end
 
-	SkillManager:GrantSkill(Player, "Cyclone")
-	SkillManager:Listen(Player)
 	WeaponLoader:Listen(Player)
 	HealthManager:Listen(Player)
 	StatsReplicator:Listen(Player)

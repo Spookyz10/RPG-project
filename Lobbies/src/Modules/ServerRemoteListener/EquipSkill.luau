@@ -1,10 +1,10 @@
 local ServerStorage = game:GetService("ServerStorage")
-local InventoryManager = require(ServerStorage.Modules.InventoryManager)
+local SkillManager = require(ServerStorage.Modules.SkillManager)
 
 local Remote = {}
 
-function Remote:Activate(Player: Player, skill: string, slot: string)
-	InventoryManager:EquipSkill(Player, skill, slot)
+function Remote:Activate(player: Player, skill: string, slot: string)
+	SkillManager:EquipSkill(player, skill, slot)
 end
 
 return Remote
