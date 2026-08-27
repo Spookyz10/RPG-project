@@ -21,6 +21,7 @@ local Item: Types.Equipment = {
 		Rarity = "Uncommon",
 		Level = 1,
 		ActionName = "Equip",
+		ID = "Emerald Trinket",
 	},
 }
 

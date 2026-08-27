@@ -30,7 +30,6 @@ local template: Types.PlayerData = {
 		E = "",
 		R = "",
 	},
-	UnlockedSkills = {}, -- {"Skill1" , "Skill2"},
 	Currencies = {
 		Gold = 0,
 		["Rune Crystals"] = 0,
@@ -41,7 +40,6 @@ local template: Types.PlayerData = {
 		Weapon = "",
 		Aura = "",
 	},
-	UnlockedRecipes = {},
 	ExtraStats = {
 		Health = 0,
 		Speed = 0,

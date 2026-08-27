@@ -18,6 +18,7 @@ local Item: Types.Consumable = {
 		Level = 1,
 		Description = "Drink this to gain +1 Defense",
 		ActionName = "Use",
+		ID = "Small Defense Potion",
 	},
 }
 

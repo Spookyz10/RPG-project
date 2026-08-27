@@ -23,6 +23,7 @@ local Item: Types.Equipment = {
 		Level = 5,
 		Description = "This sword was passed down by many generations of the sun warriors and you took it from them",
 		ActionName = "Equip",
+		ID = "Sun Warrior's Blade",
 	},
 }
 

@@ -23,6 +23,7 @@ local Item: Types.Equipment = {
 		Level = 10,
 		Description = "It looks like it was ripped right out of a mountain and then designed into a sword",
 		ActionName = "Equip",
+		ID = "Stone Cold Sword",
 	},
 }
 

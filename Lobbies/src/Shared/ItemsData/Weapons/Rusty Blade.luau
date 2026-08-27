@@ -23,6 +23,7 @@ local Item: Types.Equipment = {
 		Level = 1,
 		Description = "Probably came from a Knight who got ate by the bear",
 		ActionName = "Equip",
+		ID = "Rusty Blade",
 	},
 }
 

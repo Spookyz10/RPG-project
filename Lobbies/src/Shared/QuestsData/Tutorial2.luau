@@ -14,7 +14,6 @@ local Quest: Types.QuestInfo = {
 	Rewards = {
 		Currencies = { Gold = 50 },
 		XP = 40,
-		Recipes = { "Fang Dagger" },
 	},
 }
 

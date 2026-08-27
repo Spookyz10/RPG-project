@@ -39,7 +39,6 @@ export type PlayerData = {
 	},
 	UnlockedSkills: { string },
 	Currencies: { [string]: number },
-	UnlockedRecipes: { string },
 	ExtraStats: Stats,
 	MobIndex: { [string]: number },
 	Quests: { [string]: QuestProgress },
@@ -156,11 +155,6 @@ export type SkillBehavior = {
 	Execute: (self: SkillBehavior, caster: Player, definition: SkillDefinition) -> (),
 }
 
-export type Recipes = {
-	Recipe: { [string]: { Amount: number } },
-	GetRequirement: (Data: PlayerData) -> boolean,
-}
-
 export type Touch = {
 	touchStarted: () -> (),
 	touchEnded: () -> (),
@@ -218,7 +212,6 @@ export type QuestReward = {
 	Currencies: { [string]: number }?,
 	XP: number?,
 	Items: { [string]: number }?,
-	Recipes: { string }?,
 }
 
 export type QuestProgress = {
