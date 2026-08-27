@@ -70,7 +70,7 @@ local function DisconnectAll(connections: { RBXScriptConnection })
 end
 
 local function UpdateEntry(Button: TextButton, ItemData: Types.ItemData)
-	local ItemInfo = ItemsData[ItemData.Name] :: Types.Item
+	local ItemInfo = ItemsData[ItemData.ID] :: Types.Item
 	if not ItemInfo then
 		return
 	end
@@ -300,7 +300,7 @@ local function OnItemClicked(UUID: string)
 		return
 	end
 
-	local ItemInfo = ItemsData[ItemData.Name] :: Types.Item
+	local ItemInfo = ItemsData[ItemData.ID] :: Types.Item
 	if not ItemInfo then
 		return
 	end
@@ -394,7 +394,7 @@ local function UpdateEquippedSlot(slot: string, UUID: string)
 		return
 	end
 
-	local ItemInfo = ItemsData[ItemEntry.Name] :: Types.Item
+	local ItemInfo = ItemsData[ItemEntry.ID] :: Types.Item
 	if not ItemInfo then
 		Icon.Image = ""
 		return
@@ -451,7 +451,7 @@ local function UpdateVanitySlot(slot: string, UUID: string)
 		return
 	end
 
-	local ItemInfo = ItemsData[ItemEntry.Name] :: Types.Item
+	local ItemInfo = ItemsData[ItemEntry.ID] :: Types.Item
 	if not ItemInfo then
 		Icon.Image = ""
 		return

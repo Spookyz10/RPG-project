@@ -1,46 +1,103 @@
 local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Types = require(ReplicatedStorage.Shared.Utils.Types)
-local Zones = require(script.Parent.Zones)
+
 local LightingManager = {}
 
-local LightingPresets = ReplicatedStorage:WaitForChild("Resources"):FindFirstChild("Lighting")
+local TemplatesFolder = ReplicatedStorage:WaitForChild("Resources"):WaitForChild("LightingTemplates")
 
-local function getPresetFolder(name: string)
-	for _, preset in LightingPresets:GetDescendants() do
-		if preset:IsA("Folder") and preset.Name == name then
-			return preset
+local TWEENABLE_PROPERTIES = {
+	"Ambient",
+	"OutdoorAmbient",
+	"Brightness",
+	"ColorShift_Bottom",
+	"ColorShift_Top",
+	"ClockTime",
+	"EnvironmentDiffuseScale",
+	"EnvironmentSpecularScale",
+	"ExposureCompensation",
+	"FogColor",
+	"FogEnd",
+	"FogStart",
+	"GlobalShadows",
+	"ShadowSoftness",
+}
+
+local DefaultProperties: { [string]: any } = {}
+local DefaultChildren: { Instance } = {}
+local Captured = false
+
+local function ClearLightingChildren()
+	for _, child in Lighting:GetChildren() do
+		child:Destroy()
+	end
+end
+
+function LightingManager:CaptureDefault()
+	if Captured then
+		return
+	end
+	Captured = true
+
+	for _, propertyName in TWEENABLE_PROPERTIES do
+		local ok, value = pcall(function()
+			return Lighting[propertyName]
+		end)
+		if ok then
+			DefaultProperties[propertyName] = value
 		end
 	end
 
-	return nil
+	for _, child in Lighting:GetChildren() do
+		table.insert(DefaultChildren, child:Clone())
+	end
 end
 
-function LightingManager:ApplyZoneLighting(zoneName: string)
-	local ZoneInfo = Zones[zoneName] :: Types.Zone
-
-	if not ZoneInfo then
+function LightingManager:ApplyProperties(properties: { [string]: any })
+	if not properties then
 		return
 	end
 
-	local Preset = getPresetFolder(zoneName)
-	if not Preset then
-		return
-	end
-
-	for _, propety in Lighting:GetChildren() do
-		propety:Destroy()
-	end
-
-	for _, lightingEffect in Preset:GetChildren() do
-		lightingEffect:Clone().Parent = Lighting
-	end
-
-	for propety, value in ZoneInfo.getLighting() do
-		if Lighting[propety] then
-			Lighting[propety] = value
+	for propertyName, value in properties do
+		local ok = pcall(function()
+			Lighting[propertyName] = value
+		end)
+		if not ok then
+			warn("[LightingManager] Falha ao aplicar a propriedade '" .. propertyName .. "'")
 		end
 	end
 end
+
+function LightingManager:ApplyTemplate(templateName: string)
+	local Template = TemplatesFolder:FindFirstChild(templateName)
+	if not Template then
+		return
+	end
+
+	for _, child in Template:GetChildren() do
+		child:Clone().Parent = Lighting
+	end
+end
+
+function LightingManager:Apply(templateName: string, properties: { [string]: any }?)
+	ClearLightingChildren()
+	self:ApplyTemplate(templateName)
+	self:ApplyProperties(properties)
+end
+
+function LightingManager:ResetToDefault()
+	if not Captured then
+		return
+	end
+
+	ClearLightingChildren()
+
+	for _, child in DefaultChildren do
+		child:Clone().Parent = Lighting
+	end
+
+	self:ApplyProperties(DefaultProperties)
+end
+
+LightingManager:CaptureDefault()
 
 return LightingManager

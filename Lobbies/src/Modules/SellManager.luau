@@ -34,7 +34,7 @@ function SellManager:SellItems(player: Player, sellList: { [string]: number })
 			continue
 		end
 
-		local ItemInfo = ItemsData.ById[ItemEntry.ID] :: Types.Item
+		local ItemInfo = ItemsData[ItemEntry.ID] :: Types.Item
 		if not ItemInfo then
 			continue
 		end
