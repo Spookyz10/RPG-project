@@ -22,6 +22,16 @@ export type Config = {
 local BasicMeleeBehavior = {}
 BasicMeleeBehavior.__index = BasicMeleeBehavior
 
+local function FaceTarget(RootPart: BasePart, targetPosition: Vector3)
+	local FlatTarget = Vector3.new(targetPosition.X, RootPart.Position.Y, targetPosition.Z)
+
+	if (FlatTarget - RootPart.Position).Magnitude < 0.05 then
+		return
+	end
+
+	RootPart.CFrame = CFrame.lookAt(RootPart.Position, FlatTarget)
+end
+
 function BasicMeleeBehavior.new(config: Config?)
 	local self = setmetatable({}, BasicMeleeBehavior)
 
@@ -82,6 +92,8 @@ function BasicMeleeBehavior:Start(mob: Model)
 				BehaviorManager:Move(Humanoid, targetRootPart.Position)
 			else
 				Humanoid.WalkSpeed = 0
+
+				FaceTarget(RootPart, targetRootPart.Position)
 
 				if not CooldownSystem:IsInCooldown(mob, "MeleeAttack") then
 					CooldownSystem:StartCooldown(mob, "MeleeAttack", ATTACK_COOLDOWN)

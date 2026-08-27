@@ -23,6 +23,36 @@ local function PlayDeathAnimation(mobModel: Model)
 	Handler:Play("Die", 0.1)
 end
 
+local function SetupMovementAnimation(mobModel: Model, Humanoid: Humanoid)
+	local Handler = AnimationHandler.GetOrCreate(mobModel)
+	local CurrentAnim: string? = nil
+
+	local function SetAnim(animName: string)
+		if CurrentAnim == animName then
+			return
+		end
+
+		if CurrentAnim then
+			Handler:Stop(CurrentAnim, 0.15)
+		end
+
+		Handler:Play(animName, 0.15)
+		CurrentAnim = animName
+	end
+
+	local RunningConnection = Humanoid.Running:Connect(function(speed: number)
+		if speed > 0.5 then
+			SetAnim("Walk")
+		else
+			SetAnim("Idle")
+		end
+	end)
+
+	SetAnim(Humanoid.WalkSpeed > 0 and "Idle" or "Idle")
+
+	return RunningConnection
+end
+
 local function SetupMob(mobModel: Model)
 	local Humanoid = mobModel:FindFirstChildOfClass("Humanoid") :: Humanoid?
 	local RootPart = mobModel.PrimaryPart or (mobModel:FindFirstChild("HumanoidRootPart") :: BasePart?)
@@ -47,8 +77,11 @@ local function SetupMob(mobModel: Model)
 		UpdateHP(Overhead, Humanoid)
 	end)
 
+	local RunningConnection = SetupMovementAnimation(mobModel, Humanoid)
+
 	local DiedConnection = Humanoid.Died:Connect(function()
 		Overhead.Enabled = false
+		RunningConnection:Disconnect()
 		PlayDeathAnimation(mobModel)
 	end)
 
@@ -58,6 +91,7 @@ local function SetupMob(mobModel: Model)
 		HealthConnection:Disconnect()
 		MaxHealthConnection:Disconnect()
 		DiedConnection:Disconnect()
+		RunningConnection:Disconnect()
 		ActiveOverheads[mobModel] = nil
 	end)
 end

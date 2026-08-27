@@ -73,6 +73,11 @@ local function CreateEntry(targetPlayer: Player)
 	Entry.Name = targetPlayer.Name
 	Entry.Visible = true
 	Entry.Info.User.Text = targetPlayer.Name
+
+	if targetPlayer == UIConstants.Player then
+		Entry.Info.User.TextColor3 = Color3.fromRGB(0, 229, 255)
+	end
+
 	Entry.LayoutOrder = targetPlayer == UIConstants.Player and 0 or 1
 	Entry.Parent = Container
 
@@ -108,10 +113,10 @@ end
 
 local function ToggleList()
 	Expanded = not Expanded
-	HiderButton.Text = Expanded and "<<" or ">>"
+	HiderButton.Text = Expanded and ">>" or "<<"
 
 	local Goal = Expanded and UDim2.fromScale(0.78, 0) or UDim2.fromScale(1, 0)
-	Container:TweenPosition(Goal, Enum.EasingDirection.Out, Enum.EasingStyle.Linear, 0.1, false)
+	List:TweenPosition(Goal, Enum.EasingDirection.Out, Enum.EasingStyle.Linear, 0.1, false)
 end
 
 local function PopulateItems(Equipment: { [string]: { Icon: string, SubType: string, Rarity: string } })
