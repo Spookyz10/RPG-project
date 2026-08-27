@@ -7,6 +7,7 @@ local UIFunctions = require(ReplicatedStorage.Shared.UI.UIFunctions)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Abbreviation = require(ReplicatedStorage.Shared.Utils.Abbreviation)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
+local getCappedInfo = require(ReplicatedStorage.Shared.getCappedInfo)
 
 local Playerlist = {}
 
@@ -25,6 +26,10 @@ local EquipmentSlots = {
 	{ Frame = "Aura", Slot = "Aura" },
 	{ Frame = "Armor", Slot = "Armor" },
 }
+
+local LOCAL_PLAYER_COLOR = Color3.fromRGB(0, 229, 255)
+local MAX_LEVEL_COLOR = Color3.fromRGB(255, 255, 0)
+local DEFAULT_NAME_COLOR = Color3.fromRGB(255, 255, 255)
 
 local ListGui: ScreenGui = nil
 local List: Frame = nil
@@ -48,6 +53,18 @@ end
 
 local function UpdateEntryLevel(Entry: Frame, level: number)
 	Entry.Stats.Level.Text = "Lv" .. tostring(level)
+end
+
+local function UpdateEntryNameColor(Entry: Frame, targetPlayer: Player, level: number)
+	local NameLabel = Entry.Info.User :: TextLabel
+
+	if targetPlayer == UIConstants.Player then
+		NameLabel.TextColor3 = LOCAL_PLAYER_COLOR
+	elseif level >= getCappedInfo.Level then
+		NameLabel.TextColor3 = MAX_LEVEL_COLOR
+	else
+		NameLabel.TextColor3 = DEFAULT_NAME_COLOR
+	end
 end
 
 local function UpdateEntryHonor(Entry: Frame, honor: number)
@@ -74,10 +91,6 @@ local function CreateEntry(targetPlayer: Player)
 	Entry.Visible = true
 	Entry.Info.User.Text = targetPlayer.Name
 
-	if targetPlayer == UIConstants.Player then
-		Entry.Info.User.TextColor3 = Color3.fromRGB(0, 229, 255)
-	end
-
 	Entry.LayoutOrder = targetPlayer == UIConstants.Player and 0 or 1
 	Entry.Parent = Container
 
@@ -88,10 +101,12 @@ local function CreateEntry(targetPlayer: Player)
 	local HonorValue = Stats:WaitForChild("Honor") :: NumberValue
 
 	UpdateEntryLevel(Entry, LevelValue.Value)
+	UpdateEntryNameColor(Entry, targetPlayer, LevelValue.Value)
 	UpdateEntryHonor(Entry, HonorValue.Value)
 
 	LevelValue.Changed:Connect(function(newLevel)
 		UpdateEntryLevel(Entry, newLevel)
+		UpdateEntryNameColor(Entry, targetPlayer, newLevel)
 	end)
 
 	HonorValue.Changed:Connect(function(newHonor)

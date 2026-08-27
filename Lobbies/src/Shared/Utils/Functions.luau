@@ -114,6 +114,10 @@ function Functions:GetTotalStats(entity: Model, Data: Types.PlayerData): Types.S
 end
 
 function Functions:GetXPNeeded(level: number): number
+	if level >= 1300 then
+		return 1000 * (level + 1) * 2 * (level + 1) * 2 - 1000 * (level + 1)
+	end
+
 	return 25 * math.floor((100 + (25 / 6) * level * (level + 1) - (25 / 3) * math.max(0, 2 - level)) / 25 + 0.5)
 end
 

@@ -5,6 +5,7 @@ local Debris = game:GetService("Debris")
 local Workspace = game:GetService("Workspace")
 
 local Abbreviation = require(ReplicatedStorage.Shared.Utils.Abbreviation)
+local SoundManager = require(ReplicatedStorage.Shared.SoundManager)
 
 local Remote = {}
 
@@ -24,6 +25,24 @@ local CLEANUP_TIME = 0.75
 
 local DamageTemplate = ReplicatedStorage.Resources.UI.Templates.Damage :: BillboardGui
 
+local function PlayHitSound(params: {})
+	if not params.CasterUserId then
+		return
+	end
+
+	local CasterPlayer = Players:GetPlayerByUserId(params.CasterUserId)
+	if not CasterPlayer then
+		return
+	end
+
+	local Character = CasterPlayer.Character
+	if not Character then
+		return
+	end
+
+	SoundManager:PlayHitSound(Character.PrimaryPart)
+end
+
 function Remote:Activate(entityHurt: Model, amount: number, params: {})
 	if not params.CasterUserId then
 		return
@@ -37,6 +56,10 @@ function Remote:Activate(entityHurt: Model, amount: number, params: {})
 	local Camera = Workspace.CurrentCamera
 	if Camera and (Camera.Focus.Position - RootPart.Position).Magnitude > MAX_VISIBLE_DISTANCE then
 		return
+	end
+
+	if params.Type ~= "Heal" then
+		PlayHitSound(params)
 	end
 
 	local Billboard = DamageTemplate:Clone()

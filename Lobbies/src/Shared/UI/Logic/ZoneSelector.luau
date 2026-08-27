@@ -3,31 +3,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
 local Zones = require(ReplicatedStorage.Shared.Zones)
 local LightingManager = require(ReplicatedStorage.Shared.LightingManager)
+local MusicManager = require(ReplicatedStorage.Shared.MusicManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local ZoneSelector = {}
 
 local Container: Instance = nil
 local Template: GuiButton = nil
-
-local function PlayZoneMusic(zoneName: string)
-	local ZoneFolder = ReplicatedStorage.Resources.Music.Zones:FindFirstChild(zoneName)
-	if not ZoneFolder then
-		return
-	end
-
-	local Tracks = ZoneFolder:GetChildren()
-	if #Tracks == 0 then
-		return
-	end
-
-	local Track = Tracks[math.random(1, #Tracks)]
-	local MainSound = game:GetService("SoundService"):FindFirstChild("Sound")
-	if MainSound and Track:IsA("Sound") then
-		MainSound.SoundId = Track.SoundId
-		MainSound:Play()
-	end
-end
 
 local function TeleportToZone(zoneName: string)
 	local Character = UIConstants.Player.Character
@@ -69,7 +51,7 @@ local function CreateEntry(zoneName: string, ZoneInfo: Types.Zone)
 		local PlayerLevel = UIConstants.Data.Level()
 		if PlayerLevel >= ZoneInfo.Level then
 			LightingManager:Apply(zoneName, ZoneInfo.getLighting())
-			PlayZoneMusic(zoneName)
+			MusicManager:PlayZone(zoneName)
 			TeleportToZone(zoneName)
 		end
 

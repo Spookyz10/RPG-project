@@ -8,6 +8,7 @@ local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local AttackStyles = require(ReplicatedStorage.Shared.Combat.AttackStyles)
 local CombatConstants = require(ReplicatedStorage.Shared.Combat.Constants)
 local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
+local SoundManager = require(ReplicatedStorage.Shared.SoundManager)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
@@ -76,6 +77,10 @@ local function TryAttack()
 	ComboIndex = (ComboIndex % Style.MaxCombo) + 1
 
 	PlayAttackAnimation(Style)
+
+	local Character = Player.Character
+	SoundManager:PlayAttackSound(Character and Character.PrimaryPart)
+
 	RemoteManager.SendServerEvent("Attack")
 end
 

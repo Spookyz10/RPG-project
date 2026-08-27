@@ -49,15 +49,17 @@ function RewardManager:AddCurrency(player: Player, currency: string, amount: num
 end
 
 type XPParams = {
-	["MobData"]: Types.MobInfo,
-	["QuestInfo"]: Types.QuestInfo,
+	["MobData"]: Types.MobInfo?,
+	["QuestInfo"]: Types.QuestInfo?,
 }
 
-function RewardManager:AddXP(player: Player, amount: number, params: XPParams)
+function RewardManager:AddXP(player: Player, amount: number, params: XPParams?)
 	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
 	if not PlayerData then
 		return
 	end
+
+	params = params or {}
 
 	local mobData = params.MobData
 	local questData = params.QuestInfo
@@ -74,31 +76,37 @@ function RewardManager:AddXP(player: Player, amount: number, params: XPParams)
 		end
 	end
 
-	if PlayerData.Level() >= getCappedInfo.Level then
-		return
-	end
-
 	amount *= Events:GetEventMultipliers().XP
 	PlayerData.XP(function(currentXP)
 		return currentXP + amount
 	end)
 
+	local IsMaxLevel = PlayerData.Level() >= getCappedInfo.Level
+
 	while true do
-		if PlayerData.Level() >= getCappedInfo.Level then
+		local XPNeeded = Functions:GetXPNeeded(PlayerData.Level())
+		local CurrentXP = PlayerData.XP()
+
+		if XPNeeded > CurrentXP then
 			break
 		end
 
-		local XPNeeded = Functions:GetXPNeeded(PlayerData.Level())
-		local CurrentXP = PlayerData.XP()
-		if XPNeeded <= CurrentXP then
-			PlayerData.XP(function(currentXP)
-				return currentXP - XPNeeded
+		PlayerData.XP(function(currentXP)
+			return currentXP - XPNeeded
+		end)
+
+		if IsMaxLevel then
+			PlayerData.Honor(function(currentHonor)
+				return currentHonor + 1
 			end)
+		else
 			PlayerData.Level(function(currentLevel)
 				return currentLevel + 1
 			end)
-		else
-			break
+
+			if PlayerData.Level() >= getCappedInfo.Level then
+				IsMaxLevel = true
+			end
 		end
 	end
 end
