@@ -19,6 +19,7 @@ local Raid = {
 		["Small Defense Potion"] = 15,
 		["Pirate Captain Armor"] = 10,
 	},
+	Time = 600,
 } :: Types.RaidInfo
 
 return Raid

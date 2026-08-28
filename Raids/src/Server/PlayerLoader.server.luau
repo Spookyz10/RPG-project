@@ -1,6 +1,8 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
+local ComboManager = require(ServerStorage.Modules.ComboManager)
+local CooldownSystem = require(ServerStorage.Modules.CooldownSystem)
 local DailyReward = require(ServerStorage.Modules.DailyReward)
 
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
@@ -11,9 +13,11 @@ local HealthManager = require(ServerStorage.Modules.HealthManager)
 
 local Data = require(ReplicatedStorage.Shared.Data).server
 local InventoryManager = require(ServerStorage.Modules.InventoryManager)
-local StatsReplicator = require(ServerStorage.Modules.StatsReplicator)
+local PartySystem = require(ServerStorage.Modules.PartySystem)
+local RaidManager = require(ServerStorage.Modules.RaidManager)
 
-local RESPAWN_TIME = 6
+local SpeedManager = require(ServerStorage.Modules.SpeedManager)
+local StatsReplicator = require(ServerStorage.Modules.StatsReplicator)
 
 local function LoadPlayer(Player: Player)
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
@@ -33,8 +37,6 @@ local function LoadPlayer(Player: Player)
 	WeaponLoader:Listen(Player)
 	HealthManager:Listen(Player)
 	StatsReplicator:Listen(Player)
-
-	Player:LoadCharacterAsync()
 
 	DailyReward.ResetDailyStreak(Player)
 end
@@ -76,19 +78,33 @@ local function SetupCharacter(Player: Player, Character: Model)
 				return current + 1
 			end)
 		end
-
-		task.wait(RESPAWN_TIME)
-		if Player and Player.Parent then
-			Player:LoadCharacterAsync()
-		end
 	end)
 end
 
+local Loaded = false
+
 Players.PlayerAdded:Connect(function(player: Player)
+	if not Loaded then
+		local info = player:GetJoinData().TeleportData
+		if info then
+			RaidManager.LoadRaid(info.RaidName)
+			Loaded = true
+		end
+	end
+
 	player.CharacterAdded:Connect(function(character)
 		CollisionGroups:Apply(character)
 		SetupCharacter(player, character)
 	end)
 
 	LoadPlayer(player)
+end)
+
+Players.PlayerRemoving:Connect(function(Player)
+	ComboManager:ClearPlayer(Player)
+	CooldownSystem.OnPlayerRemoved(Player)
+	HealthManager.OnPlayerRemoved(Player)
+	SpeedManager.OnPlayerRemoved(Player)
+	StatsReplicator.OnPlayerRemoved(Player)
+	PartySystem:OnPlayerRemoved(Player)
 end)

@@ -1,4 +1,3 @@
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Data = require(ReplicatedStorage.Shared.Data).server
@@ -63,8 +62,8 @@ function SpeedManager:Listen(player: Player)
 	end
 end
 
-Players.PlayerRemoving:Connect(function(player: Player)
-	ListenedPlayers[player] = nil
-end)
+function SpeedManager.OnPlayerRemoved(Player: Player)
+	ListenedPlayers[Player] = nil
+end
 
 return SpeedManager

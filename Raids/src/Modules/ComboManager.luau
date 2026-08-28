@@ -1,5 +1,3 @@
-local Players = game:GetService("Players")
-
 local ComboManager = {}
 
 local HistoryWindow = 4
@@ -71,9 +69,5 @@ end
 function ComboManager:ClearPlayer(player: Player)
 	PlayerHistory[player] = nil
 end
-
-Players.PlayerRemoving:Connect(function(player: Player)
-	ComboManager:ClearPlayer(player)
-end)
 
 return ComboManager
