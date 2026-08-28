@@ -1,5 +1,3 @@
-local Players = game:GetService("Players")
-
 local CooldownSystem = {}
 
 local Cooldowns: { [Instance]: { [string]: number } } = {}
@@ -60,8 +58,8 @@ function CooldownSystem:ResetAllCooldowns(entity: Instance)
 	Cooldowns[entity] = nil
 end
 
-Players.PlayerRemoving:Connect(function(player)
-	Cooldowns[player] = nil
-end)
+function CooldownSystem.OnPlayerRemoved(Player: Player)
+	Cooldowns[Player] = nil
+end
 
 return CooldownSystem

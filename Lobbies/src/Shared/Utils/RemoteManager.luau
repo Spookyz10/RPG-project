@@ -19,6 +19,8 @@ local Remotes = {
 	VanityUnequip = "Server",
 	UseItem = "Server",
 	DrinkAllPotions = "Server",
+	InviteToParty = "Server",
+	LeaveParty = "Server",
 
 	SkillVFX = "Client",
 	SkillAnimation = "Client",

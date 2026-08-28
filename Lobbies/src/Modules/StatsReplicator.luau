@@ -1,5 +1,4 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Players = game:GetService("Players")
 
 local Data = require(ReplicatedStorage.Shared.Data).server
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
@@ -56,8 +55,8 @@ function PlayerStatsReplicator:Listen(player: Player)
 	end)
 end
 
-Players.PlayerRemoving:Connect(function(player: Player)
-	ListenedPlayers[player] = nil
-end)
+function PlayerStatsReplicator.OnPlayerRemoved(Player: Player)
+	ListenedPlayers[Player] = nil
+end
 
 return PlayerStatsReplicator

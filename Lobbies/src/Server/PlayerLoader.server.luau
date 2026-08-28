@@ -1,6 +1,8 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
+local ComboManager = require(ServerStorage.Modules.ComboManager)
+local CooldownSystem = require(ServerStorage.Modules.CooldownSystem)
 local DailyReward = require(ServerStorage.Modules.DailyReward)
 
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
@@ -11,6 +13,8 @@ local HealthManager = require(ServerStorage.Modules.HealthManager)
 
 local Data = require(ReplicatedStorage.Shared.Data).server
 local InventoryManager = require(ServerStorage.Modules.InventoryManager)
+local PartySystem = require(ServerStorage.Modules.PartySystem)
+local SpeedManager = require(ServerStorage.Modules.SpeedManager)
 local StatsReplicator = require(ServerStorage.Modules.StatsReplicator)
 
 local RESPAWN_TIME = 6
@@ -91,4 +95,13 @@ Players.PlayerAdded:Connect(function(player: Player)
 	end)
 
 	LoadPlayer(player)
+end)
+
+Players.PlayerRemoving:Connect(function(Player)
+	ComboManager:ClearPlayer(Player)
+	CooldownSystem.OnPlayerRemoved(Player)
+	HealthManager.OnPlayerRemoved(Player)
+	SpeedManager.OnPlayerRemoved(Player)
+	StatsReplicator.OnPlayerRemoved(Player)
+	PartySystem:OnPlayerRemoved(Player)
 end)

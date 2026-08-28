@@ -1,4 +1,3 @@
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Data = require(ReplicatedStorage.Shared.Data).server
@@ -96,9 +95,9 @@ function HealthManager:Listen(player: Player)
 	StartRegen(player)
 end
 
-Players.PlayerRemoving:Connect(function(player: Player)
-	ListenedPlayers[player] = nil
-	ActiveRegenLoops[player] = nil
-end)
+function HealthManager.OnPlayerRemoved(Player: Player)
+	ListenedPlayers[Player] = nil
+	ActiveRegenLoops[Player] = nil
+end
 
 return HealthManager

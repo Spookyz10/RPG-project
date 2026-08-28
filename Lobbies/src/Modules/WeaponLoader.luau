@@ -1,4 +1,3 @@
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Data = require(ReplicatedStorage.Shared.Data).server
@@ -146,9 +145,9 @@ function WeaponLoader:Listen(player: Player)
 	end
 end
 
-Players.PlayerRemoving:Connect(function(player)
-	clearWeapon(player)
-	ListenedPlayers[player] = nil
-end)
+function WeaponLoader.OnPlayerRemoved(Player: Player)
+	clearWeapon(Player)
+	ListenedPlayers[Player] = nil
+end
 
 return WeaponLoader
