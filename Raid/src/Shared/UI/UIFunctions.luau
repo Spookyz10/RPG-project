@@ -1,69 +1,30 @@
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 
-local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local UIFunctions = {}
 
 local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 local Main = PlayerGui:WaitForChild("Main") :: ScreenGui
-local HoverGui = PlayerGui:WaitForChild("Hover") :: ScreenGui
-local FloatingItem = HoverGui:WaitForChild("FloatingDisplay") :: Frame
-local Mouse = Players.LocalPlayer:GetMouse()
 
 local OpenUI: Frame = nil
 
-local CurrentSession = 0
-local ActiveConnections = {}
-local MouseOffset = Vector2.new(20, 0)
-local Container = FloatingItem.Parent :: GuiObject
-
 local TypingSessions = {} :: { [TextLabel]: number }
 
-local function GetHoverPosition(): UDim2
-	local RelativeX = (Mouse.X - Container.AbsolutePosition.X) / Container.AbsoluteSize.X
-	local RelativeY = (Mouse.Y - Container.AbsolutePosition.Y) / Container.AbsoluteSize.Y
+local RarityColors = {
+	["Common"] = Color3.fromRGB(254, 255, 183),
+	["Uncommon"] = Color3.fromRGB(0, 255, 0),
+	["Rare"] = Color3.fromRGB(0, 255, 255),
+	["Legendary"] = Color3.fromRGB(255, 0, 166),
+	["Godly"] = Color3.fromRGB(255, 213, 0),
+	["Ascendant"] = Color3.fromRGB(106, 0, 255),
+}
 
-	return UDim2.new(RelativeX, MouseOffset.X, RelativeY, MouseOffset.Y)
-end
+UIFunctions.RarityColors = RarityColors
 
-local function HideAll()
-	for _, child in FloatingItem:GetChildren() do
-		if child:IsA("GuiObject") then
-			child.Visible = false
-		end
+function UIFunctions:ApplyRarity(container: Instance, rarity: string)
+	local RarityTag = container:FindFirstChild("RarityTag") :: ImageLabel
+	if RarityTag then
+		RarityTag.ImageColor3 = RarityColors[rarity]
 	end
-end
-
-function UIFunctions:StopHover()
-	CurrentSession += 1
-
-	for _, Connection in ipairs(ActiveConnections) do
-		Connection:Disconnect()
-	end
-	table.clear(ActiveConnections)
-
-	if FloatingItem then
-		FloatingItem.Visible = false
-	end
-end
-
-function UIFunctions:ApplyRarityGradient(container: Instance, rarity: string)
-	local CurrentGradient = container:FindFirstChildOfClass("UIGradient")
-	if CurrentGradient then
-		CurrentGradient:Destroy()
-	end
-
-	if not rarity then
-		return
-	end
-
-	local RarityGradient = ReplicatedStorage.Assets.UI.Rarities:FindFirstChild(rarity) :: UIGradient?
-	if not RarityGradient then
-		return
-	end
-
-	RarityGradient:Clone().Parent = container
 end
 
 function UIFunctions:CloseUI()
@@ -95,19 +56,6 @@ function UIFunctions:OpenUI(uiName: string)
 	OpenUI = Target
 end
 
-function UIFunctions:UpdateStatsContainer(container: Frame, Stats: Types.Stats)
-	for _, label: TextLabel in container:GetChildren() do
-		if label:IsA("TextLabel") then
-			if Stats[label.Name] and Stats[label.Name] > 0 then
-				label.Text = label.Name .. ": " .. Stats[label.Name]
-				label.Visible = true
-			else
-				label.Visible = false
-			end
-		end
-	end
-end
-
 function UIFunctions:TypeText(
 	label: TextLabel,
 	text: string,
@@ -120,7 +68,8 @@ function UIFunctions:TypeText(
 	local Delay = charDelay or 0.03
 	local Completed = false
 
-	label.Text = ""
+	label.Text = text
+	label.MaxVisibleGraphemes = 0
 
 	local function Finish()
 		if Completed or TypingSessions[label] ~= Session then
@@ -128,7 +77,7 @@ function UIFunctions:TypeText(
 		end
 
 		Completed = true
-		label.Text = text
+		label.MaxVisibleGraphemes = -1
 
 		if onComplete then
 			onComplete()
@@ -140,16 +89,14 @@ function UIFunctions:TypeText(
 	end
 
 	task.spawn(function()
-		for index = 1, #text do
-			if TypingSessions[label] ~= Session then
+		local GraphemeCount = utf8.len(text) or #text
+
+		for index = 1, GraphemeCount do
+			if TypingSessions[label] ~= Session or Completed then
 				return
 			end
 
-			if Completed then
-				return
-			end
-
-			label.Text = string.sub(text, 1, index)
+			label.MaxVisibleGraphemes = index
 			task.wait(Delay)
 		end
 
@@ -157,52 +104,6 @@ function UIFunctions:TypeText(
 	end)
 
 	return Finish, IsComplete
-end
-
-function UIFunctions:Hover(Button: GuiObject, Populate: ((FloatingItem: Frame) -> ())?)
-	if not FloatingItem then
-		return
-	end
-
-	self:StopHover()
-	CurrentSession += 1
-	local Session = CurrentSession
-
-	HideAll()
-
-	FloatingItem.Visible = true
-	FloatingItem.Position = GetHoverPosition()
-
-	if Populate then
-		Populate(FloatingItem)
-	end
-
-	local RenderConnection = RunService.RenderStepped:Connect(function()
-		if Session ~= CurrentSession then
-			return
-		end
-		FloatingItem.Position = GetHoverPosition()
-	end)
-
-	local LeaveConnection
-	LeaveConnection = Button.MouseLeave:Connect(function()
-		if Session ~= CurrentSession then
-			return
-		end
-		self:StopHover()
-	end)
-
-	local DestroyingConnection
-	DestroyingConnection = Button.Destroying:Connect(function()
-		if Session ~= CurrentSession then
-			return
-		end
-		self:StopHover()
-	end)
-
-	table.insert(ActiveConnections, RenderConnection)
-	table.insert(ActiveConnections, LeaveConnection)
-	table.insert(ActiveConnections, DestroyingConnection)
 end
 
 return UIFunctions

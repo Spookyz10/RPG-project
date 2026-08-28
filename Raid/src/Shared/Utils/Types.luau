@@ -6,13 +6,47 @@ export type Stats = {
 	Health: number,
 }
 
-export type Entity = {
-	HP: number,
-	MaxHP: number,
-	HitList: { [Player]: number },
-	Model: Model,
-	OnHPChanged: RBXScriptSignal<number, number>,
-	OnMaxHPChanged: RBXScriptSignal<number, number>,
+export type PlayerData = {
+	FirstTimeJoined: boolean,
+	Level: number,
+	XP: number,
+	Kills: number,
+	Deaths: number,
+	PlayTime: number,
+	Honor: number,
+	Inventory: { [string]: ItemData },
+	Settings: {
+		Music: boolean,
+		CameraShake: boolean,
+	},
+	Equipment: {
+		Weapon: string,
+		Armor: string,
+		Ring: string,
+		Necklace: string,
+		Aura: string,
+		Rune: string,
+	},
+	Vanity: {
+		Weapon: string,
+		Aura: string,
+	},
+	MaxInventorySpace: number,
+	CurrentInventorySpace: number,
+	Skills: {
+		Q: string,
+		E: string,
+		R: string,
+	},
+	UnlockedSkills: { string },
+	Currencies: { [string]: number },
+	ExtraStats: Stats,
+	MobIndex: { [string]: number },
+	Quests: { [string]: QuestProgress },
+	CompletedQuests: { [string]: QuestCompletion },
+	LastDailyReward: number,
+	TotalDailyRewards: number,
+	DailyStreak: number,
 }
 
 export type Drop = {
@@ -39,7 +73,7 @@ export type HitboxInfo = {
 	Drag: boolean,
 	Time: number,
 	Caster: Model?,
-	OnHit: ((Model, Entity) -> ())?,
+	OnHit: ((Model, Model) -> ())?,
 }
 
 export type ItemData = {
@@ -49,6 +83,7 @@ export type ItemData = {
 	Upgrades: number,
 	Amount: number,
 	Name: string,
+	ID: string,
 	Equipped: boolean,
 	UpgradeCap: number,
 }
@@ -58,6 +93,7 @@ export type ItemInfo = {
 	ItemType: string,
 	SubType: string?,
 	Name: string,
+	ID: string,
 	Stackable: boolean,
 	Cap: number?,
 	Icon: string,
@@ -80,6 +116,17 @@ export type Equipment = ItemBase<Equipment> & {
 	Stats: Stats,
 	Passive: string,
 	WeaponType: string,
+	SkillOverrides: {
+		[string]: {
+			Name: string?,
+			Icon: string?,
+			Description: string?,
+			Cooldown: number?,
+			EffectValue: number?,
+			EffectDuration: number?,
+			HealPercent: number?,
+		},
+	}?,
 }
 
 export type Consumable = ItemBase<Consumable> & {
@@ -94,60 +141,19 @@ export type ItemTable = {
 	[string]: { Chance: number, Amount: number },
 }
 
-export type PlayerData = {
-	FirstTimeJoined: boolean,
-	Level: number,
-	XP: number,
-	Kills: number,
-	Deaths: number,
-	PlayTime: number,
-	Inventory: { [string]: ItemData },
-	Settings: {
-		Music: boolean,
-		CameraShake: boolean,
-	},
-	Equipment: {
-		Weapon: string,
-		Armor: string,
-		Ring: string,
-		Necklace: string,
-	},
-	MaxInventorySpace: number,
-	CurrentInventorySpace: number,
-	Skills: {
-		Q: string,
-		E: string,
-		R: string,
-	},
-	UnlockedSkills: { string },
-	Currencies: { [string]: number },
-	UnlockedRecipes: { string },
-	ExtraStats: Stats,
-	MobIndex: { [string]: number },
-	Quests: { [string]: QuestProgress },
-	CompletedQuests: { [string]: QuestCompletion },
-	LastDailyReward: number,
-	TotalDailyRewards: number,
-	DailyStreak: number,
-}
-
-export type SkillData = {
+export type SkillDefinition = {
 	Name: string,
 	Cooldown: number,
 	Multiplier: number,
 	LevelRequirement: number,
+	Icon: string,
 	Description: string,
 	SkillType: string,
-	Elligable: (self: SkillData, Data: PlayerData) -> boolean,
+	Elligable: (self: SkillDefinition, Data: PlayerData) -> boolean,
 }
 
-export type Skill = SkillData & {
-	Activate: (self: Skill, Player: Entity) -> (),
-}
-
-export type Recipes = {
-	Recipe: { [string]: { Amount: number } },
-	GetRequirement: (Data: PlayerData) -> boolean,
+export type SkillBehavior = {
+	Execute: (self: SkillBehavior, caster: Player, definition: SkillDefinition) -> (),
 }
 
 export type Touch = {
@@ -161,6 +167,8 @@ export type Zone = {
 	Level: number,
 	MaxLevel: number,
 	Mobs: { string },
+	Order: number,
+	Theme: Color3,
 	getLighting: () -> (),
 }
 
@@ -185,14 +193,6 @@ export type Shop = {
 	[string]: { Cost: { [string]: number }, itemType: string },
 }
 
-export type LeaderboardBoard = "Gold" | "Kills" | "PlayTime"
-
-export type LeaderboardEntry = {
-	UserId: number,
-	Name: string,
-	Value: number,
-}
-
 export type QuestObjectiveType = "KillMob" | "CraftItem"
 
 export type QuestObjective = {
@@ -205,7 +205,6 @@ export type QuestReward = {
 	Currencies: { [string]: number }?,
 	XP: number?,
 	Items: { [string]: number }?,
-	Recipes: { string }?,
 }
 
 export type QuestProgress = {
@@ -236,6 +235,18 @@ export type RaidInfo = {
 	RequiredLevel: number,
 	Drops: { [string]: number },
 	HCDrops: { [string]: number },
+}
+
+export type DamageContext = {
+	Caster: Model,
+	Victim: Model,
+	CasterPlayer: Player?,
+	VictimPlayer: Player?,
+	Damage: number,
+	IsCrit: boolean,
+	Multiplier: number?,
+	Tags: { string },
+	Cancelled: boolean,
 }
 
 return {}

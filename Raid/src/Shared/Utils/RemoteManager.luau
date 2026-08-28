@@ -3,6 +3,7 @@ local RunService = game:GetService("RunService")
 local RemoteManager = {}
 
 local Remotes = {
+	Admin = "Server",
 	Attack = "Server",
 	UseSkill = "Server",
 	EquipItem = "Server",
@@ -14,15 +15,17 @@ local Remotes = {
 	SellItem = "Server",
 	SpawnItem = "Server",
 	ClaimDaily = "Server",
-	UpgradeItem = "Server",
+	VanityEquip = "Server",
+	VanityUnequip = "Server",
+	UseItem = "Server",
+	DrinkAllPotions = "Server",
 
 	SkillVFX = "Client",
+	SkillAnimation = "Client",
 	Damage = "Client",
 	SkillCooldown = "Client",
-	LeaderboardUpdate = "Client",
 	Indicator = "Client",
 	BuffVFX = "Client",
-	Notification = "Client",
 }
 
 local RemoteFunctions = {

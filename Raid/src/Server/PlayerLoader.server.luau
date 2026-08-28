@@ -5,12 +5,15 @@ local DailyReward = require(ServerStorage.Modules.DailyReward)
 
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local CollisionGroups = require(ReplicatedStorage.Shared.CollisionGroups)
+local WeldSystem = require(ReplicatedStorage.Shared.Utils.WeldSystem)
 local WeaponLoader = require(ServerStorage.Modules.WeaponLoader)
 local HealthManager = require(ServerStorage.Modules.HealthManager)
 
 local Data = require(ReplicatedStorage.Shared.Data).server
 local InventoryManager = require(ServerStorage.Modules.InventoryManager)
-local SkillManager = require(ServerStorage.Modules.SkillManager)
+local StatsReplicator = require(ServerStorage.Modules.StatsReplicator)
+
+local RESPAWN_TIME = 6
 
 local function LoadPlayer(Player: Player)
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
@@ -20,18 +23,39 @@ local function LoadPlayer(Player: Player)
 	end
 
 	if PlayerData.FirstTimeJoined() then
-		InventoryManager:AddItem(Player, "Paper Sword", 1)
+		local _, UUID = InventoryManager:AddItem(Player, "Paper Sword", 1)
+		if UUID then
+			InventoryManager:ItemAction(Player, UUID)
+		end
 		PlayerData.FirstTimeJoined(false)
 	end
 
-	SkillManager:GrantSkill(Player, "Whirlwind")
-	SkillManager:Listen(Player)
 	WeaponLoader:Listen(Player)
 	HealthManager:Listen(Player)
+	StatsReplicator:Listen(Player)
 
 	Player:LoadCharacterAsync()
 
 	DailyReward.ResetDailyStreak(Player)
+end
+
+local function SetupHitbox(Character: Model)
+	local RootPart = Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not RootPart then
+		return
+	end
+
+	local Template = ReplicatedStorage.Resources:FindFirstChild("Hitbox") :: BasePart?
+	if not Template then
+		warn("Resources.Hitbox not found")
+		return
+	end
+
+	local HitboxPart = Template:Clone()
+	HitboxPart.Parent = Character
+	HitboxPart:PivotTo(RootPart.CFrame)
+
+	WeldSystem:Weld(RootPart, HitboxPart)
 end
 
 local function SetupCharacter(Player: Player, Character: Model)
@@ -44,11 +68,18 @@ local function SetupCharacter(Player: Player, Character: Model)
 		Humanoid.Health = MaxHealth
 	end
 
+	SetupHitbox(Character)
+
 	Humanoid.Died:Connect(function()
 		if PlayerData then
 			PlayerData.Deaths(function(current)
 				return current + 1
 			end)
+		end
+
+		task.wait(RESPAWN_TIME)
+		if Player and Player.Parent then
+			Player:LoadCharacterAsync()
 		end
 	end)
 end

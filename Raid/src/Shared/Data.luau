@@ -9,6 +9,7 @@ local template: Types.PlayerData = {
 	XP = 0,
 	Kills = 0,
 	Deaths = 0,
+	Honor = 0,
 	PlayTime = 0,
 	Inventory = {} :: { [string]: Types.ItemData },
 	Settings = {
@@ -20,6 +21,8 @@ local template: Types.PlayerData = {
 		Armor = "",
 		Ring = "",
 		Necklace = "",
+		Aura = "",
+		Rune = "",
 	},
 	MaxInventorySpace = 100,
 	CurrentInventorySpace = 0,
@@ -28,14 +31,21 @@ local template: Types.PlayerData = {
 		E = "",
 		R = "",
 	},
-	UnlockedSkills = {}, -- {"Skill1" , "Skill2"},
-	Currencies = {}, -- {[Currency] = Amount}
-	UnlockedRecipes = {},
+	Currencies = {
+		Gold = 0,
+		["Rune Crystals"] = 0,
+		["Raid Coins"] = 0,
+		Tokens = 0,
+	},
+	Vanity = {
+		Weapon = "",
+		Aura = "",
+	},
 	ExtraStats = {
 		Health = 0,
 		Speed = 0,
 		Attack = 0,
-		CriticalChance = 0,
+		Critical = 0,
 		Defense = 0,
 	},
 	MobIndex = {},
@@ -47,4 +57,4 @@ local template: Types.PlayerData = {
 	DailyStreak = 0,
 }
 
-return DataService({ template = template, profileStoreIndex = "PlayerData4" })
+return DataService({ template = template, profileStoreIndex = "PlayersData2" })

@@ -5,7 +5,7 @@ local EventMultipliers = {
 		Gold = 1,
 	},
 	XP = 1,
-	Luck = 0,
+	Luck = 1,
 }
 
 local function IsWeekend(): boolean

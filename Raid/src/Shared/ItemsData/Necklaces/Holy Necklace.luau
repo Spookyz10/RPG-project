@@ -21,6 +21,7 @@ local Item: Types.Equipment = {
 		Rarity = "Common",
 		Level = 1,
 		ActionName = "Equip",
+		ID = "Holy Necklace",
 	},
 }
 

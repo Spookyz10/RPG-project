@@ -1,12 +1,13 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Data = require(ReplicatedStorage.Shared.Data).server
+local CombatConstants = require(ReplicatedStorage.Shared.Combat.Constants)
 
 local CooldownSystem = require(script.Parent.CooldownSystem)
 local ComboManager = require(script.Parent.ComboManager)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local DamageHandler = require(script.Parent.DamageHandler)
 local Hitbox = require(script.Parent.Hitbox)
-local Skills = require(script.Parent.Skills)
+local SkillResolver = require(script.Parent.SkillResolver)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
@@ -52,7 +53,7 @@ function AttackManager:Swing(Player: Player)
 		return
 	end
 
-	CooldownSystem:StartCooldown(Player, "Swing", 0.6)
+	CooldownSystem:StartCooldown(Player, "Swing", CombatConstants.SwingCooldown - 0.2)
 
 	Hitbox:Create({
 		Size = Vector3.new(5, 5, 5),
@@ -81,15 +82,12 @@ function AttackManager:UseSkill(Player: Player, slot: string)
 		return
 	end
 
-	local EquippedSkills = PlayerData.Skills()
-	local SkillInfo = Skills[EquippedSkills[slot]] :: Types.Skill
-	if not SkillInfo then
+	local Definition, Behavior = SkillResolver:GetEquippedSkill(PlayerData, slot)
+	if not Definition or not Behavior then
 		return
 	end
 
-	local key = slot .. SkillInfo.Name
-
-	if CooldownSystem:IsInCooldown(Player, key) then
+	if CooldownSystem:IsInCooldown(Player, slot) then
 		return
 	end
 
@@ -97,15 +95,13 @@ function AttackManager:UseSkill(Player: Player, slot: string)
 		return
 	end
 
-	CooldownSystem:StartCooldown(Player, key, SkillInfo.Cooldown)
+	CooldownSystem:StartCooldown(Player, slot, Definition.Cooldown)
 
-	RemoteManager.SendClientEvent("SkillCooldown", { Player = Player }, slot, SkillInfo.Cooldown)
+	RemoteManager.SendClientEvent("SkillCooldown", { Player = Player }, slot, Definition.Cooldown)
 
-	local Entity = { Model = Character } :: Types.Entity
+	Behavior:Execute(Player, Definition)
 
-	SkillInfo:Activate(Entity)
-
-	ComboManager:RecordSkill(Player, Entity, SkillInfo.Name)
+	ComboManager:RecordSkill(Player, Definition.Name)
 end
 
 return AttackManager

@@ -18,7 +18,7 @@ local MobHandler = {}
 local DiedConnections: { [Model]: RBXScriptConnection } = {}
 
 local function getEmptySlot(mobName: string): BasePart?
-	for _, spawnPart: BasePart in workspace:FindFirstChild("mobSpawns"):GetDescendants() do
+	for _, spawnPart: BasePart in workspace:FindFirstChild("MobSpawns"):GetDescendants() do
 		local ID = spawnPart:FindFirstChild("ID")
 		if not ID then
 			continue
@@ -48,6 +48,19 @@ local function Reward(player: Player, MobInfo: Types.MobInfo, MobName: string)
 	QuestManager:OnMobKilled(player, MobName)
 end
 
+local DEATH_ANIMATION_DELAY = 0.6
+
+local function SetServerNetworkOwnership(mobModel: Model)
+	local RootPart = mobModel.PrimaryPart or mobModel:FindFirstChild("HumanoidRootPart")
+	if not RootPart or not RootPart:IsA("BasePart") then
+		return
+	end
+
+	pcall(function()
+		RootPart:SetNetworkOwner(nil)
+	end)
+end
+
 function MobHandler:RemoveMob(mobModel: Model)
 	local Connection = DiedConnections[mobModel]
 	if Connection then
@@ -60,8 +73,7 @@ function MobHandler:RemoveMob(mobModel: Model)
 	CooldownSystem:ResetAllCooldowns(mobModel)
 
 	local UUID = mobModel:FindFirstChild("UUID")
-	mobModel:Destroy()
-	for _, spawnPart: BasePart in workspace:FindFirstChild("mobSpawns"):GetDescendants() do
+	for _, spawnPart: BasePart in workspace:FindFirstChild("MobSpawns"):GetDescendants() do
 		local ID = spawnPart:FindFirstChild("ID")
 		if not ID then
 			continue
@@ -72,6 +84,12 @@ function MobHandler:RemoveMob(mobModel: Model)
 			break
 		end
 	end
+
+	task.delay(DEATH_ANIMATION_DELAY, function()
+		if mobModel and mobModel.Parent then
+			mobModel:Destroy()
+		end
+	end)
 end
 
 function MobHandler:OnMobDied(mobModel: Model)
@@ -79,7 +97,6 @@ function MobHandler:OnMobDied(mobModel: Model)
 	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 	local MobInfo = MobsData[MobName] :: Types.MobInfo
 	if not MobInfo then
-		print("MobInfo not found for mob: " .. MobName)
 		self:RemoveMob(mobModel)
 		return
 	end
@@ -106,23 +123,36 @@ function MobHandler:OnMobDied(mobModel: Model)
 	end)
 end
 
-function MobHandler:AddMob(mobName: string | { string })
+function MobHandler:AddMob(mobName: string | { string }): Model?
+	if typeof(mobName) == "table" then
+		for _, name in mobName do
+			MobHandler:AddMob(name)
+		end
+		return nil
+	end
+
 	local MobModel = Functions:getMob(mobName)
 
 	if not MobModel then
-		return
+		return nil
 	end
 	MobModel = MobModel:Clone()
 	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 	local MobInfo = MobsData[MobModel.Name] :: Types.MobInfo
 	if not MobInfo then
-		return
+		return nil
 	end
 	local Origin = getEmptySlot(MobModel.Name)
 	if Origin then
 		MobModel.Parent = workspace:FindFirstChild("Mobs")
 		MobModel:PivotTo(Origin.CFrame)
 		CollisionGroups:Apply(MobModel)
+		SetServerNetworkOwnership(MobModel)
+
+		local UUID = Instance.new("StringValue")
+		UUID.Name = "UUID"
+		UUID.Value = Functions:GenUUID()
+		UUID.Parent = MobModel
 
 		local HitList = Instance.new("Folder")
 		HitList.Name = "HitList"
@@ -135,19 +165,23 @@ function MobHandler:AddMob(mobName: string | { string })
 			end)
 		end
 
-		Origin:FindFirstChild("ID").Value = Functions:GenUUID()
+		Origin:FindFirstChild("ID").Value = UUID.Value
 	end
+
+	return MobModel
 end
 
 function MobHandler:StartBehavior(mobModel: Model)
 	local data = Mobs[mobModel.Name]
 	if data and data.Start then
-		data:Start(mobModel)
+		task.spawn(function()
+			data:Start(mobModel)
+		end)
 	end
 end
 
 function MobHandler:InitializeSpawns()
-	for _, mobPart: BasePart in workspace:FindFirstChild("mobSpawns"):GetDescendants() do
+	for _, mobPart: BasePart in workspace:FindFirstChild("MobSpawns"):GetDescendants() do
 		if mobPart:IsA("BasePart") then
 			local value = Instance.new("StringValue")
 			value.Name = "ID"

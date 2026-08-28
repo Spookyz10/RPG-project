@@ -25,24 +25,32 @@ function Hitbox.GetHitModels(hitbox: BasePart): HitboxResults
 
 	local partsHit = workspace:GetPartsInPart(hitbox)
 	for _, part in partsHit do
-		local Character = part.Parent :: Model?
-		if not Character then
-			continue
-		end
-		local Humanoid = Character:FindFirstChildOfClass("Humanoid")
-		if Humanoid then
-			if Humanoid.Health <= 0 then
+		if part.Name == "Hitbox" then
+			local Character = part.Parent :: Model?
+			if not Character then
 				continue
 			end
 
-			local isMob = Character:FindFirstChild("UUID")
-			if isMob then
-				MobsHit[Character] = Character
-			else
-				local player = Players:GetPlayerFromCharacter(Character)
-				if player then
-					PlayersHit[Character] = Character
-				end
+			local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+			if not Humanoid or Humanoid.Health <= 0 then
+				continue
+			end
+
+			MobsHit[Character] = Character
+		else
+			local Character = part.Parent :: Model?
+			if not Character then
+				continue
+			end
+
+			local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+			if not Humanoid or Humanoid.Health <= 0 then
+				continue
+			end
+
+			local player = Players:GetPlayerFromCharacter(Character)
+			if player then
+				PlayersHit[Character] = Character
 			end
 		end
 	end
@@ -67,7 +75,7 @@ function Hitbox:Create(info: Types.HitboxInfo): (BasePart, HitboxResults)
 	SetHitboxPosition(Part, info.Part, info.Offset)
 	Part.CanCollide = false
 	Part.Anchored = true
-	Part.Transparency = Debug and 0.6 or 1
+	Part.Transparency = Debug and RunService:IsStudio() and 0.6 or 1
 	Part.Color = Color3.fromRGB(255, 0, 0)
 
 	local HitList: { [Model]: true } = {}

@@ -45,6 +45,20 @@ function Functions:HasKeyWithValueIntable(table: {}, field: string, value: any):
 	return false, nil
 end
 
+function Functions:GetEquippedItemInfo(PlayerData: Types.PlayerData, slot: string): Types.Item?
+	local UUID = PlayerData.Equipment[slot]()
+	if not UUID or UUID == "" then
+		return nil
+	end
+
+	local ItemEntry = PlayerData.Inventory[UUID]()
+	if not ItemEntry then
+		return nil
+	end
+
+	return ItemsData[ItemEntry.ID]
+end
+
 local function getTotalStats(Data: Types.PlayerData, StatName: string)
 	local Stat = 0
 	for _, Item in Data.Equipment do
@@ -53,7 +67,7 @@ local function getTotalStats(Data: Types.PlayerData, StatName: string)
 			continue
 		end
 
-		local ItemInfo = ItemsData[KeyEntry.Name] :: Types.Equipment
+		local ItemInfo = ItemsData[KeyEntry.ID] :: Types.Equipment
 		if ItemInfo then
 			local StatValue = ItemInfo.Stats[StatName]
 
@@ -74,8 +88,7 @@ end
 
 function Functions:GetTotalStats(entity: Model, Data: Types.PlayerData): Types.Stats
 	if entity then
-		local isMob = entity:FindFirstChild("UUID")
-
+		local isMob = not Players:GetPlayerFromCharacter(entity)
 		if isMob then
 			local MobsData = require(ReplicatedStorage.Shared.MobsData)
 			return MobsData[entity.Name] and MobsData[entity.Name].Data.Stats
@@ -84,7 +97,6 @@ function Functions:GetTotalStats(entity: Model, Data: Types.PlayerData): Types.S
 				Attack = getTotalStats(Data, "Attack"),
 				Defense = getTotalStats(Data, "Defense"),
 				Critical = getTotalStats(Data, "Critical"),
-
 				Health = getTotalStats(Data, "Health"),
 				Speed = getTotalStats(Data, "Speed"),
 			}
@@ -102,6 +114,10 @@ function Functions:GetTotalStats(entity: Model, Data: Types.PlayerData): Types.S
 end
 
 function Functions:GetXPNeeded(level: number): number
+	if level >= 1300 then
+		return 1000 * (level + 1) * 2 * (level + 1) * 2 - 1000 * (level + 1)
+	end
+
 	return 25 * math.floor((100 + (25 / 6) * level * (level + 1) - (25 / 3) * math.max(0, 2 - level)) / 25 + 0.5)
 end
 

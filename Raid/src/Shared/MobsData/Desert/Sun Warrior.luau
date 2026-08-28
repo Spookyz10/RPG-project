@@ -4,13 +4,13 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Mob: Types.MobInfo = {
 	Level = 7,
 	MaxLevel = 27,
-	XP = 15,
+	XP = 600,
 	RespawnTime = 5,
 	GlobalDrops = false,
 
 	Data = {
 		Stats = {
-			Attack = 8,
+			Attack = 15,
 			Defense = 0,
 			Critical = 0,
 			Health = 0,
@@ -19,13 +19,13 @@ local Mob: Types.MobInfo = {
 	},
 
 	Currencies = {
-		Gold = 110,
+		Gold = 50,
 	},
 
 	Drops = {
 		["Sun Warrior's Blade"] = { Chance = 35, Amount = 1 },
 		["Sun Pride Necklace"] = { Chance = 17, Amount = 1 },
-		["Small Health Potion"] = { Chance = 50, Amount = 1 },
+		["Small Attack Potion"] = { Chance = 20, Amount = 1 },
 	},
 }
 

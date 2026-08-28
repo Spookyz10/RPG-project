@@ -11,27 +11,30 @@ function Behavior:Reset(mobModel: Model)
 		return
 	end
 
+	self:Cancel(mobModel)
+
 	local UUID = mobModel:FindFirstChild("UUID")
 	if not UUID then
 		return
 	end
 
 	local origin = nil
-	for _, spawnPart: BasePart in workspace:FindFirstChild("mobSpawns"):GetChildren() do
-		local ID = spawnPart:FindFirstChild("UUID")
-		if not ID then
-			continue
-		end
+	local MobSpawns = workspace:FindFirstChild("MobSpawns")
+	if MobSpawns then
+		for _, spawnPart: BasePart in MobSpawns:GetDescendants() do
+			local ID = spawnPart:FindFirstChild("ID")
+			if not ID then
+				continue
+			end
 
-		if ID.Value == UUID.Value then
-			origin = spawnPart
-			break
+			if ID.Value == UUID.Value then
+				origin = spawnPart
+				break
+			end
 		end
 	end
 
 	if origin then
-		self:Cancel(mobModel)
-
 		local Humanoid = mobModel:FindFirstChildOfClass("Humanoid")
 		if Humanoid then
 			Humanoid.Health = Humanoid.MaxHealth

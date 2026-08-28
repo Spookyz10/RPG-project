@@ -8,7 +8,7 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local HealthManager = {}
 
 local BASE_HEALTH = 100
-local REGEN_INTERVAL = 1
+local REGEN_INTERVAL = 3
 local REGEN_PERCENT = 0.01
 
 local ListenedPlayers: { [Player]: boolean } = {}

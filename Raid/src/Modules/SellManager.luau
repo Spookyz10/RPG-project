@@ -34,14 +34,14 @@ function SellManager:SellItems(player: Player, sellList: { [string]: number })
 			continue
 		end
 
-		local ItemInfo = ItemsData[ItemEntry.Name] :: Types.Item
+		local ItemInfo = ItemsData[ItemEntry.ID] :: Types.Item
 		if not ItemInfo then
 			continue
 		end
 
 		local SellAmount = math.clamp(math.floor(amount), 1, ItemEntry.Amount)
 
-		local RemoveResult = InventoryManager:RemoveItem(player, ItemEntry.Name, SellAmount)
+		local RemoveResult = InventoryManager:RemoveItemByUUID(player, UUID, SellAmount)
 		if RemoveResult == "Successfully deleted item" then
 			TotalValue += (ItemInfo.Data.SellsFor or 0) * SellAmount
 		end

@@ -5,7 +5,7 @@ local Indicators = {}
 
 local IndicatorList: { [string]: BasePart } = {}
 
-for _, indicator: BasePart in ReplicatedStorage.Assets.Indicators:GetDescendants() do
+for _, indicator: BasePart in ReplicatedStorage.Resources.Indicators:GetDescendants() do
 	if indicator:IsA("BasePart") then
 		IndicatorList[indicator.Name] = indicator
 	end

@@ -23,6 +23,7 @@ local Item: Types.Equipment = {
 		Level = 15,
 		Description = "A couple hundred of these and you can make a pool",
 		ActionName = "Equip",
+		ID = "Aqua Blade",
 	},
 }
 

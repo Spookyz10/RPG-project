@@ -29,7 +29,7 @@ function Remote:Invoke(_Player: Player, TargetPlayer: Player)
 			continue
 		end
 
-		local ItemInfo = ItemsData[ItemEntry.Name]
+		local ItemInfo = ItemsData[ItemEntry.ID]
 		if not ItemInfo then
 			continue
 		end
@@ -46,7 +46,7 @@ function Remote:Invoke(_Player: Player, TargetPlayer: Player)
 		Level = PlayerData.Level(),
 		Stats = Stats,
 		Gold = PlayerData.Currencies().Gold or 0,
-		Gems = PlayerData.Currencies().Gems or 0,
+		Honor = PlayerData.Honor(),
 		Kills = PlayerData.Kills(),
 		Deaths = PlayerData.Deaths(),
 		PlayTime = PlayerData.PlayTime(),

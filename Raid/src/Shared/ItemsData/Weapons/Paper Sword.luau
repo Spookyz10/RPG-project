@@ -23,6 +23,7 @@ local Item: Types.Equipment = {
 		Level = 1,
 		Description = "Made with paper and glue. I would feel bad for whoever gets killed by this",
 		ActionName = "Equip",
+		ID = "Paper Sword",
 	},
 }
 

@@ -6,7 +6,6 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local RewardManager = require(script.Parent.RewardManager)
 local InventoryManager = require(script.Parent.InventoryManager)
-local RecipeManager = require(script.Parent.RecipeManager)
 
 local QuestManager = {}
 
@@ -81,12 +80,6 @@ function QuestManager:GrantRewards(player: Player, rewards: Types.QuestReward?)
 	if rewards.Items then
 		for itemName, amount in rewards.Items do
 			InventoryManager:AddItem(player, itemName, amount)
-		end
-	end
-
-	if rewards.Recipes then
-		for _, recipeName in rewards.Recipes do
-			RecipeManager:AddRecipe(recipeName, player)
 		end
 	end
 end
@@ -166,10 +159,6 @@ end
 
 function QuestManager:OnMobKilled(player: Player, mobName: string)
 	self:AddObjectiveProgress(player, "KillMob", mobName, 1)
-end
-
-function QuestManager:OnItemCrafted(player: Player, itemName: string)
-	self:AddObjectiveProgress(player, "CraftItem", itemName, 1)
 end
 
 function QuestManager:GetPrerequisiteChain(questName: string): { string }

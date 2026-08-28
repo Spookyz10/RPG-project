@@ -7,7 +7,7 @@ function Effect.Apply(Character: Model)
 		return
 	end
 
-	local BuffEffect = ReplicatedStorage.Assets.BuffEffects:FindFirstChild("Vital Jab")
+	local BuffEffect = ReplicatedStorage.Resources.BuffEffects:FindFirstChild("Vital Jab")
 	if not BuffEffect then
 		return
 	end

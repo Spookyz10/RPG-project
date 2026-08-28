@@ -2,7 +2,7 @@ local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local AnimationsFolder = ReplicatedStorage.Assets.Animations
+local AnimationsFolder = ReplicatedStorage.Resources.Animations
 local PreloadStatus = RunService:IsClient()
 		and require(ReplicatedFirst:WaitForChild("First"):WaitForChild("PreloadStatus"))
 	or nil
@@ -11,11 +11,6 @@ local AnimationHandler = {}
 AnimationHandler.__index = AnimationHandler
 
 local ActiveHandlers: { [Model]: any } = {}
-
-local WeaponIdles = {
-	"Idle",
-	"Dual",
-}
 
 function AnimationHandler:_WaitReady(): boolean
 	local Character = self.Character
@@ -79,10 +74,11 @@ function AnimationHandler.new(character: Model)
 
 	self.Character = character
 	self.Animator = nil :: Animator?
-	self.Tracks = {} :: { [string]: AnimationTrack }
+	self.Tracks = {} :: { [string | Instance]: AnimationTrack }
 	self.Ready = false
 	self._Destroyed = false
 	self._ReadyEvent = Instance.new("BindableEvent")
+	self.CurrentWeaponIdle = nil :: string?
 
 	ActiveHandlers[character] = self
 
@@ -122,7 +118,7 @@ function AnimationHandler:LoadTrack(animName: string): AnimationTrack?
 		return nil
 	end
 
-	local AnimInstance = AnimationsFolder:FindFirstChild(animName) :: Animation?
+	local AnimInstance = AnimationsFolder:FindFirstChild(animName, true) :: Animation?
 	if not AnimInstance then
 		warn("[AnimationHandler] Nenhuma Animation chamada '" .. animName .. "' em Assets.Animations")
 		return nil
@@ -130,6 +126,21 @@ function AnimationHandler:LoadTrack(animName: string): AnimationTrack?
 
 	Track = self.Animator:LoadAnimation(AnimInstance)
 	self.Tracks[animName] = Track
+	return Track
+end
+
+function AnimationHandler:LoadTrackFromInstance(animInstance: Animation): AnimationTrack?
+	local Track = self.Tracks[animInstance]
+	if Track then
+		return Track
+	end
+
+	if not self.Animator then
+		return nil
+	end
+
+	Track = self.Animator:LoadAnimation(animInstance)
+	self.Tracks[animInstance] = Track
 	return Track
 end
 
@@ -162,6 +173,35 @@ function AnimationHandler:Play(animName: string, fadeTime: number?, speed: numbe
 	return Track
 end
 
+function AnimationHandler:PlayInstance(animInstance: Animation, fadeTime: number?, speed: number?): AnimationTrack?
+	if PreloadStatus then
+		PreloadStatus:WaitUntilReady()
+	end
+
+	if not self.Character or not self.Character.Parent or self._Destroyed then
+		return nil
+	end
+
+	if not self:WaitUntilReady() then
+		return nil
+	end
+
+	if not self.Character or not self.Character.Parent or self._Destroyed then
+		return nil
+	end
+
+	local Track = self:LoadTrackFromInstance(animInstance)
+	if not Track then
+		return nil
+	end
+
+	if not Track.IsPlaying then
+		Track:Play(fadeTime or 0.2, 1, speed or 1)
+	end
+
+	return Track
+end
+
 function AnimationHandler:Stop(animName: string, fadeTime: number?)
 	local Track = self.Tracks[animName]
 	if Track and Track.IsPlaying then
@@ -182,13 +222,18 @@ function AnimationHandler:StopAll(fadeTime: number?)
 	end
 end
 
-function AnimationHandler:StopAllIdles()
-	for _, animName in WeaponIdles do
-		local Track = self.Tracks[animName]
-		if Track and Track.IsPlaying then
-			Track:Stop(0.2)
-		end
+function AnimationHandler:PlayWeaponIdle(weaponType: string?): AnimationTrack?
+	if self.CurrentWeaponIdle and self.CurrentWeaponIdle ~= weaponType then
+		self:Stop(self.CurrentWeaponIdle, 0.2)
 	end
+
+	self.CurrentWeaponIdle = weaponType
+
+	if not weaponType then
+		return nil
+	end
+
+	return self:Play(weaponType, 0.2)
 end
 
 function AnimationHandler:Destroy()

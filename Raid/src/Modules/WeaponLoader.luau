@@ -7,7 +7,7 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local WeaponLoader = {}
 
-local WeaponsFolder = ReplicatedStorage.Assets.Weapons
+local WeaponsFolder = ReplicatedStorage.Resources.Weapons
 
 local GRIP_ATTACHMENT_NAME = "GripPoint"
 
@@ -19,7 +19,7 @@ local function getHand(character: Model): BasePart?
 end
 
 local function getGripOffset(): CFrame
-	return CFrame.Angles(math.rad(60), math.rad(-200), math.rad(90))
+	return CFrame.Angles(math.rad(190), math.rad(-180), math.rad(0))
 end
 
 local function clearWeapon(player: Player)
@@ -52,6 +52,7 @@ local function attachWeapon(character: Model, weaponName: string): Model?
 	end
 
 	local WeaponModel = Template:Clone()
+	WeaponModel.Name = "Sword"
 
 	local Handle = WeaponModel:FindFirstChild("Handle") :: BasePart?
 	if not Handle then
@@ -77,6 +78,10 @@ local function attachWeapon(character: Model, weaponName: string): Model?
 		if descendant:IsA("BasePart") then
 			descendant.CanCollide = false
 			descendant.Massless = true
+
+			if descendant ~= Handle then
+				WeldSystem:Weld(Handle, descendant)
+			end
 		end
 	end
 
@@ -91,14 +96,20 @@ local function refresh(player: Player, PlayerData: Types.PlayerData)
 
 	clearWeapon(player)
 
-	local UUID = PlayerData.Equipment.Weapon()
-	if not UUID or UUID == "" then
+	local WeaponUUID = PlayerData.Equipment.Weapon()
+	if not WeaponUUID or WeaponUUID == "" then
 		return
 	end
 
-	local ItemEntry = PlayerData.Inventory[UUID]()
+	local VanityUUID = PlayerData.Vanity.Weapon()
+	local DisplayUUID = (VanityUUID and VanityUUID ~= "") and VanityUUID or WeaponUUID
+
+	local ItemEntry = PlayerData.Inventory[DisplayUUID]()
 	if not ItemEntry then
-		return
+		ItemEntry = PlayerData.Inventory[WeaponUUID]()
+		if not ItemEntry then
+			return
+		end
 	end
 
 	local WeaponModel = attachWeapon(Character, ItemEntry.Name)
@@ -119,6 +130,10 @@ function WeaponLoader:Listen(player: Player)
 	end
 
 	PlayerData.Equipment.Weapon.Changed(function()
+		refresh(player, PlayerData)
+	end)
+
+	PlayerData.Vanity.Weapon.Changed(function()
 		refresh(player, PlayerData)
 	end)
 
