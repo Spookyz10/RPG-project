@@ -4,7 +4,7 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Mob: Types.MobInfo = {
 	Level = 1,
 	MaxLevel = 15,
-	XP = 5,
+	XP = 50,
 	RespawnTime = 5,
 	GlobalDrops = false,
 
@@ -19,7 +19,7 @@ local Mob: Types.MobInfo = {
 	},
 
 	Currencies = {
-		Gold = 10,
+		Gold = 5,
 	},
 
 	Drops = {},
