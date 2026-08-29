@@ -54,6 +54,8 @@ function VFX:Play(Character: Model)
 
 	local Ring = EffectsFolder.Lure:Clone()
 	Ring.Parent = Sword
+	Ring.Anchored = true
+	Ring.CanCollide = false
 	Ring.CFrame = RootPart.CFrame
 
 	task.spawn(function()

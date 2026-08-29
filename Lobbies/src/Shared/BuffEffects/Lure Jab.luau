@@ -7,12 +7,14 @@ local EffectsFolder = ReplicatedStorage.Resources.BuffEffects["Lure Jab"]
 local ActiveEmitters: { [Model]: { Instance } } = {}
 
 function Effect.Apply(Character: Model)
+	print("Applying Lure Jab effect to", Character.Name)
 	if ActiveEmitters[Character] then
 		return
 	end
 
 	local RootPart = Character.PrimaryPart
 	if not RootPart then
+		print("Character has no PrimaryPart")
 		return
 	end
 
@@ -21,7 +23,7 @@ function Effect.Apply(Character: Model)
 
 	local Emitter2 = EffectsFolder.Emitter2:Clone()
 	Emitter2.Parent = RootPart
-
+	print("Lure Jab effect applied to", Character.Name)
 	ActiveEmitters[Character] = { Emitter1, Emitter2 }
 end
 
