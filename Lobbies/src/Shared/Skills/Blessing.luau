@@ -3,11 +3,11 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Skill: Types.SkillDefinition = {
 	Name = script.Name,
-	Cooldown = 7,
-	Multiplier = 10,
-	LevelRequirement = 20,
-	Icon = "rbxassetid://3009037877",
-	Description = "Jab the enemy to lower their defense by 50%.",
+	Cooldown = 13,
+	Multiplier = 1,
+	LevelRequirement = 10,
+	Icon = "rbxassetid://5611282549",
+	Description = "Heal 25% of your health.",
 	SkillType = "Support",
 }
 

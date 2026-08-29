@@ -10,7 +10,8 @@ local MobAnimations = require(ReplicatedStorage.Shared.MobAnimations)
 local Players = game:GetService("Players")
 
 local ATTACK_COOLDOWN = 1.5
-local TURN_SPEED = 8
+local TURN_RESPONSIVENESS = 15
+local MAX_TORQUE = 1e7
 
 local DEFAULT_SIZE = Vector3.new(6, 6, 6)
 local DEFAULT_OFFSET = CFrame.new(0, 0, -3)
@@ -25,16 +26,39 @@ export type Config = {
 local BasicMeleeBehavior = {}
 BasicMeleeBehavior.__index = BasicMeleeBehavior
 
-local function SmoothFace(RootPart: BasePart, targetPosition: Vector3, dt: number)
+local function GetOrCreateFacingConstraint(RootPart: BasePart): (AlignOrientation, Attachment)
+	local Attachment = RootPart:FindFirstChild("FacingAttachment") :: Attachment?
+	if not Attachment then
+		Attachment = Instance.new("Attachment")
+		Attachment.Name = "FacingAttachment"
+		Attachment.Parent = RootPart
+	end
+
+	local AlignOrientation = RootPart:FindFirstChild("FacingAlign") :: AlignOrientation?
+	if not AlignOrientation then
+		AlignOrientation = Instance.new("AlignOrientation")
+		AlignOrientation.Name = "FacingAlign"
+		AlignOrientation.Mode = Enum.OrientationAlignmentMode.OneAttachment
+		AlignOrientation.Attachment0 = Attachment
+		AlignOrientation.RigidityEnabled = false
+		AlignOrientation.MaxTorque = MAX_TORQUE
+		AlignOrientation.Responsiveness = TURN_RESPONSIVENESS
+		AlignOrientation.Enabled = false
+		AlignOrientation.Parent = RootPart
+	end
+
+	return AlignOrientation, Attachment
+end
+
+local function SetFacing(AlignOrientation: AlignOrientation, RootPart: BasePart, targetPosition: Vector3)
 	local FlatTarget = Vector3.new(targetPosition.X, RootPart.Position.Y, targetPosition.Z)
 
 	if (FlatTarget - RootPart.Position).Magnitude < 0.05 then
 		return
 	end
 
-	local TargetCFrame = CFrame.lookAt(RootPart.Position, FlatTarget)
-	local Alpha = 1 - math.exp(-TURN_SPEED * dt)
-	RootPart.CFrame = RootPart.CFrame:Lerp(TargetCFrame, Alpha)
+	AlignOrientation.CFrame = CFrame.lookAt(RootPart.Position, FlatTarget)
+	AlignOrientation.Enabled = true
 end
 
 function BasicMeleeBehavior.new(config: Config?)
@@ -53,22 +77,25 @@ function BasicMeleeBehavior:Start(mob: Model)
 	end
 
 	local Humanoid = mob:FindFirstChild("Humanoid") :: Humanoid
-	local RootPart = mob:FindFirstChild("HumanoidRootPart")
+	local RootPart = mob:FindFirstChild("HumanoidRootPart") :: BasePart
 	if not Humanoid or not RootPart then
 		return
 	end
 
 	BehaviorManager.Active[mob] = true
 
+	local AlignOrientation = GetOrCreateFacingConstraint(RootPart)
 	local FaceTargetPosition: Vector3? = nil
 
-	local HeartbeatConnection = RunService.Heartbeat:Connect(function(dt)
+	local HeartbeatConnection = RunService.Heartbeat:Connect(function()
 		if not (mob and mob.Parent and RootPart and RootPart.Parent) then
 			return
 		end
 
 		if FaceTargetPosition then
-			SmoothFace(RootPart, FaceTargetPosition, dt)
+			SetFacing(AlignOrientation, RootPart, FaceTargetPosition)
+		else
+			AlignOrientation.Enabled = false
 		end
 	end)
 
@@ -142,6 +169,8 @@ function BasicMeleeBehavior:Start(mob: Model)
 		task.wait(0.1)
 	end
 
+	FaceTargetPosition = nil
+	AlignOrientation.Enabled = false
 	HeartbeatConnection:Disconnect()
 end
 

@@ -4,11 +4,11 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Skill: Types.SkillDefinition = {
 	Name = script.Name,
 	Cooldown = 7,
-	Multiplier = 10,
-	LevelRequirement = 20,
-	Icon = "rbxassetid://3009037877",
-	Description = "Jab the enemy to lower their defense by 50%.",
-	SkillType = "Support",
+	Multiplier = 5,
+	LevelRequirement = 10,
+	Icon = "rbxassetid://3009044009",
+	Description = "Slam your sword into the ground dealing a massive amount of damage.",
+	SkillType = "Attack",
 }
 
 function Skill:Elligable(PlayerData: Types.PlayerData): boolean
