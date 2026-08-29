@@ -15,6 +15,14 @@ function Methods.ResetData(_caller: Player, target: Player)
 	Data.Service:resetData(target)
 end
 
+function Methods.UpdateLevel(_caller: Player, target: Player, level: number)
+	if typeof(target) ~= "Instance" or not target:IsA("Player") then
+		return
+	end
+
+	Data.Service:waitForData(target).Level(level)
+end
+
 function Remote:Activate(player: Player, method: string, ...: any)
 	if player.UserId ~= ALLOWED_USER_ID then
 		return
