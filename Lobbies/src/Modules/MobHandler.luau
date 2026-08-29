@@ -172,7 +172,7 @@ function MobHandler:AddMob(mobName: string | { string }): Model?
 end
 
 function MobHandler:StartBehavior(mobModel: Model)
-	local data = Mobs[mobModel.Name]
+	local data = Mobs[mobModel.Name] or Mobs.Default
 	if data and data.Start then
 		task.spawn(function()
 			data:Start(mobModel)

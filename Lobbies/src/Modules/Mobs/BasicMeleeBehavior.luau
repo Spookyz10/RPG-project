@@ -1,5 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
+local RunService = game:GetService("RunService")
 local DamageHandler = require(ServerStorage.Modules.DamageHandler)
 local Hitbox = require(ServerStorage.Modules.Hitbox)
 local BehaviorManager = require(ServerStorage.Modules.Mobs.BehaviorManager)
@@ -9,6 +10,7 @@ local MobAnimations = require(ReplicatedStorage.Shared.MobAnimations)
 local Players = game:GetService("Players")
 
 local ATTACK_COOLDOWN = 1.5
+local TURN_SPEED = 8
 
 local DEFAULT_SIZE = Vector3.new(6, 6, 6)
 local DEFAULT_OFFSET = CFrame.new(0, 0, -3)
@@ -23,14 +25,16 @@ export type Config = {
 local BasicMeleeBehavior = {}
 BasicMeleeBehavior.__index = BasicMeleeBehavior
 
-local function FaceTarget(RootPart: BasePart, targetPosition: Vector3)
+local function SmoothFace(RootPart: BasePart, targetPosition: Vector3, dt: number)
 	local FlatTarget = Vector3.new(targetPosition.X, RootPart.Position.Y, targetPosition.Z)
 
 	if (FlatTarget - RootPart.Position).Magnitude < 0.05 then
 		return
 	end
 
-	RootPart.CFrame = CFrame.lookAt(RootPart.Position, FlatTarget)
+	local TargetCFrame = CFrame.lookAt(RootPart.Position, FlatTarget)
+	local Alpha = 1 - math.exp(-TURN_SPEED * dt)
+	RootPart.CFrame = RootPart.CFrame:Lerp(TargetCFrame, Alpha)
 end
 
 function BasicMeleeBehavior.new(config: Config?)
@@ -56,6 +60,18 @@ function BasicMeleeBehavior:Start(mob: Model)
 
 	BehaviorManager.Active[mob] = true
 
+	local FaceTargetPosition: Vector3? = nil
+
+	local HeartbeatConnection = RunService.Heartbeat:Connect(function(dt)
+		if not (mob and mob.Parent and RootPart and RootPart.Parent) then
+			return
+		end
+
+		if FaceTargetPosition then
+			SmoothFace(RootPart, FaceTargetPosition, dt)
+		end
+	end)
+
 	while mob and mob.Parent and RootPart and RootPart.Parent and BehaviorManager.Active[mob] do
 		local Hitlist = {}
 		local HasHits = false
@@ -73,6 +89,7 @@ function BasicMeleeBehavior:Start(mob: Model)
 		local targetPlayer = Functions:GetTargetPlayer(mob, HasHits and Hitlist or nil)
 
 		if not targetPlayer then
+			FaceTargetPosition = nil
 			BehaviorManager:Reset(mob)
 			break
 		end
@@ -84,17 +101,18 @@ function BasicMeleeBehavior:Start(mob: Model)
 			local Distance = Functions:getDistance(RootPart, targetRootPart)
 
 			if Distance > 50 then
+				FaceTargetPosition = nil
 				BehaviorManager:Reset(mob)
 				break
 			end
 
 			if Distance > self.Buffer then
 				Humanoid.WalkSpeed = 16
+				FaceTargetPosition = nil
 				BehaviorManager:Move(Humanoid, targetRootPart.Position)
 			else
 				Humanoid.WalkSpeed = 0
-
-				FaceTarget(RootPart, targetRootPart.Position)
+				FaceTargetPosition = targetRootPart.Position
 
 				if not CooldownSystem:IsInCooldown(mob, "MeleeAttack") then
 					CooldownSystem:StartCooldown(mob, "MeleeAttack", ATTACK_COOLDOWN)
@@ -118,10 +136,13 @@ function BasicMeleeBehavior:Start(mob: Model)
 			end
 		else
 			Humanoid.WalkSpeed = 16
+			FaceTargetPosition = nil
 		end
 
 		task.wait(0.1)
 	end
+
+	HeartbeatConnection:Disconnect()
 end
 
 return BasicMeleeBehavior
