@@ -65,6 +65,8 @@ local EquippedLabelColors: { [string]: Color3 } = {
 	AuraVanity = Color3.fromRGB(255, 255, 25),
 }
 
+local GOLD_COLOR_HEX = "#FFD500"
+
 local SlotOrder: { [string]: number } = {
 	Weapon = 1,
 	Ring = 2,
@@ -356,9 +358,16 @@ local function GetSellValue(ItemInfo: Types.Item, Amount: number): number
 end
 
 local function UpdateSellLabel()
-	ItemLimit.Text = "Selling: " .. CountSelected() .. "/" .. SELL_LIMIT .. "  Gold: " .. SellTotal
+	ItemLimit.Text = "Selling: "
+		.. CountSelected()
+		.. "/"
+		.. SELL_LIMIT
+		.. '  <font color="'
+		.. GOLD_COLOR_HEX
+		.. '">Gold: '
+		.. SellTotal
+		.. "</font>"
 end
-
 local function OpenStackSell(UUID: string, Button: TextButton, ItemData: Types.ItemData, ItemInfo: Types.Item)
 	MainStackSell.Visible = true
 	MainStackSell.Text = tostring(ItemData.Amount)
@@ -838,6 +847,22 @@ function Inventory.Init()
 	UIConstants.Data.Inventory.OnKeyRemoved(function(UUID: string)
 		RemoveEntry(UUID)
 		UpdateItemLimit()
+	end)
+
+	UIConstants.Data.CurrentInventorySpace.Changed(function()
+		UpdateItemLimit()
+	end)
+
+	UIConstants.Data.MaxInventorySpace.Changed(function()
+		UpdateItemLimit()
+	end)
+
+	UIConstants.Data.CurrentStorageSpace.Changed(function()
+		UpdateBankLimit()
+	end)
+
+	UIConstants.Data.MaxStorageSpace.Changed(function()
+		UpdateBankLimit()
 	end)
 
 	UpdateItemLimit()

@@ -137,7 +137,7 @@ UserInputService.InputBegan:Connect(function(input, gpe)
 		return
 	end
 
-	if input.KeyCode == Enum.KeyCode.F9 then
+	if input.KeyCode == Enum.KeyCode.F8 then
 		Frame.Visible = not Frame.Visible
 	end
 end)
