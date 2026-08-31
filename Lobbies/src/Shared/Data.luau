@@ -26,6 +26,8 @@ local template: Types.PlayerData = {
 	},
 	MaxInventorySpace = 100,
 	CurrentInventorySpace = 0,
+	MaxStorageSpace = 100,
+	CurrentStorageSpace = 0,
 	Skills = {
 		Q = "",
 		E = "",

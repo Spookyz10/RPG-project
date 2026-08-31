@@ -33,6 +33,8 @@ export type PlayerData = {
 	},
 	MaxInventorySpace: number,
 	CurrentInventorySpace: number,
+	MaxStorageSpace: number,
+	CurrentStorageSpace: number,
 	Skills: {
 		Q: string,
 		E: string,
