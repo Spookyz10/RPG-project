@@ -8,6 +8,7 @@ local Buttons = {}
 local UIList = {
 	Inventory = UIConstants.PlayerGui:WaitForChild("Inventory").Main,
 	Skills = UIConstants.PlayerGui:WaitForChild("SkillSelector").Frame,
+	Pets = UIConstants.PlayerGui:WaitForChild("PetUI").BuyOrSee,
 }
 
 local CurrentOpen: Instance? = nil
@@ -87,6 +88,23 @@ local function UpdateInventoryAmountLabel(ButtonsMain: Instance)
 	Refresh()
 end
 
+local function SetupHoverLabel(ButtonFrame: Instance)
+	local Label = ButtonFrame:FindFirstChild("Label")
+	if not Label or not (Label:IsA("GuiObject")) then
+		return
+	end
+
+	Label.Visible = false
+
+	ButtonFrame.MouseEnter:Connect(function()
+		Label.Visible = true
+	end)
+
+	ButtonFrame.MouseLeave:Connect(function()
+		Label.Visible = false
+	end)
+end
+
 function Buttons.Init()
 	local ButtonsMain = UIConstants.PlayerGui:WaitForChild("Buttons"):WaitForChild("Main")
 
@@ -115,6 +133,8 @@ function Buttons.Init()
 			SetVisible(ui, true)
 			CurrentOpen = ui
 		end)
+
+		SetupHoverLabel(ButtonFrame)
 	end
 
 	SetupHomeButton(ButtonsMain)
