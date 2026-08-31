@@ -27,6 +27,9 @@ local Remotes = {
 	UnequipPet = "Server",
 	VanityEquipPet = "Server",
 	VanityUnequipPet = "Server",
+	LockPet = "Server",
+	RemovePet = "Server",
+	ClearPets = "Server",
 
 	SkillVFX = "Client",
 	SkillAnimation = "Client",
@@ -39,6 +42,8 @@ local Remotes = {
 
 local RemoteFunctions = {
 	GetPlayerInfo = "Server",
+	FusePet = "Server",
+	BuyPetBox = "Server",
 }
 
 local RemoteCache: { [string]: Instance } = {}

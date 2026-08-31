@@ -133,6 +133,12 @@ export type Equipment = ItemBase<Equipment> & {
 			HealPercent: number?,
 		},
 	}?,
+	EffectOverrides: {
+		[string]: {
+			Value: number?,
+			HealPercent: number?,
+		},
+	}?,
 }
 
 export type Consumable = ItemBase<Consumable> & {
@@ -257,8 +263,11 @@ export type DamageContext = {
 
 export type PetData = {
 	Name: string,
+	Rarity: string,
 	Level: number,
+	XP: number,
 	Talent: string,
+	Locked: boolean,
 }
 
 export type TalentEffect = {
