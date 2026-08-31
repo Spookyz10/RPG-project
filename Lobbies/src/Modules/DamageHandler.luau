@@ -35,7 +35,8 @@ function DamageHandler:BuildContext(caster: Model, victim: Model, multi: number?
 	local CritChance = ModifierSystem:Aggregate(caster, "Critical", CasterStats.Critical)
 	local IsCrit = math.random() * 100 <= CritChance
 	if IsCrit then
-		CasterAttack *= BASE_CRITICAL_MULTIPLIER
+		local CritMultiplier = ModifierSystem:Aggregate(caster, "CriticalMultiplier", BASE_CRITICAL_MULTIPLIER)
+		CasterAttack *= CritMultiplier
 	end
 
 	local FinalDamage = CasterAttack - VictimDefense

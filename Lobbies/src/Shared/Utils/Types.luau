@@ -17,6 +17,8 @@ export type PlayerData = {
 	Inventory: { [string]: ItemData },
 	Storage: { [string]: ItemData },
 	Pets: { [string]: PetData },
+	EquippedPet: string,
+	VanityPet: string,
 	Settings: {
 		Music: boolean,
 		CameraShake: boolean,
@@ -257,6 +259,20 @@ export type PetData = {
 	Name: string,
 	Level: number,
 	Talent: string,
+}
+
+export type TalentEffect = {
+	Stat: string,
+	Type: "Flat" | "Percentage",
+	Value: number,
+}
+
+export type TalentInfo = {
+	Rarity: string,
+	Weight: number,
+	Unique: string?,
+	HealsOverTime: boolean?,
+	Effects: { TalentEffect },
 }
 
 return {}

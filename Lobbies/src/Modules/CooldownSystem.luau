@@ -1,3 +1,5 @@
+local ModifierSystem = require(script.Parent.ModifierSystem)
+
 local CooldownSystem = {}
 
 local Cooldowns: { [Instance]: { [string]: number } } = {}
@@ -11,17 +13,30 @@ local function getEntityCooldowns(entity: Instance)
 	return entityCooldowns
 end
 
+local function GetModifierCharacter(entity: Instance): Instance?
+	if entity:IsA("Player") then
+		return (entity :: Player).Character
+	elseif entity:IsA("Model") then
+		return entity
+	end
+	return nil
+end
+
 function CooldownSystem:StartCooldown(entity: Instance, key: string, duration: number): boolean
 	local entityCooldowns = getEntityCooldowns(entity)
+
+	local ModifierTarget = GetModifierCharacter(entity)
+	local FinalDuration = ModifierTarget and ModifierSystem:Aggregate(ModifierTarget, "CooldownDuration", duration)
+		or duration
 
 	if entityCooldowns[key] and entityCooldowns[key] > os.clock() then
 		return false
 	end
 
-	local endTime = os.clock() + duration
+	local endTime = os.clock() + FinalDuration
 	entityCooldowns[key] = endTime
 
-	task.delay(duration, function()
+	task.delay(FinalDuration, function()
 		local currentCooldowns = Cooldowns[entity]
 		if currentCooldowns and currentCooldowns[key] == endTime then
 			currentCooldowns[key] = nil

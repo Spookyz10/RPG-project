@@ -1,55 +1,118 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Talents = require(ReplicatedStorage.Shared.Talents)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
+local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Data = require(ReplicatedStorage.Shared.Data).server
+local PetTalentManager = require(script.Parent.PetTalentManager)
 
 local PetSystem = {}
 
-local TalentChances = {
-	Rare = 90,
-	Legendary = 10,
+local EXCLUDED_RARITIES = {
+	Common = true,
 }
 
-local function GetTalentRarity()
-	local RandomNumber = math.random(1, 100)
-	if RandomNumber <= TalentChances.Rare then
-		return "Rare"
-	else
-		return "Legendary"
+local function RollTalent(): string
+	local TotalWeight = 0
+	for talentName, info in Talents do
+		if EXCLUDED_RARITIES[info.Rarity] then
+			continue
+		end
+		TotalWeight += info.Weight
 	end
-end
 
-local function GetTalentByRarity(Rarity: string)
-	local TalentPool = {}
-	for TalentName, TalentData in pairs(Talents) do
-		if TalentData.Rarity == Rarity then
-			table.insert(TalentPool, TalentName)
+	local Roll = math.random() * TotalWeight
+	local Current = 0
+
+	for talentName, info in Talents do
+		if EXCLUDED_RARITIES[info.Rarity] then
+			continue
+		end
+
+		Current += info.Weight
+		if Roll <= Current then
+			return talentName
 		end
 	end
 
-	if #TalentPool == 0 then
+	return "No Talent"
+end
+
+function PetSystem.AddPet(Player: Player, PetName: string): string?
+	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
+	if not PlayerData then
 		return nil
 	end
 
-	local RandomIndex = math.random(1, #TalentPool)
-	return TalentPool[RandomIndex]
+	local UUID = Functions:GenUUID()
+	local PetData: Types.PetData = {
+		Name = PetName,
+		Level = 1,
+		Talent = RollTalent(),
+	}
+
+	PlayerData.Pets[UUID](PetData)
+
+	return UUID
 end
 
-function PetSystem.AddPet(Player: Player, PetName: string)
-	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
+function PetSystem:EquipPet(player: Player, UUID: string)
+	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
 	if not PlayerData then
 		return
 	end
 
-	local UUID = Functions:GenUUID()
-	local PetData = {
-		Name = PetName,
-		Level = 1,
-		Talent = GetTalentByRarity(GetTalentRarity()),
-	} :: Types.PetData
+	local PetEntry = PlayerData.Pets[UUID]()
+	if not PetEntry then
+		RemoteManager.SendClientEvent("Notification", { Player = player }, "You don't have that pet silly!")
+		return
+	end
 
-	PlayerData.Pets[UUID](PetData)
+	local Current = PlayerData.EquippedPet()
+	if Current and Current ~= "" then
+		PetTalentManager:Unequip(player)
+	end
+
+	PlayerData.EquippedPet(UUID)
+	PetTalentManager:Equip(player, PetEntry)
+end
+
+function PetSystem:UnequipPet(player: Player)
+	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
+	if not PlayerData then
+		return
+	end
+
+	if PlayerData.EquippedPet() == "" then
+		return
+	end
+
+	PetTalentManager:Unequip(player)
+	PlayerData.EquippedPet("")
+end
+
+function PetSystem:VanityEquipPet(player: Player, UUID: string)
+	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
+	if not PlayerData then
+		return
+	end
+
+	local PetEntry = PlayerData.Pets[UUID]()
+	if not PetEntry then
+		RemoteManager.SendClientEvent("Notification", { Player = player }, "You don't have that pet silly!")
+		return
+	end
+
+	PlayerData.VanityPet(UUID)
+end
+
+function PetSystem:VanityUnequipPet(player: Player)
+	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
+	if not PlayerData then
+		return
+	end
+
+	PlayerData.VanityPet("")
 end
 
 return PetSystem

@@ -23,6 +23,10 @@ local Remotes = {
 	LeaveParty = "Server",
 	StorageDeposit = "Server",
 	StorageWithdraw = "Server",
+	EquipPet = "Server",
+	UnequipPet = "Server",
+	VanityEquipPet = "Server",
+	VanityUnequipPet = "Server",
 
 	SkillVFX = "Client",
 	SkillAnimation = "Client",
