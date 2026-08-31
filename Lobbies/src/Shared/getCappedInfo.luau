@@ -4,5 +4,5 @@ return {
 	Attack = 10,
 	Speed = 3,
 	Defense = 5,
-	Critical = 1000,
+	Critical = 5,
 }

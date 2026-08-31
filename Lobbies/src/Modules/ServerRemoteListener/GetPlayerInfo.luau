@@ -45,6 +45,7 @@ function Remote:Invoke(_Player: Player, TargetPlayer: Player)
 		Name = TargetPlayer.Name,
 		Level = PlayerData.Level(),
 		Stats = Stats,
+		ExtraStats = PlayerData.ExtraStats(),
 		Gold = PlayerData.Currencies().Gold or 0,
 		Honor = PlayerData.Honor(),
 		Kills = PlayerData.Kills(),

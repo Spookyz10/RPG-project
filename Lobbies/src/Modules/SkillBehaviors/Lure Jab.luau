@@ -10,7 +10,7 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Behavior = {} :: Types.SkillBehavior
 
-local EFFECT_ID = "LureJab"
+local EFFECT_ID = "Lure Jab"
 local BASE_DEFENSE_MULTIPLIER = 0.5
 local BASE_DURATION = 5
 

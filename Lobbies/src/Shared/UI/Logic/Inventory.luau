@@ -30,6 +30,7 @@ local UsableConnections: { RBXScriptConnection } = {}
 
 local StatLabels = { "ATK", "CRT", "SPD", "DEF", "HP" }
 local StatKeys = { ATK = "Attack", CRT = "Critical", SPD = "Speed", DEF = "Defense", HP = "Health" }
+local PercentStats = { CRT = true }
 
 local EquippedLabelColors: { [string]: Color3 } = {
 	Weapon = Color3.fromRGB(255, 255, 255),
@@ -218,7 +219,12 @@ local function OpenGeneralFrame(UUID: string, ItemData: Types.ItemData, ItemInfo
 
 	for _, statLabel in StatLabels do
 		local StatValue = ItemInfo.Stats[StatKeys[statLabel]] or 0
-		Inner.Stats[statLabel].Text = statLabel .. ": " .. tostring(StatValue)
+
+		if PercentStats[statLabel] then
+			Inner.Stats[statLabel].Text = statLabel .. ": " .. string.format("%.1f", StatValue) .. "%"
+		else
+			Inner.Stats[statLabel].Text = statLabel .. ": " .. tostring(StatValue)
+		end
 	end
 
 	local SubType = ItemInfo.Data.SubType

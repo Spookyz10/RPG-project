@@ -1,6 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local DataService = require(ReplicatedStorage.Packages.dataservicetyped)
+local DataService = require(ReplicatedStorage.Packages.DataServiceTyped)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local template: Types.PlayerData = {

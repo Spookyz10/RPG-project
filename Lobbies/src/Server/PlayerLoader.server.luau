@@ -37,10 +37,11 @@ local function LoadPlayer(Player: Player)
 	WeaponLoader:Listen(Player)
 	HealthManager:Listen(Player)
 	StatsReplicator:Listen(Player)
-
 	Player:LoadCharacterAsync()
 
 	DailyReward.ResetDailyStreak(Player)
+
+	Player:WaitForChild("PlayerGui").LoadingScreen.Enabled = true
 end
 
 local function SetupHitbox(Character: Model)
