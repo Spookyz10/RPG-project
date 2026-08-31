@@ -12,6 +12,7 @@ local template: Types.PlayerData = {
 	Honor = 0,
 	PlayTime = 0,
 	Inventory = {} :: { [string]: Types.ItemData },
+	Storage = {} :: { [string]: Types.ItemData },
 	Settings = {
 		Music = true,
 		CameraShake = true,

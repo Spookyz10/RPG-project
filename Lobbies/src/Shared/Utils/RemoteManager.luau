@@ -21,6 +21,8 @@ local Remotes = {
 	DrinkAllPotions = "Server",
 	InviteToParty = "Server",
 	LeaveParty = "Server",
+	StorageDeposit = "Server",
+	StorageWithdraw = "Server",
 
 	SkillVFX = "Client",
 	SkillAnimation = "Client",
@@ -28,6 +30,7 @@ local Remotes = {
 	SkillCooldown = "Client",
 	Indicator = "Client",
 	BuffVFX = "Client",
+	Notification = "Client",
 }
 
 local RemoteFunctions = {

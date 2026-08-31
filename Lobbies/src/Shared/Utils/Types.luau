@@ -15,6 +15,7 @@ export type PlayerData = {
 	PlayTime: number,
 	Honor: number,
 	Inventory: { [string]: ItemData },
+	Storage: { [string]: ItemData },
 	Settings: {
 		Music: boolean,
 		CameraShake: boolean,
