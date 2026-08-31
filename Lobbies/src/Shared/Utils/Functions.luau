@@ -121,6 +121,10 @@ function Functions:GetXPNeeded(level: number): number
 	return 25 * math.floor((100 + (25 / 6) * level * (level + 1) - (25 / 3) * math.max(0, 2 - level)) / 25 + 0.5)
 end
 
+function Functions:GetPetXP(level: number): number
+	return level * 200
+end
+
 function Functions:GetNearestPlayer(part: BasePart, range: number): Player?
 	local nearestPlayer = nil
 	local nearestDistance = range

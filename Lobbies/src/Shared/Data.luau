@@ -13,6 +13,7 @@ local template: Types.PlayerData = {
 	PlayTime = 0,
 	Inventory = {} :: { [string]: Types.ItemData },
 	Storage = {} :: { [string]: Types.ItemData },
+	Pets = {} :: { [string]: Types.PetData },
 	Settings = {
 		Music = true,
 		CameraShake = true,

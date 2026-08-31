@@ -16,6 +16,7 @@ export type PlayerData = {
 	Honor: number,
 	Inventory: { [string]: ItemData },
 	Storage: { [string]: ItemData },
+	Pets: { [string]: PetData },
 	Settings: {
 		Music: boolean,
 		CameraShake: boolean,
@@ -250,6 +251,12 @@ export type DamageContext = {
 	Multiplier: number?,
 	Tags: { string },
 	Cancelled: boolean,
+}
+
+export type PetData = {
+	Name: string,
+	Level: number,
+	Talent: string,
 }
 
 return {}
