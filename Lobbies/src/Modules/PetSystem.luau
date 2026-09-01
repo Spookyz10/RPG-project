@@ -361,20 +361,7 @@ function PetSystem:RerollTalent(player: Player, UUID: string): (boolean, string)
 	return true, "Successfully rerolled talent"
 end
 
-function PetSystem:FusePet(player: Player, targetUUID: string, catalystUUID: string?): (boolean, string)
-	if not catalystUUID or catalystUUID == "" then
-		return false, "No catalyst selected"
-	end
-
-	if targetUUID == catalystUUID then
-		return false, "Cannot fuse a pet with itself"
-	end
-
-	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
-	if not PlayerData then
-		return false, "Invalid player data"
-	end
-
+local function PerformFuse(PlayerData: Types.PlayerData, targetUUID: string, catalystUUID: string): (boolean, string)
 	local TargetEntry = PlayerData.Pets[targetUUID]()
 	if not TargetEntry then
 		return false, "Target pet not found"
@@ -427,9 +414,30 @@ function PetSystem:FusePet(player: Player, targetUUID: string, catalystUUID: str
 
 	PlayerData.Pets[catalystUUID](nil)
 
-	RefreshPetModifiers(player)
-
 	return true, "Successfully fused pets"
+end
+
+function PetSystem:FusePet(player: Player, targetUUID: string, catalystUUID: string?): (boolean, string)
+	if not catalystUUID or catalystUUID == "" then
+		return false, "No catalyst selected"
+	end
+
+	if targetUUID == catalystUUID then
+		return false, "Cannot fuse a pet with itself"
+	end
+
+	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
+	if not PlayerData then
+		return false, "Invalid player data"
+	end
+
+	local Success, Message = PerformFuse(PlayerData, targetUUID, catalystUUID)
+
+	if Success then
+		RefreshPetModifiers(player)
+	end
+
+	return Success, Message
 end
 
 function PetSystem:FuseAll(player: Player, targetUUID: string): (boolean, string)
@@ -465,10 +473,14 @@ function PetSystem:FuseAll(player: Player, targetUUID: string): (boolean, string
 			break
 		end
 
-		local Success = self:FusePet(player, targetUUID, UUID)
+		local Success = PerformFuse(PlayerData, targetUUID, UUID)
 		if Success then
 			FusedAny = true
 		end
+	end
+
+	if FusedAny then
+		RefreshPetModifiers(player)
 	end
 
 	if not FusedAny then

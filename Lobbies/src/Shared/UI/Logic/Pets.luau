@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
 local UIFunctions = require(ReplicatedStorage.Shared.UI.UIFunctions)
@@ -26,6 +27,7 @@ local InventoryTemplate: GuiObject = nil
 local InventoryEntries: { [string]: GuiObject } = {}
 
 local EquippedFrame: Frame = nil
+local VanityNameLabel: TextLabel = nil
 
 local ConfirmationFrame: Frame = nil
 local PendingDelete: string? = nil
@@ -61,6 +63,19 @@ local EQUIPPED_NAME_COLOR = Color3.fromRGB(55, 255, 55)
 local DEFAULT_NAME_COLOR = Color3.fromRGB(255, 255, 255)
 
 local CAMERA_ANGLE = CFrame.Angles(0.08726646259971647, math.pi, 0)
+
+local CREATE_BUDGET_PER_FRAME = 6
+
+type QueuedCreate = {
+	Kind: "Inventory" | "Fusion",
+	UUID: string,
+	PetEntry: Types.PetData,
+}
+
+local CreateQueue: { QueuedCreate } = {}
+local QueueRunning = false
+
+local PetsDirty = false
 
 local function HideAllPetFrames()
 	Boxes.Visible = false
@@ -104,10 +119,20 @@ local function UpdateGoldAmount()
 end
 
 local function SetViewportModel(Viewport: ViewportFrame, petName: string)
+	if Viewport:GetAttribute("LoadedPet") == petName then
+		return
+	end
+
 	for _, child in Viewport:GetChildren() do
 		if child:IsA("Model") or child:IsA("BasePart") or child:IsA("Camera") then
 			child:Destroy()
 		end
+	end
+
+	Viewport:SetAttribute("LoadedPet", petName)
+
+	if petName == "" then
+		return
 	end
 
 	local Template = ReplicatedStorage.Resources.Pets:FindFirstChild(petName)
@@ -177,67 +202,61 @@ local function UpdateEquippedFrame()
 		if PetNameLabel then
 			PetNameLabel.Text = "No pet equipped"
 		end
-		return
-	end
+	else
+		EquippedFrame.Visible = true
 
-	EquippedFrame.Visible = true
+		local PetEntry = UIConstants.Data.Pets[EquippedUUID]()
+		if PetEntry then
+			if PetNameLabel then
+				PetNameLabel.Text = PetEntry.Name
+			end
 
-	local PetEntry = UIConstants.Data.Pets[EquippedUUID]()
-	if not PetEntry then
-		return
-	end
+			if Viewpet then
+				SetViewportModel(Viewpet, PetEntry.Name)
 
-	if PetNameLabel then
-		PetNameLabel.Text = PetEntry.Name
-	end
+				local Boost = Viewpet:FindFirstChild("Boost") :: TextLabel?
+				if Boost then
+					local DamagePercent = math.min(PetEntry.Level, PetsData.MaxLevel) / 2.857142857142857
+					Boost.Text = "Boost: " .. string.format("%.1f", DamagePercent) .. "%"
+				end
+			end
 
-	if Viewpet then
-		SetViewportModel(Viewpet, PetEntry.Name)
-
-		local Boost = Viewpet:FindFirstChild("Boost") :: TextLabel?
-		if Boost then
-			local DamagePercent = math.min(PetEntry.Level, PetsData.MaxLevel) / 2.857142857142857
-			Boost.Text = "Boost: " .. string.format("%.1f", DamagePercent) .. "%"
+			if UnequipB then
+				UnequipB.Visible = true
+			end
 		end
-	end
-
-	if UnequipB then
-		UnequipB.Visible = true
 	end
 
 	local VanityViewport = EquippedFrame:FindFirstChild("VanityPet") :: ViewportFrame?
-	if VanityViewport then
-		local VanityUnequipB = VanityViewport:FindFirstChild("UnequipB") :: TextButton?
-		local VanityNameLabel = VanityViewport:FindFirstChild("PetName") :: TextLabel?
+	if not VanityViewport then
+		return
+	end
 
-		if VanityUUID and VanityUUID ~= "" then
-			local VanityEntry = UIConstants.Data.Pets[VanityUUID]()
-			if VanityEntry then
-				SetViewportModel(VanityViewport, VanityEntry.Name)
-				if VanityNameLabel then
-					VanityNameLabel.Text = VanityEntry.Name
-				end
-				if VanityUnequipB then
-					VanityUnequipB.Visible = true
-				end
-			end
-		else
-			if VanityNameLabel then
-				VanityNameLabel.Text = "APPEARANCE"
-			end
+	local VanityUnequipB = VanityViewport:FindFirstChild("UnequipB") :: TextButton?
+
+	if VanityUUID and VanityUUID ~= "" then
+		local VanityEntry = UIConstants.Data.Pets[VanityUUID]()
+		if VanityEntry then
+			SetViewportModel(VanityViewport, VanityEntry.Name)
 			if VanityUnequipB then
-				VanityUnequipB.Visible = false
+				VanityUnequipB.Visible = true
 			end
+			return
 		end
+	end
+
+	SetViewportModel(VanityViewport, "")
+	if VanityUnequipB then
+		VanityUnequipB.Visible = false
 	end
 end
 
-local function UpdateEntry(Entry: GuiObject, UUID: string, PetEntry: Types.PetData)
+local function UpdateEntryStats(Entry: GuiObject, UUID: string, PetEntry: Types.PetData)
 	local RarityType = Entry:FindFirstChild("RarityType") :: TextLabel?
 	local PetType = Entry:FindFirstChild("PetType") :: TextLabel?
 	local TalentLabel = Entry:FindFirstChild("Talent") :: TextLabel?
 	local Viewpet = Entry:FindFirstChild("Viewpet") :: ViewportFrame?
-	local PetLevel = Viewpet:FindFirstChild("PetLevel") :: TextLabel?
+	local PetLevel = Viewpet and (Viewpet:FindFirstChild("PetLevel") :: TextLabel?)
 	local Lock = Entry:FindFirstChild("Lock") :: ImageButton?
 
 	if RarityType then
@@ -262,11 +281,9 @@ local function UpdateEntry(Entry: GuiObject, UUID: string, PetEntry: Types.PetDa
 	end
 
 	if Viewpet then
-		SetViewportModel(Viewpet, PetEntry.Name)
-
-		local Fusion = Viewpet:FindFirstChild("Fusion") :: TextLabel?
-		if Fusion then
-			Fusion.Visible = SelectedCatalyst == UUID
+		local FusionLabel = Viewpet:FindFirstChild("Fusion") :: TextLabel?
+		if FusionLabel then
+			FusionLabel.Visible = SelectedCatalyst == UUID
 		end
 	end
 
@@ -282,7 +299,7 @@ local function UpdateEntry(Entry: GuiObject, UUID: string, PetEntry: Types.PetDa
 	end
 end
 
-local function CreateInventoryEntry(UUID: string, PetEntry: Types.PetData)
+local function CreateInventoryEntryImmediate(UUID: string, PetEntry: Types.PetData)
 	if InventoryEntries[UUID] or not InventoryTemplate then
 		return
 	end
@@ -292,7 +309,12 @@ local function CreateInventoryEntry(UUID: string, PetEntry: Types.PetData)
 	Entry.Visible = true
 	Entry.Parent = InventoryList
 
-	UpdateEntry(Entry, UUID, PetEntry)
+	local Viewpet = Entry:FindFirstChild("Viewpet") :: ViewportFrame?
+	if Viewpet then
+		SetViewportModel(Viewpet, PetEntry.Name)
+	end
+
+	UpdateEntryStats(Entry, UUID, PetEntry)
 
 	Entry.MouseButton1Click:Connect(function()
 		RemoteManager.SendServerEvent("EquipPet", UUID)
@@ -360,6 +382,8 @@ local function UpdateFusionPreview()
 	local TargetUUID = UIConstants.Data.EquippedPet()
 	if not TargetUUID or TargetUUID == "" then
 		HelpLabel.Text = "Equip a pet first"
+		SetViewportModel(FuserViewport, "")
+		SetViewportModel(CatalystViewport, "")
 		return
 	end
 
@@ -377,12 +401,7 @@ local function UpdateFusionPreview()
 	if not SelectedCatalyst then
 		HelpLabel.Text = "Choose a catalyst pet"
 		CatalystLevel.Text = ""
-
-		for _, child in CatalystViewport:GetChildren() do
-			if child:IsA("Model") or child:IsA("BasePart") or child:IsA("Camera") then
-				child:Destroy()
-			end
-		end
+		SetViewportModel(CatalystViewport, "")
 
 		BarAmount.Text = tostring(math.floor(TargetEntry.XP)) .. "/" .. tostring(math.floor(XPNeeded))
 		BarFill.Size = UDim2.fromScale(math.clamp(TargetEntry.XP / XPNeeded, 0, 1), 1)
@@ -460,7 +479,7 @@ local function SelectCatalyst(UUID: string?)
 	UpdateFusionPreview()
 end
 
-local function CreateFusionEntry(UUID: string, PetEntry: Types.PetData)
+local function CreateFusionEntryImmediate(UUID: string, PetEntry: Types.PetData)
 	if FusionEntries[UUID] or not FusionTemplate then
 		return
 	end
@@ -498,7 +517,12 @@ local function CreateFusionEntry(UUID: string, PetEntry: Types.PetData)
 
 	if Select then
 		Select.MouseButton1Click:Connect(function()
-			if PetEntry.Locked or UUID == UIConstants.Data.VanityPet() then
+			local CurrentEntry = UIConstants.Data.Pets[UUID]()
+			if not CurrentEntry or CurrentEntry.Locked then
+				return
+			end
+
+			if UUID == UIConstants.Data.VanityPet() then
 				return
 			end
 
@@ -524,6 +548,86 @@ local function RemoveFusionEntry(UUID: string)
 		SelectedCatalyst = nil
 		UpdateFusionPreview()
 	end
+end
+
+local function ProcessCreateQueue()
+	if QueueRunning then
+		return
+	end
+	QueueRunning = true
+
+	task.spawn(function()
+		while #CreateQueue > 0 do
+			for _ = 1, CREATE_BUDGET_PER_FRAME do
+				local Item = table.remove(CreateQueue, 1)
+				if not Item then
+					break
+				end
+
+				if Item.Kind == "Inventory" then
+					CreateInventoryEntryImmediate(Item.UUID, Item.PetEntry)
+				else
+					CreateFusionEntryImmediate(Item.UUID, Item.PetEntry)
+				end
+			end
+
+			task.wait()
+		end
+
+		QueueRunning = false
+	end)
+end
+
+local function QueueInventoryEntry(UUID: string, PetEntry: Types.PetData)
+	table.insert(CreateQueue, { Kind = "Inventory", UUID = UUID, PetEntry = PetEntry })
+	ProcessCreateQueue()
+end
+
+local function QueueFusionEntry(UUID: string, PetEntry: Types.PetData)
+	table.insert(CreateQueue, { Kind = "Fusion", UUID = UUID, PetEntry = PetEntry })
+	ProcessCreateQueue()
+end
+
+local function RefreshFusionList()
+	local EquippedUUID = UIConstants.Data.EquippedPet()
+
+	for UUID in FusionEntries do
+		if UUID == EquippedUUID then
+			RemoveFusionEntry(UUID)
+		end
+	end
+
+	for UUID, PetEntry in UIConstants.Data.Pets() do
+		if UUID == EquippedUUID then
+			continue
+		end
+
+		if not FusionEntries[UUID] then
+			QueueFusionEntry(UUID, PetEntry)
+		end
+	end
+end
+
+local function RefreshAllEntryStats()
+	for UUID, Entry in InventoryEntries do
+		local PetEntry = UIConstants.Data.Pets[UUID]()
+		if PetEntry then
+			UpdateEntryStats(Entry, UUID, PetEntry)
+		end
+	end
+end
+
+local function MarkPetsDirty()
+	if PetsDirty then
+		return
+	end
+	PetsDirty = true
+
+	task.defer(function()
+		PetsDirty = false
+		RefreshAllEntryStats()
+		UpdateFusionPreview()
+	end)
 end
 
 local function GetRewardFrameCount(count: number): number?
@@ -628,21 +732,9 @@ local function SetupBoxTile(BoxFrame: Frame, rarity: string)
 	end
 end
 
-local function BuildFusionUI()
-	local ExistingClone = Fusion.Inside:FindFirstChild("PetFusionClone")
-	if ExistingClone then
-		ExistingClone:Destroy()
-	end
-
-	local Source = Templates:WaitForChild("PetFusion")
-	local Clone = Source:Clone()
-	Clone.Name = "PetFusionClone"
-	Clone.Visible = true
-	Clone.Parent = Fusion.Inside
-
-	FusionFrame = Clone :: Frame
+local function SetupFusionUI()
 	FusionPetsFrame = Fusion.Inside:WaitForChild("Pets") :: ScrollingFrame
-	FusionFrame = Fusion.Inside.FusionFrame :: Frame
+	FusionFrame = Fusion.Inside:WaitForChild("FusionFrame") :: Frame
 	FusionTemplate = Templates:WaitForChild("PetFusion") :: GuiObject
 	FusionTemplate.Visible = false
 
@@ -682,12 +774,8 @@ local function BuildFusionUI()
 	end
 
 	for UUID, PetEntry in UIConstants.Data.Pets() do
-		CreateFusionEntry(UUID, PetEntry)
+		QueueFusionEntry(UUID, PetEntry)
 	end
-
-	UIConstants.Data.Pets.OnKeyAdded(function(UUID: string, PetEntry: Types.PetData)
-		CreateFusionEntry(UUID, PetEntry)
-	end)
 end
 
 function PetUI.Init()
@@ -739,6 +827,14 @@ function PetUI.Init()
 
 	EquippedFrame = PetInventory.Inside:WaitForChild("EquippedFrame") :: Frame
 
+	local VanityViewport = EquippedFrame:FindFirstChild("VanityPet") :: ViewportFrame?
+	if VanityViewport then
+		VanityNameLabel = VanityViewport:FindFirstChild("PetName") :: TextLabel?
+		if VanityNameLabel then
+			VanityNameLabel.Text = "APPEARANCE"
+		end
+	end
+
 	ConfirmationFrame = PetInventory:WaitForChild("Confirmation") :: Frame
 	ConfirmationFrame.Visible = false
 
@@ -774,12 +870,11 @@ function PetUI.Init()
 	if FuseB then
 		FuseB.MouseButton1Click:Connect(function()
 			ShowFrame(Fusion)
-			BuildFusionUI()
+			SelectCatalyst(nil)
 			UpdateFusionPreview()
 		end)
 	end
 
-	local VanityViewport = EquippedFrame:FindFirstChild("VanityPet") :: ViewportFrame?
 	if VanityViewport then
 		local VanityUnequipB = VanityViewport:FindFirstChild("UnequipB") :: TextButton?
 		if VanityUnequipB then
@@ -790,13 +885,15 @@ function PetUI.Init()
 	end
 
 	for UUID, PetEntry in UIConstants.Data.Pets() do
-		CreateInventoryEntry(UUID, PetEntry)
+		QueueInventoryEntry(UUID, PetEntry)
 	end
 
 	UIConstants.Data.Pets.OnKeyAdded(function(UUID: string, PetEntry: Types.PetData)
-		CreateInventoryEntry(UUID, PetEntry)
+		QueueInventoryEntry(UUID, PetEntry)
 		UpdateInventoryAmount()
-		CreateFusionEntry(UUID, PetEntry)
+		if UUID ~= UIConstants.Data.EquippedPet() then
+			QueueFusionEntry(UUID, PetEntry)
+		end
 	end)
 
 	UIConstants.Data.Pets.OnKeyRemoved(function(UUID: string)
@@ -808,51 +905,21 @@ function PetUI.Init()
 	UIConstants.Data.EquippedPet.Changed(function()
 		UpdateEquippedFrame()
 		UpdateFusionPreview()
-		for UUID, Entry in InventoryEntries do
-			local PetEntry = UIConstants.Data.Pets[UUID]()
-			if PetEntry then
-				UpdateEntry(Entry, UUID, PetEntry)
-			end
-		end
+		RefreshFusionList()
+		RefreshAllEntryStats()
 	end)
 
 	UIConstants.Data.VanityPet.Changed(function()
 		UpdateEquippedFrame()
-		for UUID, Entry in InventoryEntries do
-			local PetEntry = UIConstants.Data.Pets[UUID]()
-			if PetEntry then
-				UpdateEntry(Entry, UUID, PetEntry)
-			end
-		end
+		RefreshAllEntryStats()
 	end)
 
-	UIConstants.Data.Pets.Changed(function()
-		for UUID, Entry in InventoryEntries do
-			local PetEntry = UIConstants.Data.Pets[UUID]()
-			if PetEntry then
-				UpdateEntry(Entry, UUID, PetEntry)
-			end
-		end
-		UpdateFusionPreview()
-	end)
+	UIConstants.Data.Pets.Changed(MarkPetsDirty)
+
+	SetupFusionUI()
 
 	UpdateEquippedFrame()
 	UpdateInventoryAmount()
-
-	Fusion.Back.MouseButton1Click:Connect(function()
-		SelectCatalyst(nil)
-		ShowFrame(PetInventory)
-	end)
-
-	local FuseAll = Fusion.Inside:FindFirstChild("FuseAll") :: TextButton?
-	if FuseAll then
-		FuseAll.MouseButton1Click:Connect(function()
-			local TargetUUID = UIConstants.Data.EquippedPet()
-			if TargetUUID and TargetUUID ~= "" then
-				RemoteManager.InvokeServerFunction("FusePet", TargetUUID, "All")
-			end
-		end)
-	end
 end
 
 return PetUI
