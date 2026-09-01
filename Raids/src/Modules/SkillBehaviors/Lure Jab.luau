@@ -5,12 +5,13 @@ local BuffsManager = require(ServerStorage.Modules.BuffsManager)
 local DamageHandler = require(ServerStorage.Modules.DamageHandler)
 local Hitbox = require(ServerStorage.Modules.Hitbox)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
+local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Behavior = {} :: Types.SkillBehavior
 
-local EFFECT_ID = "LureJab"
-local BASE_VALUE = 1.5
+local EFFECT_ID = "Lure Jab"
+local BASE_DEFENSE_MULTIPLIER = 0.5
 local BASE_DURATION = 5
 
 function Behavior:Execute(caster: Player, definition: Types.SkillDefinition)
@@ -27,8 +28,11 @@ function Behavior:Execute(caster: Player, definition: Types.SkillDefinition)
 	local RuneInfo = PlayerData and Functions:GetEquippedItemInfo(PlayerData, "Rune")
 	local Override = RuneInfo and RuneInfo.EffectOverrides and RuneInfo.EffectOverrides[EFFECT_ID]
 
-	local EffectValue = (Override and Override.Value) or BASE_VALUE
+	local DefenseMultiplier = (Override and Override.Value) or BASE_DEFENSE_MULTIPLIER
 	local HealPercent = Override and Override.HealPercent
+
+	RemoteManager.SendClientEvent("SkillVFX", { All = true }, "Lure Jab", Character)
+	RemoteManager.SendClientEvent("SkillAnimation", { All = true }, Character, "Lure Jab", 0.1)
 
 	Hitbox:Create({
 		Size = Vector3.new(10, 10, 10),
@@ -41,12 +45,18 @@ function Behavior:Execute(caster: Player, definition: Types.SkillDefinition)
 			DamageHandler:dealDamage(Character, HitEntity, definition.Multiplier)
 
 			BuffsManager:Apply(HitEntity, EFFECT_ID, {
-				Property = "IncomingDamage",
+				Property = "Defense",
 				Operation = "Multiply",
-				Value = EffectValue,
+				Value = DefenseMultiplier,
 				Duration = BASE_DURATION,
 				Source = caster,
 			})
+
+			RemoteManager.SendClientEvent("BuffVFX", { All = true }, EFFECT_ID, HitEntity, "Start", BASE_DURATION)
+
+			task.delay(BASE_DURATION, function()
+				RemoteManager.SendClientEvent("BuffVFX", { All = true }, EFFECT_ID, HitEntity, "End")
+			end)
 
 			if HealPercent then
 				local Humanoid = Character:FindFirstChildOfClass("Humanoid")

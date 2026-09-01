@@ -21,8 +21,21 @@ local VanityButton: TextButton = nil
 local EquippedFrame: Frame = nil
 local VanitiesFrame: Frame = nil
 
+local Bank: Frame = nil
+local BankContainer: ScrollingFrame = nil
+local BankItemLimit: TextLabel = nil
+local BankStackMove: TextBox = nil
+local MainStackMove: TextBox = nil
+local MainStackSell: TextBox = nil
+local BottomFrame: Frame = nil
+local AdvancedFrame: Frame = nil
+local SellFrame: Frame = nil
+local StorageFrame: Frame = nil
+
 local Entries: { [string]: TextButton } = {}
 local EntryNames: { [string]: string } = {}
+local DefaultColors: { [string]: Color3 } = {}
+local BankEntries: { [string]: TextButton } = {}
 
 local ActionConnections: { RBXScriptConnection } = {}
 local GeneralConnections: { RBXScriptConnection } = {}
@@ -30,6 +43,15 @@ local UsableConnections: { RBXScriptConnection } = {}
 
 local StatLabels = { "ATK", "CRT", "SPD", "DEF", "HP" }
 local StatKeys = { ATK = "Attack", CRT = "Critical", SPD = "Speed", DEF = "Defense", HP = "Health" }
+local PercentStats = { CRT = true }
+
+local SELECTED_COLOR = Color3.fromRGB(171, 0, 0)
+local SELL_LIMIT = 25
+
+local SellMode = false
+local StorageOpen = false
+local SellList: { [string]: number } = {}
+local SellTotal = 0
 
 local EquippedLabelColors: { [string]: Color3 } = {
 	Weapon = Color3.fromRGB(255, 255, 255),
@@ -42,6 +64,8 @@ local EquippedLabelColors: { [string]: Color3 } = {
 	WeaponVanity = Color3.fromRGB(255, 255, 255),
 	AuraVanity = Color3.fromRGB(255, 255, 25),
 }
+
+local GOLD_COLOR_HEX = "#FFD500"
 
 local SlotOrder: { [string]: number } = {
 	Weapon = 1,
@@ -218,7 +242,12 @@ local function OpenGeneralFrame(UUID: string, ItemData: Types.ItemData, ItemInfo
 
 	for _, statLabel in StatLabels do
 		local StatValue = ItemInfo.Stats[StatKeys[statLabel]] or 0
-		Inner.Stats[statLabel].Text = statLabel .. ": " .. tostring(StatValue)
+
+		if PercentStats[statLabel] then
+			Inner.Stats[statLabel].Text = statLabel .. ": " .. string.format("%.1f", StatValue) .. "%"
+		else
+			Inner.Stats[statLabel].Text = statLabel .. ": " .. tostring(StatValue)
+		end
 	end
 
 	local SubType = ItemInfo.Data.SubType
@@ -316,6 +345,215 @@ local function OnItemClicked(UUID: string)
 	end
 end
 
+local function CountSelected(): number
+	local Count = 0
+	for _ in SellList do
+		Count += 1
+	end
+	return Count
+end
+
+local function GetSellValue(ItemInfo: Types.Item, Amount: number): number
+	return (ItemInfo.Data.SellsFor or 0) * Amount
+end
+
+local function UpdateSellLabel()
+	ItemLimit.Text = "Selling: "
+		.. CountSelected()
+		.. "/"
+		.. SELL_LIMIT
+		.. '  <font color="'
+		.. GOLD_COLOR_HEX
+		.. '">Gold: '
+		.. SellTotal
+		.. "</font>"
+end
+local function OpenStackSell(UUID: string, Button: TextButton, ItemData: Types.ItemData, ItemInfo: Types.Item)
+	MainStackSell.Visible = true
+	MainStackSell.Text = tostring(ItemData.Amount)
+
+	local Connection: RBXScriptConnection
+	Connection = MainStackSell.TextButton.MouseButton1Click:Connect(function()
+		local Wanted = tonumber(MainStackSell.Text)
+		if Wanted and Wanted >= 1 and Wanted <= ItemData.Amount then
+			SellList[UUID] = math.floor(Wanted)
+			SellTotal += GetSellValue(ItemInfo, SellList[UUID])
+			Button.BackgroundColor3 = SELECTED_COLOR
+			UpdateSellLabel()
+		end
+
+		MainStackSell.Visible = false
+		Connection:Disconnect()
+	end)
+end
+
+local function ToggleSellSelection(UUID: string, Button: TextButton, ItemData: Types.ItemData, ItemInfo: Types.Item)
+	if SellList[UUID] then
+		SellTotal -= GetSellValue(ItemInfo, SellList[UUID])
+		SellList[UUID] = nil
+		Button.BackgroundColor3 = DefaultColors[UUID] or Button.BackgroundColor3
+		UpdateSellLabel()
+		return
+	end
+
+	if CountSelected() >= SELL_LIMIT then
+		return
+	end
+
+	if ItemInfo.Data.Stackable and ItemData.Amount > 1 then
+		OpenStackSell(UUID, Button, ItemData, ItemInfo)
+		return
+	end
+
+	SellList[UUID] = ItemData.Amount
+	SellTotal += GetSellValue(ItemInfo, ItemData.Amount)
+	Button.BackgroundColor3 = SELECTED_COLOR
+	UpdateSellLabel()
+end
+
+local function UpdateItemLimit()
+	if not ItemLimit or SellMode then
+		return
+	end
+
+	local Current = UIConstants.Data.CurrentInventorySpace()
+	local Max = UIConstants.Data.MaxInventorySpace()
+
+	ItemLimit.Text = Current .. "/" .. Max
+end
+
+local function ExitSellMode()
+	SellMode = false
+
+	for UUID, Button in Entries do
+		Button.BackgroundColor3 = DefaultColors[UUID] or Button.BackgroundColor3
+	end
+
+	SellList = {}
+	SellTotal = 0
+
+	SellFrame.Sell.Visible = true
+	SellFrame.Cancel.Visible = false
+	AdvancedFrame.Confirm.Visible = false
+	AdvancedFrame.Drink.Visible = true
+	SearchBox.Visible = true
+
+	UpdateItemLimit()
+end
+
+local function EnterSellMode()
+	if StorageOpen then
+		return
+	end
+
+	SellMode = true
+	SellList = {}
+	SellTotal = 0
+
+	SellFrame.Sell.Visible = false
+	SellFrame.Cancel.Visible = true
+	AdvancedFrame.Confirm.Visible = true
+	AdvancedFrame.Drink.Visible = false
+	SearchBox.Visible = false
+
+	UpdateSellLabel()
+end
+
+local function ConfirmSell()
+	if next(SellList) then
+		RemoteManager.SendServerEvent("SellItem", SellList)
+	end
+
+	ExitSellMode()
+end
+
+local function RequestDeposit(UUID: string, ItemData: Types.ItemData, ItemInfo: Types.Item)
+	if ItemInfo.Data.Stackable and ItemData.Amount > 1 then
+		MainStackMove.Visible = true
+		MainStackMove.Text = tostring(ItemData.Amount)
+
+		local Connection: RBXScriptConnection
+		Connection = MainStackMove.TextButton.MouseButton1Click:Connect(function()
+			local Wanted = tonumber(MainStackMove.Text)
+			if Wanted and Wanted >= 1 and Wanted <= ItemData.Amount then
+				RemoteManager.SendServerEvent("StorageDeposit", UUID, math.floor(Wanted))
+			end
+
+			MainStackMove.Visible = false
+			Connection:Disconnect()
+		end)
+		return
+	end
+
+	RemoteManager.SendServerEvent("StorageDeposit", UUID, 1)
+end
+
+local function RequestWithdraw(UUID: string, ItemData: Types.ItemData, ItemInfo: Types.Item)
+	if ItemInfo.Data.Stackable and ItemData.Amount > 1 then
+		BankStackMove.Visible = true
+		BankStackMove.Text = tostring(ItemData.Amount)
+
+		local Connection: RBXScriptConnection
+		Connection = BankStackMove.TextButton.MouseButton1Click:Connect(function()
+			local Wanted = tonumber(BankStackMove.Text)
+			if Wanted and Wanted >= 1 and Wanted <= ItemData.Amount then
+				RemoteManager.SendServerEvent("StorageWithdraw", UUID, math.floor(Wanted))
+			end
+
+			BankStackMove.Visible = false
+			Connection:Disconnect()
+		end)
+		return
+	end
+
+	RemoteManager.SendServerEvent("StorageWithdraw", UUID, 1)
+end
+
+local function CloseStorage()
+	StorageOpen = false
+	Bank.Visible = false
+	StorageFrame.Storage.Visible = true
+	StorageFrame.Cancel.Visible = false
+end
+
+local function OpenStorage()
+	if SellMode then
+		return
+	end
+
+	StorageOpen = true
+	Bank.Visible = true
+	StorageFrame.Storage.Visible = false
+	StorageFrame.Cancel.Visible = true
+end
+
+local function HandleEntryClick(UUID: string)
+	local ItemData = UIConstants.Data.Inventory[UUID]()
+	if not ItemData then
+		return
+	end
+
+	local ItemInfo = ItemsData[ItemData.ID] :: Types.Item
+	if not ItemInfo then
+		return
+	end
+
+	if SellMode then
+		ToggleSellSelection(UUID, Entries[UUID], ItemData, ItemInfo)
+		return
+	end
+
+	if StorageOpen then
+		if ItemData.Equipped then
+			return
+		end
+		RequestDeposit(UUID, ItemData, ItemInfo)
+		return
+	end
+
+	OnItemClicked(UUID)
+end
+
 local function CreateEntry(UUID: string, ItemData: Types.ItemData)
 	if Entries[UUID] or not Template then
 		return
@@ -328,8 +566,10 @@ local function CreateEntry(UUID: string, ItemData: Types.ItemData)
 
 	UpdateEntry(Button, ItemData)
 
+	DefaultColors[UUID] = Button.BackgroundColor3
+
 	Button.MouseButton1Click:Connect(function()
-		OnItemClicked(UUID)
+		HandleEntryClick(UUID)
 	end)
 
 	Entries[UUID] = Button
@@ -353,18 +593,71 @@ local function RemoveEntry(UUID: string)
 		Button:Destroy()
 		Entries[UUID] = nil
 		EntryNames[UUID] = nil
+		DefaultColors[UUID] = nil
+	end
+
+	if SellList[UUID] then
+		SellTotal -= 0
+		SellList[UUID] = nil
+		if SellMode then
+			UpdateSellLabel()
+		end
 	end
 end
 
-local function UpdateItemLimit()
-	if not ItemLimit then
+local function CreateBankEntry(UUID: string, ItemData: Types.ItemData)
+	if BankEntries[UUID] or not Template then
 		return
 	end
 
-	local Current = UIConstants.Data.CurrentInventorySpace()
-	local Max = UIConstants.Data.MaxInventorySpace()
+	local Button = Template:Clone()
+	Button.Name = UUID
+	Button.LayoutOrder = DEFAULT_LAYOUT_ORDER
+	Button.Parent = BankContainer
 
-	ItemLimit.Text = Current .. "/" .. Max
+	UpdateEntry(Button, ItemData)
+
+	Button.MouseButton1Click:Connect(function()
+		local CurrentData = UIConstants.Data.Storage[UUID]()
+		if not CurrentData then
+			return
+		end
+
+		local ItemInfo = ItemsData[CurrentData.ID] :: Types.Item
+		if not ItemInfo then
+			return
+		end
+
+		RequestWithdraw(UUID, CurrentData, ItemInfo)
+	end)
+
+	BankEntries[UUID] = Button
+
+	UIConstants.Data.Storage[UUID].Amount.Changed(function()
+		local CurrentData = UIConstants.Data.Storage[UUID]()
+		if CurrentData then
+			UpdateEntry(Button, CurrentData)
+		end
+	end)
+end
+
+local function RemoveBankEntry(UUID: string)
+	local Button = BankEntries[UUID]
+	if Button then
+		Button:Destroy()
+		BankEntries[UUID] = nil
+	end
+end
+
+local function UpdateBankLimit()
+	if not BankItemLimit then
+		return
+	end
+
+	local Current = UIConstants.Data.CurrentStorageSpace()
+	local Max = UIConstants.Data.MaxStorageSpace()
+
+	BankItemLimit.Text = Current .. "/" .. Max
 end
 
 local function UpdateEquippedSlot(slot: string, UUID: string)
@@ -511,10 +804,31 @@ function Inventory.Init()
 	EquippedFrame = EquippedContainer :: Frame
 	VanitiesFrame = VanitiesContainer :: Frame
 
+	Bank = Main:WaitForChild("Bank") :: Frame
+	BankContainer = Bank:WaitForChild("ScrollingFrame") :: ScrollingFrame
+	BankItemLimit = Bank:WaitForChild("ItemLimit") :: TextLabel
+	BankStackMove = Bank:WaitForChild("StackMove") :: TextBox
+
+	MainStackMove = Main:WaitForChild("StackMove") :: TextBox
+	MainStackSell = Main:WaitForChild("StackSell") :: TextBox
+
+	BottomFrame = Main:WaitForChild("Bottom") :: Frame
+	AdvancedFrame = BottomFrame:WaitForChild("Advanced") :: Frame
+	SellFrame = BottomFrame:WaitForChild("Sell") :: Frame
+	StorageFrame = BottomFrame:WaitForChild("Storage") :: Frame
+
 	ActionFrame.Visible = false
 	GeneralFrame.Visible = false
 	UsableFrame.Visible = false
 	VanitiesFrame.Visible = false
+	Bank.Visible = false
+	MainStackMove.Visible = false
+	MainStackSell.Visible = false
+	BankStackMove.Visible = false
+
+	SellFrame.Cancel.Visible = false
+	AdvancedFrame.Confirm.Visible = false
+	StorageFrame.Cancel.Visible = false
 
 	local GridLayout = Container:FindFirstChildOfClass("UIGridLayout")
 	if GridLayout then
@@ -535,7 +849,39 @@ function Inventory.Init()
 		UpdateItemLimit()
 	end)
 
+	UIConstants.Data.CurrentInventorySpace.Changed(function()
+		UpdateItemLimit()
+	end)
+
+	UIConstants.Data.MaxInventorySpace.Changed(function()
+		UpdateItemLimit()
+	end)
+
+	UIConstants.Data.CurrentStorageSpace.Changed(function()
+		UpdateBankLimit()
+	end)
+
+	UIConstants.Data.MaxStorageSpace.Changed(function()
+		UpdateBankLimit()
+	end)
+
 	UpdateItemLimit()
+
+	for UUID, ItemData in UIConstants.Data.Storage() do
+		CreateBankEntry(UUID, ItemData)
+	end
+
+	UIConstants.Data.Storage.OnKeyAdded(function(UUID: string, ItemData: Types.ItemData)
+		CreateBankEntry(UUID, ItemData)
+		UpdateBankLimit()
+	end)
+
+	UIConstants.Data.Storage.OnKeyRemoved(function(UUID: string)
+		RemoveBankEntry(UUID)
+		UpdateBankLimit()
+	end)
+
+	UpdateBankLimit()
 
 	for slot, UUID in UIConstants.Data.Equipment() do
 		UpdateEquippedSlot(slot, UUID)
@@ -564,8 +910,15 @@ function Inventory.Init()
 	SetupVanityUnequip()
 	SetupVanityToggle()
 
-	local DrinkButton = Main:WaitForChild("Bottom"):WaitForChild("Advanced"):WaitForChild("Drink") :: TextButton
+	local DrinkButton = AdvancedFrame:WaitForChild("Drink") :: TextButton
 	SetupDrinkAll(DrinkButton)
+
+	SellFrame.Sell.MouseButton1Click:Connect(EnterSellMode)
+	SellFrame.Cancel.MouseButton1Click:Connect(ExitSellMode)
+	AdvancedFrame.Confirm.MouseButton1Click:Connect(ConfirmSell)
+
+	StorageFrame.Storage.MouseButton1Click:Connect(OpenStorage)
+	StorageFrame.Cancel.MouseButton1Click:Connect(CloseStorage)
 
 	SearchBox:GetPropertyChangedSignal("Text"):Connect(ApplySearchFilter)
 end

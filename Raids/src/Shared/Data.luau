@@ -1,6 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local DataService = require(ReplicatedStorage.Packages.dataservicetyped)
+local DataService = require(ReplicatedStorage.Packages.DataServiceTyped)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local template: Types.PlayerData = {
@@ -12,9 +12,16 @@ local template: Types.PlayerData = {
 	Honor = 0,
 	PlayTime = 0,
 	Inventory = {} :: { [string]: Types.ItemData },
+	Storage = {} :: { [string]: Types.ItemData },
+	Pets = {} :: { [string]: Types.PetData },
+	EquippedPet = "",
+	VanityPet = "",
 	Settings = {
 		Music = true,
-		CameraShake = true,
+		["Potion Toggle"] = true,
+		["Party Invites"] = true,
+		["Trade Offers"] = true,
+		["Damage Checker"] = false,
 	},
 	Equipment = {
 		Weapon = "",
@@ -26,6 +33,8 @@ local template: Types.PlayerData = {
 	},
 	MaxInventorySpace = 100,
 	CurrentInventorySpace = 0,
+	MaxStorageSpace = 100,
+	CurrentStorageSpace = 0,
 	Skills = {
 		Q = "",
 		E = "",
@@ -55,6 +64,9 @@ local template: Types.PlayerData = {
 	LastDailyReward = 0,
 	TotalDailyRewards = 0,
 	DailyStreak = 0,
+	RaidRuns = {},
+	RaidRecords = {},
+	RaidAutoDelete = {},
 }
 
 return DataService({ template = template, profileStoreIndex = "PlayersData2" })

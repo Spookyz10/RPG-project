@@ -1,25 +1,29 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
-local Raid = {
+local Raid: Types.RaidInfo = {
 	Name = "Pirate Captain",
 	RequiredLevel = 25,
+	Image = "4739644274",
+	Category = "Standard",
+	Difficulties = { "Normal", "Hardcore" },
 	Drops = {
-		["Pirate Scmitar"] = 15,
-		["Small Health Potion"] = 50,
-		["Small Attack Potion"] = 50,
-		["Small Speed Potion"] = 10,
-		["Small Defense Potion"] = 15,
+		Normal = {
+			["Pirate Scmitar"] = 15,
+			["Small Health Potion"] = 50,
+			["Small Attack Potion"] = 50,
+			["Small Speed Potion"] = 10,
+			["Small Defense Potion"] = 15,
+		},
+		Hardcore = {
+			["Pirate Scmitar"] = 30,
+			["Small Health Potion"] = 50,
+			["Small Attack Potion"] = 50,
+			["Small Speed Potion"] = 10,
+			["Small Defense Potion"] = 15,
+			["Pirate Captain Armor"] = 10,
+		},
 	},
-	HCDrops = {
-		["Pirate Scmitar"] = 30,
-		["Small Health Potion"] = 50,
-		["Small Attack Potion"] = 50,
-		["Small Speed Potion"] = 10,
-		["Small Defense Potion"] = 15,
-		["Pirate Captain Armor"] = 10,
-	},
-	Time = 600,
 } :: Types.RaidInfo
 
 return Raid

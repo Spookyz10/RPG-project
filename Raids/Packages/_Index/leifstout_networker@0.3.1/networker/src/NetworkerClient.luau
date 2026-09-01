@@ -63,7 +63,7 @@ function NetworkerClient.new(networkTag: NetworkTag, module: {}): NetworkerClien
 		self:destroy()
 	end)
 
-	remotes.RemoteEvent.OnClientEvent:Connect(function(method: string, key: string, ...: any?)
+	remotes:WaitForChild("RemoteEvent").OnClientEvent:Connect(function(method: string, key: string, ...: any?)
 		if method == NetworkerUtils.SET_TAG then
 			module[key] = ...
 			if self.changedSignals[key] then
@@ -100,7 +100,7 @@ end
 ]=]
 function NetworkerClient.fire(self: NetworkerClient, method: string, ...: any?): ()
 	if RunService:IsRunning() then
-		self.remotes.RemoteEvent:FireServer(method, ...)
+		self.remotes:WaitForChild("RemoteEvent"):FireServer(method, ...)
 	end
 end
 
@@ -116,7 +116,7 @@ function NetworkerClient.fetch(self: NetworkerClient, method: string, ...: any):
 		return nil
 	end
 
-	return self.remotes.RemoteFunction:InvokeServer(method, ...)
+	return self.remotes:WaitForChild("RemoteFunction"):InvokeServer(method, ...)
 end
 
 --[=[

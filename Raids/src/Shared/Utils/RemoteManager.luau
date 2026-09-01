@@ -21,17 +21,39 @@ local Remotes = {
 	DrinkAllPotions = "Server",
 	InviteToParty = "Server",
 	LeaveParty = "Server",
+	StorageDeposit = "Server",
+	StorageWithdraw = "Server",
+	EquipPet = "Server",
+	UnequipPet = "Server",
+	VanityEquipPet = "Server",
+	VanityUnequipPet = "Server",
+	LockPet = "Server",
+	RemovePet = "Server",
+	ClearPets = "Server",
+	RaidEvent = "Server",
+	AcceptPartyInvite = "Server",
+	DeclinePartyInvite = "Server",
+	KickFromParty = "Server",
+	ItemToggle = "Server",
 
+	RaidStarted = "Client",
+	RaidCompleted = "Client",
+	PartyInvite = "Client",
+	PartyUpdate = "Client",
 	SkillVFX = "Client",
 	SkillAnimation = "Client",
 	Damage = "Client",
 	SkillCooldown = "Client",
 	Indicator = "Client",
 	BuffVFX = "Client",
+	Notification = "Client",
 }
 
 local RemoteFunctions = {
 	GetPlayerInfo = "Server",
+	FusePet = "Server",
+	BuyPetBox = "Server",
+	RerollTalent = "Server",
 }
 
 local RemoteCache: { [string]: Instance } = {}

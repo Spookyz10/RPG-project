@@ -4,7 +4,7 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Raid: Types.RaidInfo = {
 	Name = "Pirate Captain",
 	RequiredLevel = 25,
-	Image = "4739644274",
+	Image = "4553485683",
 	Category = "Standard",
 	Difficulties = { "Normal", "Hardcore" },
 	Drops = {
@@ -21,7 +21,7 @@ local Raid: Types.RaidInfo = {
 			["Small Attack Potion"] = 50,
 			["Small Speed Potion"] = 10,
 			["Small Defense Potion"] = 15,
-			["Pirate Captain Armor"] = 10,
+			["Pirate Coat"] = 10,
 		},
 	},
 } :: Types.RaidInfo

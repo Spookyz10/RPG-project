@@ -19,6 +19,7 @@ local function CreateEntry(skillName: string, SkillInfo: Types.SkillDefinition)
 
 	local Entry = Template:Clone()
 	Entry.Name = skillName
+	Entry.LayoutOrder = SkillInfo.LevelRequirement
 	Entry.Icon.Image = SkillInfo.Icon
 	Entry.Visible = true
 
@@ -64,6 +65,20 @@ local function SetupSidebar(Sidebar: Instance)
 	end
 end
 
+local function GetSortedSkillNames(): { string }
+	local SortedNames = {}
+
+	for skillName in Skills do
+		table.insert(SortedNames, skillName)
+	end
+
+	table.sort(SortedNames, function(a, b)
+		return Skills[a].LevelRequirement < Skills[b].LevelRequirement
+	end)
+
+	return SortedNames
+end
+
 function SkillSelector.Init()
 	local SkillSelectorGui = UIConstants.PlayerGui:WaitForChild("SkillSelector")
 	local Frame = SkillSelectorGui:WaitForChild("Frame")
@@ -83,8 +98,8 @@ function SkillSelector.Init()
 
 	SetupSidebar(Frame:WaitForChild("Sidebar"))
 
-	for skillName, SkillInfo in Skills do
-		CreateEntry(skillName, SkillInfo)
+	for _, skillName in GetSortedSkillNames() do
+		CreateEntry(skillName, Skills[skillName])
 	end
 end
 

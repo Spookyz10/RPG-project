@@ -101,7 +101,7 @@ function PartyUI.Init()
 	Partylist = UIConstants.PlayerGui:WaitForChild("Partylist") :: ScreenGui
 	Frame = Partylist:WaitForChild("Frame") :: Frame
 	LeaveButton = Partylist:WaitForChild("Leave") :: TextButton
-	Template = Frame:WaitForChild("HP") :: Frame
+	Template = ReplicatedStorage.Resources.UI.Templates:WaitForChild("PartyEntry") :: Frame
 
 	Frame.Visible = false
 	LeaveButton.Visible = false

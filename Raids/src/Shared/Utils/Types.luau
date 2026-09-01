@@ -15,10 +15,10 @@ export type PlayerData = {
 	PlayTime: number,
 	Honor: number,
 	Inventory: { [string]: ItemData },
-	Settings: {
-		Music: boolean,
-		CameraShake: boolean,
-	},
+	Storage: { [string]: ItemData },
+	Pets: { [string]: PetData },
+	EquippedPet: string,
+	VanityPet: string,
 	Equipment: {
 		Weapon: string,
 		Armor: string,
@@ -33,6 +33,8 @@ export type PlayerData = {
 	},
 	MaxInventorySpace: number,
 	CurrentInventorySpace: number,
+	MaxStorageSpace: number,
+	CurrentStorageSpace: number,
 	Skills: {
 		Q: string,
 		E: string,
@@ -47,6 +49,16 @@ export type PlayerData = {
 	LastDailyReward: number,
 	TotalDailyRewards: number,
 	DailyStreak: number,
+	Settings: {
+		Music: boolean,
+		["Potion Toggle"]: boolean,
+		["Party Invites"]: boolean,
+		["Trade Offers"]: boolean,
+		["Damage Checker"]: boolean,
+	},
+	RaidRuns: { [string]: number },
+	RaidRecords: { [string]: { [string]: number } },
+	RaidAutoDelete: { [string]: boolean },
 }
 
 export type Drop = {
@@ -124,6 +136,12 @@ export type Equipment = ItemBase<Equipment> & {
 			Cooldown: number?,
 			EffectValue: number?,
 			EffectDuration: number?,
+			HealPercent: number?,
+		},
+	}?,
+	EffectOverrides: {
+		[string]: {
+			Value: number?,
 			HealPercent: number?,
 		},
 	}?,
@@ -233,8 +251,11 @@ export type QuestInfo = {
 export type RaidInfo = {
 	Name: string,
 	RequiredLevel: number,
-	Drops: { [string]: number },
-	HCDrops: { [string]: number },
+	Image: string,
+	Category: string,
+	Warning: boolean?,
+	Difficulties: { string },
+	Drops: { [string]: { [string]: number } },
 }
 
 export type DamageContext = {
@@ -247,6 +268,29 @@ export type DamageContext = {
 	Multiplier: number?,
 	Tags: { string },
 	Cancelled: boolean,
+}
+
+export type PetData = {
+	Name: string,
+	Rarity: string,
+	Level: number,
+	XP: number,
+	Talent: string,
+	Locked: boolean,
+}
+
+export type TalentEffect = {
+	Stat: string,
+	Type: "Flat" | "Percentage",
+	Value: number,
+}
+
+export type TalentInfo = {
+	Rarity: string,
+	Weight: number,
+	Unique: string?,
+	HealsOverTime: boolean?,
+	Effects: { TalentEffect },
 }
 
 return {}

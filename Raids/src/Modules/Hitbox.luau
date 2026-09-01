@@ -82,11 +82,23 @@ function Hitbox:Create(info: Types.HitboxInfo): (BasePart, HitboxResults)
 	local AllPlayersHit: { [Model]: Model } = {}
 	local AllMobsHit: { [Model]: Model } = {}
 
+	local CasterIsPlayer = info.Caster ~= nil and Players:GetPlayerFromCharacter(info.Caster) ~= nil
+
+	local function ShouldSkipForPvP(Model: Model): boolean
+		if not CasterIsPlayer then
+			return false
+		end
+		return Players:GetPlayerFromCharacter(Model) ~= nil
+	end
+
 	local function ProcessHits()
 		local Results = Hitbox.GetHitModels(Part)
 
 		for Model in Results.Players do
 			if HitList[Model] or Model == info.Caster then
+				continue
+			end
+			if ShouldSkipForPvP(Model) then
 				continue
 			end
 			HitList[Model] = true
@@ -99,6 +111,9 @@ function Hitbox:Create(info: Types.HitboxInfo): (BasePart, HitboxResults)
 
 		for Model in Results.Mobs do
 			if HitList[Model] or Model == info.Caster then
+				continue
+			end
+			if ShouldSkipForPvP(Model) then
 				continue
 			end
 			HitList[Model] = true

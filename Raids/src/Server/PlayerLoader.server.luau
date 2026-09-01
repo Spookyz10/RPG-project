@@ -10,14 +10,16 @@ local CollisionGroups = require(ReplicatedStorage.Shared.CollisionGroups)
 local WeldSystem = require(ReplicatedStorage.Shared.Utils.WeldSystem)
 local WeaponLoader = require(ServerStorage.Modules.WeaponLoader)
 local HealthManager = require(ServerStorage.Modules.HealthManager)
+local PetTalentManager = require(ServerStorage.Modules.PetTalentManager)
+local PetFollowManager = require(ServerStorage.Modules.PetFollowManager)
 
 local Data = require(ReplicatedStorage.Shared.Data).server
 local InventoryManager = require(ServerStorage.Modules.InventoryManager)
 local PartySystem = require(ServerStorage.Modules.PartySystem)
-local RaidManager = require(ServerStorage.Modules.RaidManager)
-
 local SpeedManager = require(ServerStorage.Modules.SpeedManager)
 local StatsReplicator = require(ServerStorage.Modules.StatsReplicator)
+
+local RESPAWN_TIME = 6
 
 local function LoadPlayer(Player: Player)
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
@@ -37,8 +39,14 @@ local function LoadPlayer(Player: Player)
 	WeaponLoader:Listen(Player)
 	HealthManager:Listen(Player)
 	StatsReplicator:Listen(Player)
+	PetTalentManager:Listen(Player)
+	PetTalentManager:LoadFromData(Player)
+	PetFollowManager:Listen(Player)
+	Player:LoadCharacterAsync()
 
 	DailyReward.ResetDailyStreak(Player)
+
+	Player:WaitForChild("PlayerGui").LoadingScreen.Enabled = true
 end
 
 local function SetupHitbox(Character: Model)
@@ -78,20 +86,15 @@ local function SetupCharacter(Player: Player, Character: Model)
 				return current + 1
 			end)
 		end
+
+		task.wait(RESPAWN_TIME)
+		if Player and Player.Parent then
+			Player:LoadCharacterAsync()
+		end
 	end)
 end
 
-local Loaded = false
-
 Players.PlayerAdded:Connect(function(player: Player)
-	if not Loaded then
-		local info = player:GetJoinData().TeleportData
-		if info then
-			RaidManager.LoadRaid(info.RaidName)
-			Loaded = true
-		end
-	end
-
 	player.CharacterAdded:Connect(function(character)
 		CollisionGroups:Apply(character)
 		SetupCharacter(player, character)
@@ -107,4 +110,6 @@ Players.PlayerRemoving:Connect(function(Player)
 	SpeedManager.OnPlayerRemoved(Player)
 	StatsReplicator.OnPlayerRemoved(Player)
 	PartySystem:OnPlayerRemoved(Player)
+	PetTalentManager.OnPlayerRemoved(Player)
+	PetFollowManager.OnPlayerRemoved(Player)
 end)

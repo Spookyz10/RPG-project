@@ -5,7 +5,7 @@ registry = "test"
 [[package]]
 name = "azvar/rpg"
 version = "0.1.0"
-dependencies = [["dataservicetyped", "leifstout/dataservicetyped@1.0.5"]]
+dependencies = [["DataServiceTyped", "leifstout/dataservicetyped@1.0.5"]]
 
 [[package]]
 name = "leifstout/dataservicetyped"

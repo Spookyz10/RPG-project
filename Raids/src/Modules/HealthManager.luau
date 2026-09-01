@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Data = require(ReplicatedStorage.Shared.Data).server
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
+local ModifierSystem = require(script.Parent.ModifierSystem)
 
 local HealthManager = {}
 
@@ -15,7 +16,14 @@ local ActiveRegenLoops: { [Player]: boolean } = {}
 
 function HealthManager:GetMaxHealth(player: Player, PlayerData: Types.PlayerData): number
 	local Stats = Functions:GetTotalStats(player.Character, PlayerData())
-	return Stats.Health + BASE_HEALTH
+	local BaseMax = Stats.Health + BASE_HEALTH
+
+	local Character = player.Character
+	if Character then
+		return ModifierSystem:Aggregate(Character, "MaxHealth", BaseMax)
+	end
+
+	return BaseMax
 end
 
 function HealthManager:Refresh(player: Player)
@@ -67,7 +75,8 @@ local function StartRegen(player: Player)
 				continue
 			end
 
-			local RegenAmount = math.ceil(Humanoid.MaxHealth * REGEN_PERCENT)
+			local RegenPercent = ModifierSystem:Aggregate(Character, "HealthRegen", REGEN_PERCENT)
+			local RegenAmount = math.ceil(Humanoid.MaxHealth * RegenPercent)
 			Humanoid.Health = math.min(Humanoid.MaxHealth, Humanoid.Health + RegenAmount)
 		end
 	end)

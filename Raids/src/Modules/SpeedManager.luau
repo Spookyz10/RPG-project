@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Data = require(ReplicatedStorage.Shared.Data).server
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
+local ModifierSystem = require(script.Parent.ModifierSystem)
 
 local SpeedManager = {}
 
@@ -12,7 +13,14 @@ local ListenedPlayers: { [Player]: boolean } = {}
 
 function SpeedManager:GetWalkSpeed(player: Player, PlayerData: Types.PlayerData): number
 	local Stats = Functions:GetTotalStats(player.Character, PlayerData())
-	return BASE_WALKSPEED + Stats.Speed
+	local BaseSpeed = BASE_WALKSPEED + Stats.Speed
+
+	local Character = player.Character
+	if Character then
+		return ModifierSystem:Aggregate(Character, "WalkSpeed", BaseSpeed)
+	end
+
+	return BaseSpeed
 end
 
 function SpeedManager:Refresh(player: Player)

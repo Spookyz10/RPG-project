@@ -31,6 +31,9 @@ local LOCAL_PLAYER_COLOR = Color3.fromRGB(0, 229, 255)
 local MAX_LEVEL_COLOR = Color3.fromRGB(255, 255, 0)
 local DEFAULT_NAME_COLOR = Color3.fromRGB(255, 255, 255)
 
+local AttributeStatKeys = { ATK = "Attack", DEF = "Defense", SPD = "Speed", CRT = "Critical", HP = "Health" }
+local PercentAttributes = { CRT = true }
+
 local ListGui: ScreenGui = nil
 local List: Frame = nil
 local Container: ScrollingFrame = nil
@@ -53,6 +56,7 @@ end
 
 local function UpdateEntryLevel(Entry: Frame, level: number)
 	Entry.Stats.Level.Text = "Lv" .. tostring(level)
+	Entry.Stats.Level.TextColor3 = level >= getCappedInfo.Level and MAX_LEVEL_COLOR or DEFAULT_NAME_COLOR
 end
 
 local function UpdateEntryNameColor(Entry: Frame, targetPlayer: Player, level: number)
@@ -167,6 +171,51 @@ local function PopulateItems(Equipment: { [string]: { Icon: string, SubType: str
 	end
 end
 
+local function FormatAmount(value: number, isPercent: boolean): string
+	if isPercent then
+		return string.format("%.1f", value)
+	end
+
+	return tostring(math.floor(value))
+end
+
+local function FormatGearAmount(value: number, isPercent: boolean): string
+	if isPercent then
+		return string.format("%+.1f%%", value)
+	end
+
+	return string.format("%+d", math.floor(value))
+end
+
+local function SetAttributeLabel(
+	Label: TextLabel,
+	attributeKey: string,
+	totalValue: number,
+	extraStats: { [string]: number }
+)
+	local StatName = AttributeStatKeys[attributeKey]
+	local Cap = getCappedInfo[StatName]
+	local IsPercent = PercentAttributes[attributeKey] == true
+
+	local CurrentAmount = (extraStats and extraStats[StatName]) or 0
+	local GearAmount = totalValue - CurrentAmount
+
+	local Suffix = IsPercent and "%" or ""
+
+	Label.Text = attributeKey
+		.. ": "
+		.. FormatAmount(CurrentAmount, IsPercent)
+		.. "/"
+		.. FormatAmount(Cap or 0, IsPercent)
+		.. Suffix
+		.. " ("
+		.. FormatGearAmount(GearAmount, IsPercent)
+		.. ")"
+
+	local IsMax = Cap ~= nil and CurrentAmount >= Cap
+	Label.TextColor3 = IsMax and MAX_LEVEL_COLOR or DEFAULT_NAME_COLOR
+end
+
 function Playerlist.OpenCard(targetPlayer: Player)
 	local Info = RemoteManager.InvokeServerFunction("GetPlayerInfo", targetPlayer)
 	if not Info then
@@ -189,11 +238,13 @@ function Playerlist.OpenCard(targetPlayer: Player)
 	CardMain.Stats.Honor.Amount.Text = tostring(Info.Honor)
 
 	local Attributes = CardMain.Stats.Attributes
-	Attributes.ATK.Text = "ATK: " .. tostring(math.floor(Info.Stats.Attack))
-	Attributes.DEF.Text = "DEF: " .. tostring(math.floor(Info.Stats.Defense))
-	Attributes.SPD.Text = "SPD: " .. tostring(math.floor(Info.Stats.Speed))
-	Attributes.CRT.Text = "CRT: " .. tostring(math.floor(Info.Stats.Critical))
-	Attributes.HP.Text = "HP: " .. tostring(math.floor(Info.Stats.Health))
+	local ExtraStats = Info.ExtraStats or {}
+
+	SetAttributeLabel(Attributes.ATK, "ATK", Info.Stats.Attack, ExtraStats)
+	SetAttributeLabel(Attributes.DEF, "DEF", Info.Stats.Defense, ExtraStats)
+	SetAttributeLabel(Attributes.SPD, "SPD", Info.Stats.Speed, ExtraStats)
+	SetAttributeLabel(Attributes.CRT, "CRT", Info.Stats.Critical, ExtraStats)
+	SetAttributeLabel(Attributes.HP, "HP", Info.Stats.Health, ExtraStats)
 
 	CardMain.Hours.Text = Functions.FormatTime(Info.PlayTime) .. " Played"
 
