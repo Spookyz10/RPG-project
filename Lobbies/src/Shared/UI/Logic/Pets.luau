@@ -628,6 +628,68 @@ local function SetupBoxTile(BoxFrame: Frame, rarity: string)
 	end
 end
 
+local function BuildFusionUI()
+	local ExistingClone = Fusion.Inside:FindFirstChild("PetFusionClone")
+	if ExistingClone then
+		ExistingClone:Destroy()
+	end
+
+	local Source = Templates:WaitForChild("PetFusion")
+	local Clone = Source:Clone()
+	Clone.Name = "PetFusionClone"
+	Clone.Visible = true
+	Clone.Parent = Fusion.Inside
+
+	FusionFrame = Clone :: Frame
+	FusionPetsFrame = Fusion.Inside:WaitForChild("Pets") :: ScrollingFrame
+	FusionFrame = Fusion.Inside.FusionFrame :: Frame
+	FusionTemplate = Templates:WaitForChild("PetFusion") :: GuiObject
+	FusionTemplate.Visible = false
+
+	local FusionCatalystSelect = FusionFrame.Catalyst:FindFirstChild("Select") :: TextButton?
+	if FusionCatalystSelect then
+		FusionCatalystSelect.MouseButton1Click:Connect(function()
+			SelectCatalyst(nil)
+		end)
+	end
+
+	FusionFrame.FuseB.MouseButton1Click:Connect(function()
+		local TargetUUID = UIConstants.Data.EquippedPet()
+		if not TargetUUID or TargetUUID == "" or not SelectedCatalyst then
+			return
+		end
+
+		local Success = RemoteManager.InvokeServerFunction("FusePet", TargetUUID, SelectedCatalyst)
+		if Success then
+			SelectedCatalyst = nil
+			UpdateFusionPreview()
+		end
+	end)
+
+	Fusion.Back.MouseButton1Click:Connect(function()
+		SelectCatalyst(nil)
+		ShowFrame(PetInventory)
+	end)
+
+	local FuseAll = Fusion.Inside:FindFirstChild("FuseAll") :: TextButton?
+	if FuseAll then
+		FuseAll.MouseButton1Click:Connect(function()
+			local TargetUUID = UIConstants.Data.EquippedPet()
+			if TargetUUID and TargetUUID ~= "" then
+				RemoteManager.InvokeServerFunction("FusePet", TargetUUID, "All")
+			end
+		end)
+	end
+
+	for UUID, PetEntry in UIConstants.Data.Pets() do
+		CreateFusionEntry(UUID, PetEntry)
+	end
+
+	UIConstants.Data.Pets.OnKeyAdded(function(UUID: string, PetEntry: Types.PetData)
+		CreateFusionEntry(UUID, PetEntry)
+	end)
+end
+
 function PetUI.Init()
 	PetGui = UIConstants.PlayerGui:WaitForChild("PetUI") :: ScreenGui
 
@@ -712,6 +774,7 @@ function PetUI.Init()
 	if FuseB then
 		FuseB.MouseButton1Click:Connect(function()
 			ShowFrame(Fusion)
+			BuildFusionUI()
 			UpdateFusionPreview()
 		end)
 	end
@@ -733,6 +796,7 @@ function PetUI.Init()
 	UIConstants.Data.Pets.OnKeyAdded(function(UUID: string, PetEntry: Types.PetData)
 		CreateInventoryEntry(UUID, PetEntry)
 		UpdateInventoryAmount()
+		CreateFusionEntry(UUID, PetEntry)
 	end)
 
 	UIConstants.Data.Pets.OnKeyRemoved(function(UUID: string)
@@ -775,31 +839,6 @@ function PetUI.Init()
 	UpdateEquippedFrame()
 	UpdateInventoryAmount()
 
-	FusionPetsFrame = Fusion.Inside.FusionFrame:WaitForChild("Pets") :: ScrollingFrame
-	FusionFrame = Fusion.Inside.FusionFrame :: Frame
-	FusionTemplate = FusionPetsFrame:FindFirstChild("Frame") :: GuiObject
-	FusionTemplate.Visible = false
-
-	local FusionCatalystSelect = FusionFrame.Catalyst:FindFirstChild("Select") :: TextButton?
-	if FusionCatalystSelect then
-		FusionCatalystSelect.MouseButton1Click:Connect(function()
-			SelectCatalyst(nil)
-		end)
-	end
-
-	FusionFrame.FuseB.MouseButton1Click:Connect(function()
-		local TargetUUID = UIConstants.Data.EquippedPet()
-		if not TargetUUID or TargetUUID == "" or not SelectedCatalyst then
-			return
-		end
-
-		local Success = RemoteManager.InvokeServerFunction("FusePet", TargetUUID, SelectedCatalyst)
-		if Success then
-			SelectedCatalyst = nil
-			UpdateFusionPreview()
-		end
-	end)
-
 	Fusion.Back.MouseButton1Click:Connect(function()
 		SelectCatalyst(nil)
 		ShowFrame(PetInventory)
@@ -814,14 +853,6 @@ function PetUI.Init()
 			end
 		end)
 	end
-
-	for UUID, PetEntry in UIConstants.Data.Pets() do
-		CreateFusionEntry(UUID, PetEntry)
-	end
-
-	UIConstants.Data.Pets.OnKeyAdded(function(UUID: string, PetEntry: Types.PetData)
-		CreateFusionEntry(UUID, PetEntry)
-	end)
 end
 
 return PetUI
