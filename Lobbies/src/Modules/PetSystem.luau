@@ -23,6 +23,8 @@ local CLEARABLE_RARITIES = {
 	Uncommon = true,
 }
 
+local TALENT_REROLL_COST = 100
+
 local ListenedPlayers: { [Player]: boolean } = {}
 
 local function RollTalent(): string
@@ -52,14 +54,11 @@ local function RollTalent(): string
 end
 
 local function GetXPNeeded(level: number): number
-	return (150 * (level + 2) * (level + 2) - 150 * (level + 2)) * 0.25
+	return PetsData:GetXPNeeded(level)
 end
 
 local function GetLevelBonuses(level: number): (number, number)
-	local Capped = math.min(level, PetsData.MaxLevel)
-	local DamagePercent = Capped / 2.857142857142857 / 100
-	local HealthPercent = Capped / 2 / 100
-	return DamagePercent, HealthPercent
+	return PetsData:GetLevelBonuses(level)
 end
 
 local function ApplyXP(PetEntry: Types.PetData, amount: number): number
@@ -319,6 +318,43 @@ function PetSystem:ClearPets(player: Player)
 
 		PlayerData.Pets[UUID](nil)
 	end
+end
+
+function PetSystem:RerollTalent(player: Player, UUID: string): (boolean, string)
+	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
+	if not PlayerData then
+		return false, "Invalid player data"
+	end
+
+	local PetEntry = PlayerData.Pets[UUID]()
+	if not PetEntry then
+		return false, "Pet not found"
+	end
+
+	if PetEntry.Locked then
+		return false, "Pet is locked"
+	end
+
+	local Currencies = PlayerData.Currencies()
+	if (Currencies.Tokens or 0) < TALENT_REROLL_COST then
+		return false, "Not enough Tokens"
+	end
+
+	PlayerData.Currencies.Tokens(function(current)
+		return current - TALENT_REROLL_COST
+	end)
+
+	local NewTalent = RollTalent()
+	PlayerData.Pets[UUID].Talent(NewTalent)
+
+	if PlayerData.EquippedPet() == UUID then
+		PetTalentManager:Unequip(player)
+		local UpdatedEntry = PlayerData.Pets[UUID]()
+		PetTalentManager:Equip(player, UpdatedEntry)
+		RefreshPetModifiers(player)
+	end
+
+	return true, "Successfully rerolled talent"
 end
 
 function PetSystem:FusePet(player: Player, targetUUID: string, catalystUUID: string?): (boolean, string)

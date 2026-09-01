@@ -165,4 +165,15 @@ function PetsData:RollPet(boxRarity: string): (string?, string?)
 	return nil, nil
 end
 
+function PetsData:GetXPNeeded(level: number): number
+	return (150 * (level + 2) * (level + 2) - 150 * (level + 2)) * 0.25
+end
+
+function PetsData:GetLevelBonuses(level: number): (number, number)
+	local Capped = math.min(level, PetsData.MaxLevel)
+	local DamagePercent = Capped / 2.857142857142857 / 100
+	local HealthPercent = Capped / 2 / 100
+	return DamagePercent, HealthPercent
+end
+
 return PetsData

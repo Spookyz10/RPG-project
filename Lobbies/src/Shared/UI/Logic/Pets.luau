@@ -3,7 +3,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
 local UIFunctions = require(ReplicatedStorage.Shared.UI.UIFunctions)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
+local Abbreviation = require(ReplicatedStorage.Shared.Utils.Abbreviation)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
+local Talents = require(ReplicatedStorage.Shared.Talents)
+local TalentColors = require(ReplicatedStorage.Shared.TalentColors)
+local PetsData = require(ReplicatedStorage.Shared.PetsData)
 
 local PetUI = {}
 
@@ -15,6 +19,7 @@ local BuyOrSee: Frame = nil
 local Boxes: Frame = nil
 local PetInventory: Frame = nil
 local Fusion: Frame = nil
+local FusionFrame: Frame = nil
 
 local InventoryList: ScrollingFrame = nil
 local InventoryTemplate: GuiObject = nil
@@ -31,9 +36,32 @@ local FusionEntries: { [string]: GuiObject } = {}
 local SelectedCatalyst: string? = nil
 
 local RewardFrames: { [number]: Frame } = {}
+local PetObtainedTemplate: GuiObject = nil
+
+local GoldAmountLabel: TextLabel = nil
 
 local BoxRarities = { "Common", "Uncommon", "Rare" }
-local SelectedAmount: { [string]: number } = { Common = 1, Uncommon = 1, Rare = 1 }
+
+local BuyLocked = false
+local RerollLocked = false
+
+local RarityLayoutOrder = {
+	Godly = 0,
+	Legendary = 1,
+	Rare = 2,
+	Uncommon = 3,
+	Common = 4,
+}
+
+local ConfirmRarities = {
+	Legendary = true,
+	Godly = true,
+}
+
+local EQUIPPED_NAME_COLOR = Color3.fromRGB(55, 255, 55)
+local DEFAULT_NAME_COLOR = Color3.fromRGB(255, 255, 255)
+
+local CAMERA_ANGLE = CFrame.Angles(0.08726646259971647, math.pi, 0)
 
 local function HideAllPetFrames()
 	Boxes.Visible = false
@@ -58,18 +86,27 @@ end
 local function UpdateInventoryAmount()
 	local Amount = PetInventory.Inside:FindFirstChild("Amount") :: TextLabel?
 	if Amount then
-		Amount.Text = GetPetCount() .. "/" .. tostring(50)
+		Amount.Text = GetPetCount() .. "/" .. tostring(PetsData.PetLimit)
 	end
 
 	local ViewAmount = BuyOrSee.View:FindFirstChild("Amount") :: TextLabel?
 	if ViewAmount then
-		ViewAmount.Text = GetPetCount() .. "/" .. tostring(50)
+		ViewAmount.Text = GetPetCount() .. "/" .. tostring(PetsData.PetLimit)
 	end
+end
+
+local function UpdateGoldAmount()
+	if not GoldAmountLabel then
+		return
+	end
+
+	local Gold = UIConstants.Data.Currencies()["Gold"] or 0
+	GoldAmountLabel.Text = "Gold: " .. Abbreviation:Number(Gold)
 end
 
 local function SetViewportModel(Viewport: ViewportFrame, petName: string)
 	for _, child in Viewport:GetChildren() do
-		if child:IsA("Model") or child:IsA("BasePart") then
+		if child:IsA("Model") or child:IsA("BasePart") or child:IsA("Camera") then
 			child:Destroy()
 		end
 	end
@@ -82,17 +119,50 @@ local function SetViewportModel(Viewport: ViewportFrame, petName: string)
 	local Clone = Template:Clone()
 	Clone.Parent = Viewport
 
-	local Camera = Viewport:FindFirstChildOfClass("Camera")
-	if not Camera then
-		Camera = Instance.new("Camera")
-		Camera.Parent = Viewport
-	end
+	local Camera = Instance.new("Camera")
+	Camera.Parent = Viewport
 	Viewport.CurrentCamera = Camera
 
-	local CFrameTarget = (Clone :: any).PrimaryPart or Clone:FindFirstChildWhichIsA("BasePart")
-	if CFrameTarget then
-		Camera.CFrame = CFrame.new(CFrameTarget.Position + Vector3.new(0, 0, 5), CFrameTarget.Position)
+	local RootPart = Clone:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if RootPart then
+		Camera.CFrame = RootPart.CFrame * CAMERA_ANGLE * CFrame.new(0, 0, RootPart.Size.Z * 4.5)
+		return
 	end
+
+	local Base = Clone:FindFirstChild("Base")
+	local View = Base and Base:FindFirstChild("View")
+	if View and View:IsA("BasePart") then
+		Camera.CFrame = View.CFrame * CFrame.new(0, -0.1, 2.5)
+	end
+end
+
+local function ApplyTalentGradient(TalentLabel: TextLabel, talentName: string?)
+	if not TalentLabel then
+		return
+	end
+
+	local Gradient = TalentLabel:FindFirstChildOfClass("UIGradient")
+
+	if not talentName or talentName == "" or talentName == "No Talent" then
+		TalentLabel.Text = "No Talent"
+		if Gradient then
+			Gradient.Color = TalentColors.None
+			Gradient.Rotation = 0
+		end
+		return
+	end
+
+	TalentLabel.Text = talentName
+
+	if not Gradient then
+		return
+	end
+
+	local TalentInfo = Talents[talentName]
+	local Rarity = TalentInfo and TalentInfo.Rarity or "Common"
+
+	Gradient.Color = TalentColors[Rarity] or TalentColors.None
+	Gradient.Rotation = (Rarity == "Ascendant" or Rarity == "Secret") and -90 or 0
 end
 
 local function UpdateEquippedFrame()
@@ -124,7 +194,7 @@ local function UpdateEquippedFrame()
 
 		local Boost = Viewpet:FindFirstChild("Boost") :: TextLabel?
 		if Boost then
-			local DamagePercent = math.min(PetEntry.Level, 150) / 2.857142857142857
+			local DamagePercent = math.min(PetEntry.Level, PetsData.MaxLevel) / 2.857142857142857
 			Boost.Text = "Boost: " .. string.format("%.1f", DamagePercent) .. "%"
 		end
 	end
@@ -174,12 +244,16 @@ local function UpdateEntry(Entry: GuiObject, UUID: string, PetEntry: Types.PetDa
 		RarityType.TextColor3 = UIFunctions.RarityColors[PetEntry.Rarity] or Color3.fromRGB(255, 255, 255)
 	end
 
+	local EquippedUUID = UIConstants.Data.EquippedPet()
+	local VanityUUID = UIConstants.Data.VanityPet()
+
 	if PetType then
 		PetType.Text = PetEntry.Name
+		PetType.TextColor3 = (UUID == EquippedUUID) and EQUIPPED_NAME_COLOR or DEFAULT_NAME_COLOR
 	end
 
 	if TalentLabel then
-		TalentLabel.Text = PetEntry.Talent
+		ApplyTalentGradient(TalentLabel, PetEntry.Talent)
 	end
 
 	if Line1 then
@@ -203,9 +277,12 @@ local function UpdateEntry(Entry: GuiObject, UUID: string, PetEntry: Types.PetDa
 		Lock.ImageTransparency = PetEntry.Locked and 0 or 0.6
 	end
 
-	local EquippedUUID = UIConstants.Data.EquippedPet()
-	local VanityUUID = UIConstants.Data.VanityPet()
 	Entry.BackgroundTransparency = (UUID == EquippedUUID or UUID == VanityUUID) and 0.2 or 0.5
+	Entry.LayoutOrder = RarityLayoutOrder[PetEntry.Rarity] or 5
+
+	if UUID == EquippedUUID then
+		Entry.LayoutOrder = -1
+	end
 end
 
 local function CreateInventoryEntry(UUID: string, PetEntry: Types.PetData)
@@ -241,8 +318,17 @@ local function CreateInventoryEntry(UUID: string, PetEntry: Types.PetData)
 	local Delete = Entry:FindFirstChild("Delete") :: ImageButton?
 	if Delete then
 		Delete.MouseButton1Click:Connect(function()
-			PendingDelete = UUID
-			ConfirmationFrame.Visible = true
+			local CurrentEntry = UIConstants.Data.Pets[UUID]()
+			if not CurrentEntry then
+				return
+			end
+
+			if ConfirmRarities[CurrentEntry.Rarity] then
+				PendingDelete = UUID
+				ConfirmationFrame.Visible = true
+			else
+				RemoteManager.SendServerEvent("RemovePet", UUID)
+			end
 		end)
 	end
 
@@ -255,6 +341,126 @@ local function RemoveInventoryEntry(UUID: string)
 		Entry:Destroy()
 		InventoryEntries[UUID] = nil
 	end
+end
+
+local function UpdateFusionPreview()
+	if not FusionFrame then
+		return
+	end
+
+	local FuserViewport = FusionFrame.Fuser.Fuser :: ViewportFrame
+	local FuserLevel = FusionFrame.Fuser.Level :: TextLabel
+	local BarFill = FusionFrame.Bar.Bar :: Frame
+	local BarAmount = FusionFrame.Bar.Amount :: TextLabel
+	local BarSecond = FusionFrame.Bar.Second :: Frame
+	local CatalystViewport = FusionFrame.Catalyst.Catalyst :: ViewportFrame
+	local CatalystLevel = FusionFrame.Catalyst.Level :: TextLabel
+	local GoldAmountFusion = FusionFrame.Gold.Amount :: TextLabel
+	local HelpLabel = FusionFrame.Help :: TextLabel
+	local SLabel = FusionFrame.S :: TextLabel
+	local HLabel = FusionFrame.H :: TextLabel
+
+	local TargetUUID = UIConstants.Data.EquippedPet()
+	if not TargetUUID or TargetUUID == "" then
+		HelpLabel.Text = "Equip a pet first"
+		return
+	end
+
+	local TargetEntry = UIConstants.Data.Pets[TargetUUID]()
+	if not TargetEntry then
+		return
+	end
+
+	SetViewportModel(FuserViewport, TargetEntry.Name)
+	FuserLevel.Text = tostring(TargetEntry.Level)
+
+	local XPNeeded = PetsData:GetXPNeeded(TargetEntry.Level)
+	local DamagePercent, HealthPercent = PetsData:GetLevelBonuses(TargetEntry.Level)
+
+	if not SelectedCatalyst then
+		HelpLabel.Text = "Choose a catalyst pet"
+		CatalystLevel.Text = ""
+
+		for _, child in CatalystViewport:GetChildren() do
+			if child:IsA("Model") or child:IsA("BasePart") or child:IsA("Camera") then
+				child:Destroy()
+			end
+		end
+
+		BarAmount.Text = tostring(math.floor(TargetEntry.XP)) .. "/" .. tostring(math.floor(XPNeeded))
+		BarFill.Size = UDim2.fromScale(math.clamp(TargetEntry.XP / XPNeeded, 0, 1), 1)
+		BarSecond.Size = BarFill.Size
+
+		SLabel.Text = "Bonus Damage: " .. string.format("%.1f", DamagePercent * 100) .. "%"
+		HLabel.Text = "Bonus Health: " .. string.format("%.1f", HealthPercent * 100) .. "%"
+		SLabel.TextColor3 = DEFAULT_NAME_COLOR
+		HLabel.TextColor3 = DEFAULT_NAME_COLOR
+
+		GoldAmountFusion.Text = "0"
+		return
+	end
+
+	local CatalystEntry = UIConstants.Data.Pets[SelectedCatalyst]()
+	if not CatalystEntry then
+		SelectedCatalyst = nil
+		UpdateFusionPreview()
+		return
+	end
+
+	SetViewportModel(CatalystViewport, CatalystEntry.Name)
+	CatalystLevel.Text = tostring(CatalystEntry.Level)
+
+	local FusionInfo = PetsData.FusionInfo[CatalystEntry.Rarity]
+	if not FusionInfo then
+		return
+	end
+
+	local GoldCost = CatalystEntry.Level * FusionInfo.Cost + FusionInfo.Cost
+	GoldAmountFusion.Text = tostring(GoldCost)
+
+	local XPGiven = FusionInfo.Boost + FusionInfo.Boost * CatalystEntry.Level
+	local ProjectedXP = TargetEntry.XP + XPGiven
+	local WillLevelUp = ProjectedXP >= XPNeeded
+
+	HelpLabel.Text = "Would you like to fuse these pets?"
+	BarAmount.Text = tostring(math.floor(TargetEntry.XP))
+		.. "/"
+		.. tostring(math.floor(XPNeeded))
+		.. " +"
+		.. tostring(math.floor(XPGiven))
+
+	BarFill.Size = UDim2.fromScale(math.clamp(TargetEntry.XP / XPNeeded, 0, 1), 1)
+	BarSecond.Size = UDim2.fromScale(math.clamp(ProjectedXP / XPNeeded, 0, 1), 1)
+
+	if WillLevelUp then
+		local NewLevel = TargetEntry.Level + 1
+		local NewDamage, NewHealth = PetsData:GetLevelBonuses(NewLevel)
+
+		FuserLevel.Text = tostring(TargetEntry.Level) .. " +1"
+		SLabel.Text = "Bonus Damage: " .. string.format("%.1f", NewDamage * 100) .. "%"
+		HLabel.Text = "Bonus Health: " .. string.format("%.1f", NewHealth * 100) .. "%"
+		SLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+		HLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+	else
+		SLabel.Text = "Bonus Damage: " .. string.format("%.1f", DamagePercent * 100) .. "%"
+		HLabel.Text = "Bonus Health: " .. string.format("%.1f", HealthPercent * 100) .. "%"
+		SLabel.TextColor3 = DEFAULT_NAME_COLOR
+		HLabel.TextColor3 = DEFAULT_NAME_COLOR
+	end
+end
+
+local function SelectCatalyst(UUID: string?)
+	if SelectedCatalyst and FusionEntries[SelectedCatalyst] then
+		FusionEntries[SelectedCatalyst].Visible = true
+	end
+
+	SelectedCatalyst = UUID
+
+	if UUID and FusionEntries[UUID] then
+		FusionEntries[UUID].Visible = false
+	end
+
+	UpdateFusionPreview()
 end
 
 local function CreateFusionEntry(UUID: string, PetEntry: Types.PetData)
@@ -299,13 +505,10 @@ local function CreateFusionEntry(UUID: string, PetEntry: Types.PetData)
 				return
 			end
 
-			SelectedCatalyst = UUID
-			local TargetUUID = UIConstants.Data.EquippedPet()
-			if TargetUUID and TargetUUID ~= "" then
-				local Success, Message = RemoteManager.InvokeServerFunction("FusePet", TargetUUID, UUID)
-				if Success then
-					SelectedCatalyst = nil
-				end
+			if SelectedCatalyst == UUID then
+				SelectCatalyst(nil)
+			else
+				SelectCatalyst(UUID)
 			end
 		end)
 	end
@@ -319,47 +522,33 @@ local function RemoveFusionEntry(UUID: string)
 		Entry:Destroy()
 		FusionEntries[UUID] = nil
 	end
-end
 
-local function SetupBoxTile(BoxFrame: Frame, rarity: string)
-	local Purchase = BoxFrame:FindFirstChild("Purchase") :: TextButton?
-	if not Purchase then
-		return
+	if SelectedCatalyst == UUID then
+		SelectedCatalyst = nil
+		UpdateFusionPreview()
 	end
-
-	for _, amountName in { "1", "5", "10" } do
-		local AmountButton = Purchase:FindFirstChild(amountName) :: TextButton?
-		if AmountButton then
-			AmountButton.MouseButton1Click:Connect(function()
-				SelectedAmount[rarity] = tonumber(amountName) or 1
-			end)
-		end
-	end
-
-	Purchase.MouseButton1Click:Connect(function()
-		local Amount = SelectedAmount[rarity] or 1
-		local Success, Message, Results = RemoteManager.InvokeServerFunction("BuyPetBox", rarity, Amount)
-
-		if not Success then
-			return
-		end
-
-		PetUI.ShowRewards(Results)
-	end)
 end
 
 function PetUI.ShowRewards(uuids: { string })
 	local Count = #uuids
 	local FrameGroup = RewardFrames[Count]
-	if not FrameGroup then
+	if not FrameGroup or not PetObtainedTemplate then
 		return
+	end
+
+	local MainFrame = FrameGroup:FindFirstChild("Main") :: Frame?
+	if not MainFrame then
+		return
+	end
+
+	for _, child in MainFrame:GetChildren() do
+		if child:IsA("Frame") and child ~= MainFrame then
+			child:Destroy()
+		end
 	end
 
 	HideAllPetFrames()
 	FrameGroup.Visible = true
-
-	local Slots = FrameGroup.Frame:GetChildren()
-	local SlotIndex = 0
 
 	for _, uuid in uuids do
 		local PetEntry = UIConstants.Data.Pets[uuid]()
@@ -367,25 +556,23 @@ function PetUI.ShowRewards(uuids: { string })
 			continue
 		end
 
-		SlotIndex += 1
-		local SlotFrame = FrameGroup.Frame:FindFirstChild(tostring(SlotIndex))
-		if not SlotFrame then
-			continue
-		end
+		local Entry = PetObtainedTemplate:Clone()
+		Entry.Visible = true
+		Entry.Parent = MainFrame
 
-		local PetNameLabel = SlotFrame:FindFirstChild("PetName") :: TextLabel?
+		local PetNameLabel = Entry:FindFirstChild("PetName") :: TextLabel?
 		if PetNameLabel then
 			PetNameLabel.Text = PetEntry.Name
 		end
 
-		local Viewport = SlotFrame:FindFirstChild("ViewportFrame") :: ViewportFrame?
+		local Viewport = Entry:FindFirstChild("ViewportFrame") :: ViewportFrame?
 		if Viewport then
 			SetViewportModel(Viewport, PetEntry.Name)
 		end
 
-		local TalentLabel = SlotFrame:FindFirstChild("Line") :: TextLabel?
+		local TalentLabel = Entry:FindFirstChild("Talent") :: TextLabel?
 		if TalentLabel then
-			TalentLabel.Text = PetEntry.Talent
+			ApplyTalentGradient(TalentLabel, PetEntry.Talent)
 		end
 	end
 
@@ -396,6 +583,36 @@ function PetUI.ShowRewards(uuids: { string })
 			FrameGroup.Visible = false
 			ShowFrame(Boxes)
 			Connection:Disconnect()
+		end)
+	end
+end
+
+local function SetupBoxTile(BoxFrame: Frame, rarity: string)
+	local Purchase = BoxFrame:FindFirstChild("Purchase") :: TextButton?
+	if not Purchase then
+		return
+	end
+
+	for _, amountName in { "1", "5", "10" } do
+		local AmountButton = Purchase:FindFirstChild(amountName) :: TextButton?
+		if not AmountButton then
+			continue
+		end
+
+		AmountButton.MouseButton1Click:Connect(function()
+			if BuyLocked then
+				return
+			end
+			BuyLocked = true
+
+			local Amount = tonumber(amountName) or 1
+			local Success, Message, Results = RemoteManager.InvokeServerFunction("BuyPetBox", rarity, Amount)
+
+			if Success then
+				PetUI.ShowRewards(Results)
+			end
+
+			BuyLocked = false
 		end)
 	end
 end
@@ -412,7 +629,17 @@ function PetUI.Init()
 	RewardFrames[5] = PetGui:WaitForChild("5") :: Frame
 	RewardFrames[10] = PetGui:WaitForChild("10") :: Frame
 
+	PetObtainedTemplate = Templates:WaitForChild("PetObtained") :: GuiObject
+	PetObtainedTemplate.Visible = false
+
 	HideAllPetFrames()
+
+	GoldAmountLabel = Boxes:FindFirstChild("GoldAmount") :: TextLabel?
+	UpdateGoldAmount()
+
+	UIConstants.Data.Currencies.Gold.Changed(function()
+		UpdateGoldAmount()
+	end)
 
 	BuyOrSee.Buy.Buy.MouseButton1Click:Connect(function()
 		ShowFrame(Boxes)
@@ -474,6 +701,7 @@ function PetUI.Init()
 	if FuseB then
 		FuseB.MouseButton1Click:Connect(function()
 			ShowFrame(Fusion)
+			UpdateFusionPreview()
 		end)
 	end
 
@@ -485,6 +713,24 @@ function PetUI.Init()
 				RemoteManager.SendServerEvent("VanityUnequipPet")
 			end)
 		end
+	end
+
+	local StatReroll = EquippedFrame:FindFirstChild("StatReroll") :: TextButton?
+	if StatReroll then
+		StatReroll.MouseButton1Click:Connect(function()
+			if RerollLocked then
+				return
+			end
+
+			local EquippedUUID = UIConstants.Data.EquippedPet()
+			if not EquippedUUID or EquippedUUID == "" then
+				return
+			end
+
+			RerollLocked = true
+			RemoteManager.InvokeServerFunction("RerollTalent", EquippedUUID)
+			RerollLocked = false
+		end)
 	end
 
 	for UUID, PetEntry in UIConstants.Data.Pets() do
@@ -504,6 +750,7 @@ function PetUI.Init()
 
 	UIConstants.Data.EquippedPet.Changed(function()
 		UpdateEquippedFrame()
+		UpdateFusionPreview()
 		for UUID, Entry in InventoryEntries do
 			local PetEntry = UIConstants.Data.Pets[UUID]()
 			if PetEntry then
@@ -522,15 +769,46 @@ function PetUI.Init()
 		end
 	end)
 
+	UIConstants.Data.Pets.Changed(function()
+		for UUID, Entry in InventoryEntries do
+			local PetEntry = UIConstants.Data.Pets[UUID]()
+			if PetEntry then
+				UpdateEntry(Entry, UUID, PetEntry)
+			end
+		end
+		UpdateFusionPreview()
+	end)
+
 	UpdateEquippedFrame()
 	UpdateInventoryAmount()
 
 	FusionPetsFrame = Fusion.Inside.FusionFrame:WaitForChild("Pets") :: ScrollingFrame
+	FusionFrame = Fusion.Inside.FusionFrame :: Frame
 	FusionTemplate = FusionPetsFrame:FindFirstChild("Frame") :: GuiObject
 	FusionTemplate.Visible = false
 
+	local FusionCatalystSelect = FusionFrame.Catalyst:FindFirstChild("Select") :: TextButton?
+	if FusionCatalystSelect then
+		FusionCatalystSelect.MouseButton1Click:Connect(function()
+			SelectCatalyst(nil)
+		end)
+	end
+
+	FusionFrame.FuseB.MouseButton1Click:Connect(function()
+		local TargetUUID = UIConstants.Data.EquippedPet()
+		if not TargetUUID or TargetUUID == "" or not SelectedCatalyst then
+			return
+		end
+
+		local Success = RemoteManager.InvokeServerFunction("FusePet", TargetUUID, SelectedCatalyst)
+		if Success then
+			SelectedCatalyst = nil
+			UpdateFusionPreview()
+		end
+	end)
+
 	Fusion.Back.MouseButton1Click:Connect(function()
-		SelectedCatalyst = nil
+		SelectCatalyst(nil)
 		ShowFrame(PetInventory)
 	end)
 
