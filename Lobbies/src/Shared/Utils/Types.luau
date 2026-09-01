@@ -19,10 +19,6 @@ export type PlayerData = {
 	Pets: { [string]: PetData },
 	EquippedPet: string,
 	VanityPet: string,
-	Settings: {
-		Music: boolean,
-		CameraShake: boolean,
-	},
 	Equipment: {
 		Weapon: string,
 		Armor: string,
@@ -53,6 +49,13 @@ export type PlayerData = {
 	LastDailyReward: number,
 	TotalDailyRewards: number,
 	DailyStreak: number,
+	Settings: {
+		Music: boolean,
+		["Potion Toggle"]: boolean,
+		["Party Invites"]: boolean,
+		["Trade Offers"]: boolean,
+		["Damage Checker"]: boolean,
+	},
 }
 
 export type Drop = {

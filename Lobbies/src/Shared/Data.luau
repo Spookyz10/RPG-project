@@ -18,7 +18,10 @@ local template: Types.PlayerData = {
 	VanityPet = "",
 	Settings = {
 		Music = true,
-		CameraShake = true,
+		["Potion Toggle"] = true,
+		["Party Invites"] = true,
+		["Trade Offers"] = true,
+		["Damage Checker"] = false,
 	},
 	Equipment = {
 		Weapon = "",
@@ -61,6 +64,7 @@ local template: Types.PlayerData = {
 	LastDailyReward = 0,
 	TotalDailyRewards = 0,
 	DailyStreak = 0,
+	RaidAutoDelete = {},
 }
 
 return DataService({ template = template, profileStoreIndex = "PlayersData2" })
