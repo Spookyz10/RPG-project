@@ -34,6 +34,7 @@ local Remotes = {
 	AcceptPartyInvite = "Server",
 	DeclinePartyInvite = "Server",
 	KickFromParty = "Server",
+	ItemToggle = "Server",
 
 	RaidStarted = "Client",
 	RaidCompleted = "Client",

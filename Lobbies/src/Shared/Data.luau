@@ -64,9 +64,9 @@ local template: Types.PlayerData = {
 	LastDailyReward = 0,
 	TotalDailyRewards = 0,
 	DailyStreak = 0,
-	RaidAutoDelete = {},
 	RaidRuns = {},
 	RaidRecords = {},
+	RaidAutoDelete = {},
 }
 
 return DataService({ template = template, profileStoreIndex = "PlayersData2" })

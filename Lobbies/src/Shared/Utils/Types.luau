@@ -57,7 +57,8 @@ export type PlayerData = {
 		["Damage Checker"]: boolean,
 	},
 	RaidRuns: { [string]: number },
-	RaidRecords: { [string]: { Normal: number?, Hardcore: number? } },
+	RaidRecords: { [string]: { [string]: number } },
+	RaidAutoDelete: { [string]: boolean },
 }
 
 export type Drop = {
@@ -250,8 +251,11 @@ export type QuestInfo = {
 export type RaidInfo = {
 	Name: string,
 	RequiredLevel: number,
-	Drops: { [string]: number },
-	HCDrops: { [string]: number },
+	Image: string,
+	Category: string,
+	Warning: boolean?,
+	Difficulties: { string },
+	Drops: { [string]: { [string]: number } },
 }
 
 export type DamageContext = {
