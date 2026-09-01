@@ -56,6 +56,8 @@ export type PlayerData = {
 		["Trade Offers"]: boolean,
 		["Damage Checker"]: boolean,
 	},
+	RaidRuns: { [string]: number },
+	RaidRecords: { [string]: { Normal: number?, Hardcore: number? } },
 }
 
 export type Drop = {

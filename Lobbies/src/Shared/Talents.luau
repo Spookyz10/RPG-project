@@ -153,7 +153,14 @@ local Talents: { [string]: Types.TalentInfo } = {
 	["Void"] = {
 		Rarity = "Secret",
 		Weight = 0.01,
-		Effects = {},
+		HealsOverTime = true,
+		Effects = {
+			{ Stat = "Health", Type = "Percentage", Value = 40 },
+			{ Stat = "Damage", Type = "Percentage", Value = 100 },
+			{ Stat = "CriticalMultiplier", Type = "Percentage", Value = 30 },
+			{ Stat = "Speed", Type = "Flat", Value = 15 },
+			{ Stat = "CooldownDuration", Type = "Percentage", Value = -20 },
+		},
 	},
 }
 
