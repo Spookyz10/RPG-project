@@ -122,7 +122,7 @@ function PetSystem:GetPetLimit(): number
 	return PetsData.PetLimit
 end
 
-function PetSystem:AddPet(player: Player, petName: string, rarity: string): string?
+function PetSystem:AddPet(player: Player, petName: string, rarity: string): (string?, Types.PetData?)
 	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
 	if not PlayerData then
 		return nil
@@ -140,10 +140,14 @@ function PetSystem:AddPet(player: Player, petName: string, rarity: string): stri
 
 	PlayerData.Pets[UUID](PetEntry)
 
-	return UUID
+	return UUID, PetEntry
 end
 
-function PetSystem:BuyBox(player: Player, boxRarity: string, amount: number): (boolean, string, { string })
+function PetSystem:BuyBox(
+	player: Player,
+	boxRarity: string,
+	amount: number
+): (boolean, string, { { UUID: string, Pet: Types.PetData } })
 	local Cost = PetsData.BoxCost[boxRarity]
 	if not Cost then
 		return false, "Invalid box", {}
@@ -183,9 +187,9 @@ function PetSystem:BuyBox(player: Player, boxRarity: string, amount: number): (b
 	for _ = 1, amount do
 		local PetName, RolledRarity = PetsData:RollPet(boxRarity)
 		if PetName and RolledRarity then
-			local UUID = self:AddPet(player, PetName, RolledRarity)
+			local UUID, PetEntry = self:AddPet(player, PetName, RolledRarity)
 			if UUID then
-				table.insert(Results, UUID)
+				table.insert(Results, { UUID = UUID, Pet = PetEntry })
 			end
 		end
 	end

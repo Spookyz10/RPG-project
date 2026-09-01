@@ -43,7 +43,6 @@ local GoldAmountLabel: TextLabel = nil
 local BoxRarities = { "Common", "Uncommon", "Rare" }
 
 local BuyLocked = false
-local RerollLocked = false
 
 local RarityLayoutOrder = {
 	Godly = 0,
@@ -174,11 +173,14 @@ local function UpdateEquippedFrame()
 	local UnequipB = EquippedFrame:FindFirstChild("UnequipB") :: TextButton?
 
 	if not EquippedUUID or EquippedUUID == "" then
+		EquippedFrame.Visible = false
 		if PetNameLabel then
 			PetNameLabel.Text = "No pet equipped"
 		end
 		return
 	end
+
+	EquippedFrame.Visible = true
 
 	local PetEntry = UIConstants.Data.Pets[EquippedUUID]()
 	if not PetEntry then
@@ -186,7 +188,7 @@ local function UpdateEquippedFrame()
 	end
 
 	if PetNameLabel then
-		PetNameLabel.Text = PetEntry.Name .. " (Lv" .. tostring(PetEntry.Level) .. ")"
+		PetNameLabel.Text = PetEntry.Name
 	end
 
 	if Viewpet then
@@ -234,9 +236,8 @@ local function UpdateEntry(Entry: GuiObject, UUID: string, PetEntry: Types.PetDa
 	local RarityType = Entry:FindFirstChild("RarityType") :: TextLabel?
 	local PetType = Entry:FindFirstChild("PetType") :: TextLabel?
 	local TalentLabel = Entry:FindFirstChild("Talent") :: TextLabel?
-	local Line1 = Entry:FindFirstChild("Line1") :: TextLabel?
-	local Line2 = Entry:FindFirstChild("Line2") :: TextLabel?
 	local Viewpet = Entry:FindFirstChild("Viewpet") :: ViewportFrame?
+	local PetLevel = Viewpet:FindFirstChild("PetLevel") :: TextLabel?
 	local Lock = Entry:FindFirstChild("Lock") :: ImageButton?
 
 	if RarityType then
@@ -256,12 +257,8 @@ local function UpdateEntry(Entry: GuiObject, UUID: string, PetEntry: Types.PetDa
 		ApplyTalentGradient(TalentLabel, PetEntry.Talent)
 	end
 
-	if Line1 then
-		Line1.Text = "Lv: " .. tostring(PetEntry.Level)
-	end
-
-	if Line2 then
-		Line2.Text = "XP: " .. tostring(math.floor(PetEntry.XP))
+	if PetLevel then
+		PetLevel.Text = "Lv: " .. tostring(PetEntry.Level)
 	end
 
 	if Viewpet then
@@ -529,9 +526,23 @@ local function RemoveFusionEntry(UUID: string)
 	end
 end
 
-function PetUI.ShowRewards(uuids: { string })
-	local Count = #uuids
-	local FrameGroup = RewardFrames[Count]
+local function GetRewardFrameCount(count: number): number?
+	if count <= 0 then
+		return nil
+	elseif count == 1 then
+		return 1
+	elseif count <= 5 then
+		return 5
+	elseif count <= 10 then
+		return 10
+	end
+	return nil
+end
+
+function PetUI.ShowRewards(results: { { UUID: string, Pet: Types.PetData } })
+	local Count = #results
+	local FrameCount = GetRewardFrameCount(Count)
+	local FrameGroup = FrameCount and RewardFrames[FrameCount]
 	if not FrameGroup or not PetObtainedTemplate then
 		return
 	end
@@ -550,8 +561,8 @@ function PetUI.ShowRewards(uuids: { string })
 	HideAllPetFrames()
 	FrameGroup.Visible = true
 
-	for _, uuid in uuids do
-		local PetEntry = UIConstants.Data.Pets[uuid]()
+	for _, result in results do
+		local PetEntry = result.Pet
 		if not PetEntry then
 			continue
 		end
@@ -606,7 +617,7 @@ local function SetupBoxTile(BoxFrame: Frame, rarity: string)
 			BuyLocked = true
 
 			local Amount = tonumber(amountName) or 1
-			local Success, Message, Results = RemoteManager.InvokeServerFunction("BuyPetBox", rarity, Amount)
+			local Success, _, Results = RemoteManager.InvokeServerFunction("BuyPetBox", rarity, Amount)
 
 			if Success then
 				PetUI.ShowRewards(Results)
@@ -713,24 +724,6 @@ function PetUI.Init()
 				RemoteManager.SendServerEvent("VanityUnequipPet")
 			end)
 		end
-	end
-
-	local StatReroll = EquippedFrame:FindFirstChild("StatReroll") :: TextButton?
-	if StatReroll then
-		StatReroll.MouseButton1Click:Connect(function()
-			if RerollLocked then
-				return
-			end
-
-			local EquippedUUID = UIConstants.Data.EquippedPet()
-			if not EquippedUUID or EquippedUUID == "" then
-				return
-			end
-
-			RerollLocked = true
-			RemoteManager.InvokeServerFunction("RerollTalent", EquippedUUID)
-			RerollLocked = false
-		end)
 	end
 
 	for UUID, PetEntry in UIConstants.Data.Pets() do
