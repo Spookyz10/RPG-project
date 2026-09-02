@@ -39,12 +39,20 @@ local function DespawnPet(player: Player)
 	end
 end
 
+local function GetRootPart(petModel: Model): BasePart?
+	return petModel.PrimaryPart
+		or (petModel:FindFirstChild("HumanoidRootPart") :: BasePart?)
+		or petModel:FindFirstChild("Base") :: BasePart?
+end
+
 local function PreparePetModel(petModel: Model)
+	local RootPart = GetRootPart(petModel)
+
 	for _, descendant in petModel:GetDescendants() do
 		if descendant:IsA("BasePart") then
 			descendant.Anchored = false
 			descendant.CanCollide = false
-			descendant.Massless = true
+			descendant.Massless = descendant ~= RootPart
 		elseif descendant:IsA("Humanoid") then
 			descendant.WalkSpeed = 16
 			descendant.JumpPower = 0
@@ -56,6 +64,10 @@ local function PreparePetModel(petModel: Model)
 			descendant:SetStateEnabled(Enum.HumanoidStateType.Flying, false)
 			descendant:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics, false)
 		end
+	end
+
+	if RootPart then
+		RootPart.Massless = false
 	end
 end
 
@@ -83,6 +95,13 @@ local function SpawnPet(player: Player, PetEntry: Types.PetData)
 
 	PetModel:PivotTo(RootPart.CFrame * CFrame.new(3, 0, 0))
 	PetModel.Parent = PetsFolder
+
+	local PetRoot = GetRootPart(PetModel)
+	if PetRoot then
+		pcall(function()
+			PetRoot:SetNetworkOwner(player)
+		end)
+	end
 
 	ActivePets[player] = PetModel
 end
