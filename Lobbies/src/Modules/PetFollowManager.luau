@@ -7,12 +7,7 @@ local PetFollowManager = {}
 
 local PetTemplates = ReplicatedStorage.Resources.Pets
 
-local PetsFolder = workspace:FindFirstChild("Pets") :: Folder?
-if not PetsFolder then
-	PetsFolder = Instance.new("Folder")
-	PetsFolder.Name = "Pets"
-	PetsFolder.Parent = workspace
-end
+local PetsFolder = workspace:FindFirstChild("Pets") :: Folder
 
 local ActivePets: { [Player]: Model } = {}
 local ListenedPlayers: { [Player]: boolean } = {}
@@ -93,7 +88,7 @@ local function SpawnPet(player: Player, PetEntry: Types.PetData)
 
 	PreparePetModel(PetModel)
 
-	PetModel:PivotTo(RootPart.CFrame * CFrame.new(3, 0, 0))
+	PetModel:PivotTo(RootPart.CFrame * CFrame.new(3, 30, 0))
 	PetModel.Parent = PetsFolder
 
 	local PetRoot = GetRootPart(PetModel)
