@@ -8,6 +8,7 @@ local Data = require(ReplicatedStorage.Shared.Data).server
 local PetTalentManager = require(script.Parent.PetTalentManager)
 local ModifierSystem = require(script.Parent.ModifierSystem)
 local HealthManager = require(script.Parent.HealthManager)
+local SpeedManager = require(script.Parent.SpeedManager)
 
 local PetSystem = {}
 
@@ -102,6 +103,7 @@ local function RefreshPetModifiers(player: Player)
 		ModifierSystem:RemoveModifier(Character, "Damage", DAMAGE_MODIFIER_ID)
 		ModifierSystem:RemoveModifier(Character, "MaxHealth", HEALTH_MODIFIER_ID)
 		HealthManager:Refresh(player)
+		SpeedManager:Refresh(player)
 		return
 	end
 
@@ -116,6 +118,7 @@ local function RefreshPetModifiers(player: Player)
 	ModifierSystem:AddModifier(Character, "MaxHealth", HEALTH_MODIFIER_ID, "Multiply", 1 + HealthPercent, 0, "Pet")
 
 	HealthManager:Refresh(player)
+	SpeedManager:Refresh(player)
 end
 
 function PetSystem:GetPetLimit(): number

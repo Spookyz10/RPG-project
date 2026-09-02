@@ -17,7 +17,7 @@ function SpeedManager:GetWalkSpeed(player: Player, PlayerData: Types.PlayerData)
 
 	local Character = player.Character
 	if Character then
-		return ModifierSystem:Aggregate(Character, "WalkSpeed", BaseSpeed)
+		return ModifierSystem:Aggregate(Character, "Speed", BaseSpeed)
 	end
 
 	return BaseSpeed

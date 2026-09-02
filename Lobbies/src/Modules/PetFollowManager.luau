@@ -88,7 +88,7 @@ local function SpawnPet(player: Player, PetEntry: Types.PetData)
 
 	PreparePetModel(PetModel)
 
-	PetModel:PivotTo(RootPart.CFrame * CFrame.new(3, 30, 0))
+	PetModel:PivotTo(RootPart.CFrame * CFrame.new(3, 0, 0))
 	PetModel.Parent = PetsFolder
 
 	local PetRoot = GetRootPart(PetModel)

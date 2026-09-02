@@ -41,6 +41,7 @@ local function LoadPlayer(Player: Player)
 	StatsReplicator:Listen(Player)
 	PetTalentManager:Listen(Player)
 	PetTalentManager:LoadFromData(Player)
+	SpeedManager:Listen(Player)
 	PetFollowManager:Listen(Player)
 	Player:LoadCharacterAsync()
 
