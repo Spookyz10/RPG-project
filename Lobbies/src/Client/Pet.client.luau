@@ -2,44 +2,15 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
-
 local EffectsFolder = ReplicatedStorage.Resources.Effects.Pets
+local PetAnimsFolder = ReplicatedStorage.Resources.Animations.PetAnims
 local PetsFolder = workspace:WaitForChild("Pets")
 
-local MOVING_ANIMATIONS = { "PetIdle", "PetWalk" }
-
 local FOLLOW_OFFSET_DISTANCE = 3
-local STOP_DISTANCE = 4
-local RESUME_DISTANCE = 7
 local MAX_TELEPORT_DISTANCE = 60
-local FOLLOW_LERP_SPEED = 8
 
 local ActiveTalentEffects: { [Model]: Instance } = {}
 local ActiveFollowConnections: { [Model]: RBXScriptConnection } = {}
-
-local function SetAnimation(petModel: Model, animName: string)
-	local Handler = AnimationHandler.GetOrCreate(petModel)
-
-	task.spawn(function()
-		local NewTrack = Handler:Play(animName, 0.15)
-		if not NewTrack then
-			return
-		end
-
-		NewTrack.Looped = true
-
-		for _, otherName in MOVING_ANIMATIONS do
-			if otherName ~= animName then
-				Handler:Stop(otherName, 0.15)
-			end
-		end
-	end)
-end
-
-local function UpdateMoving(petModel: Model, isMoving: boolean)
-	SetAnimation(petModel, isMoving and "PetWalk" or "PetIdle")
-end
 
 local function GetAttachTarget(petModel: Model, bodyPartName: string?): Instance?
 	if bodyPartName and bodyPartName ~= "" then
@@ -86,7 +57,50 @@ local function ApplyTalentEffect(petModel: Model)
 	ActiveTalentEffects[petModel] = Clone
 end
 
-local function StartFollowing(petModel: Model)
+local function SetupHumanoidPet(petModel: Model, Humanoid: Humanoid)
+	Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+	Humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing, false)
+	Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming, false)
+	Humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying, false)
+	Humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics, false)
+
+	local IdleAnim = PetAnimsFolder:FindFirstChild("PetIdle") :: Animation?
+	local WalkAnim = PetAnimsFolder:FindFirstChild("PetWalk") :: Animation?
+
+	local IdleTrack = IdleAnim and Humanoid:LoadAnimation(IdleAnim)
+	local WalkTrack = WalkAnim and Humanoid:LoadAnimation(WalkAnim)
+
+	if IdleTrack then
+		IdleTrack.Looped = true
+	end
+	if WalkTrack then
+		WalkTrack.Looped = true
+	end
+
+	Humanoid.Running:Connect(function(speed)
+		if speed > 0.1 then
+			if IdleTrack then
+				IdleTrack:Stop(0.1)
+			end
+			if WalkTrack then
+				WalkTrack:Play(0.1)
+			end
+		else
+			if WalkTrack then
+				WalkTrack:Stop(0.1)
+			end
+			if IdleTrack then
+				IdleTrack:Play(0.1)
+			end
+		end
+	end)
+
+	if IdleTrack then
+		IdleTrack:Play(0.1)
+	end
+end
+
+local function StartFollowingHumanoid(petModel: Model, Humanoid: Humanoid)
 	local OwnerUserId = petModel:GetAttribute("OwnerUserId")
 	local OwnerPlayer = typeof(OwnerUserId) == "number" and Players:GetPlayerByUserId(OwnerUserId)
 
@@ -94,9 +108,59 @@ local function StartFollowing(petModel: Model)
 		return
 	end
 
-	local IsMoving = false
+	local RootPart = petModel:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not RootPart then
+		return
+	end
 
-	local Connection = RunService.Heartbeat:Connect(function(dt)
+	local Connection = RunService.Heartbeat:Connect(function()
+		if not petModel.Parent or not OwnerPlayer.Parent then
+			return
+		end
+
+		local Character = OwnerPlayer.Character
+		local OwnerRootPart = Character and (Character:FindFirstChild("HumanoidRootPart") :: BasePart?)
+		local OwnerHumanoid = Character and Character:FindFirstChildOfClass("Humanoid")
+		if not OwnerRootPart or not OwnerHumanoid then
+			return
+		end
+
+		local TargetPosition = OwnerRootPart.Position + OwnerRootPart.CFrame.RightVector * FOLLOW_OFFSET_DISTANCE
+		local Distance = (TargetPosition - RootPart.Position).Magnitude
+
+		if Distance > MAX_TELEPORT_DISTANCE then
+			petModel:PivotTo(CFrame.lookAt(TargetPosition, TargetPosition + OwnerRootPart.CFrame.LookVector))
+			return
+		end
+
+		Humanoid.WalkSpeed = OwnerHumanoid.WalkSpeed
+
+		if Distance > 4 then
+			Humanoid:MoveTo(TargetPosition)
+		else
+			Humanoid:Move(Vector3.zero)
+		end
+	end)
+
+	ActiveFollowConnections[petModel] = Connection
+end
+
+local function StartFollowingBase(petModel: Model)
+	local OwnerUserId = petModel:GetAttribute("OwnerUserId")
+	local OwnerPlayer = typeof(OwnerUserId) == "number" and Players:GetPlayerByUserId(OwnerUserId)
+
+	if not OwnerPlayer then
+		return
+	end
+
+	local Base = petModel:FindFirstChild("Base") :: BasePart?
+	local BodyPosition = Base and (Base:FindFirstChild("BodyPosition") :: BodyPosition?)
+	local AlignOrientation = Base and (Base:FindFirstChild("AlignOrientation") :: AlignOrientation?)
+	if not Base or not BodyPosition then
+		return
+	end
+
+	local Connection = RunService.Heartbeat:Connect(function()
 		if not petModel.Parent or not OwnerPlayer.Parent then
 			return
 		end
@@ -107,43 +171,29 @@ local function StartFollowing(petModel: Model)
 			return
 		end
 
-		local CurrentCFrame = petModel:GetPivot()
-		local TargetPosition = OwnerRootPart.Position + OwnerRootPart.CFrame.RightVector * FOLLOW_OFFSET_DISTANCE
-		local Distance = (TargetPosition - CurrentCFrame.Position).Magnitude
+		BodyPosition.Position = OwnerRootPart.Position
+			+ Vector3.new(0, 2.6, 0)
+			+ -OwnerRootPart.CFrame.RightVector * -3.2
 
-		if Distance > MAX_TELEPORT_DISTANCE then
-			petModel:PivotTo(CFrame.lookAt(TargetPosition, TargetPosition + OwnerRootPart.CFrame.LookVector))
-			if IsMoving then
-				IsMoving = false
-				UpdateMoving(petModel, false)
-			end
-			return
+		if AlignOrientation then
+			AlignOrientation.Attachment1 = OwnerRootPart:FindFirstChild("RootAttachment") :: Attachment?
 		end
-
-		if IsMoving and Distance <= STOP_DISTANCE then
-			IsMoving = false
-			UpdateMoving(petModel, false)
-		elseif not IsMoving and Distance > RESUME_DISTANCE then
-			IsMoving = true
-			UpdateMoving(petModel, true)
-		end
-
-		if not IsMoving then
-			return
-		end
-
-		local GoalCFrame = CFrame.lookAt(TargetPosition, TargetPosition + OwnerRootPart.CFrame.LookVector)
-		local Alpha = math.clamp(FOLLOW_LERP_SPEED * dt, 0, 1)
-		petModel:PivotTo(CurrentCFrame:Lerp(GoalCFrame, Alpha))
 	end)
 
 	ActiveFollowConnections[petModel] = Connection
 end
 
 local function SetupPet(petModel: Model)
-	UpdateMoving(petModel, false)
 	ApplyTalentEffect(petModel)
-	StartFollowing(petModel)
+
+	local Humanoid = petModel:FindFirstChildOfClass("Humanoid")
+
+	if Humanoid then
+		SetupHumanoidPet(petModel, Humanoid)
+		StartFollowingHumanoid(petModel, Humanoid)
+	else
+		StartFollowingBase(petModel)
+	end
 
 	petModel:GetAttributeChangedSignal("Talent"):Connect(function()
 		ApplyTalentEffect(petModel)

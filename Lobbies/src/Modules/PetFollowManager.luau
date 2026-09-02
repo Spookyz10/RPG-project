@@ -42,14 +42,19 @@ end
 local function PreparePetModel(petModel: Model)
 	for _, descendant in petModel:GetDescendants() do
 		if descendant:IsA("BasePart") then
-			descendant.Anchored = true
+			descendant.Anchored = false
 			descendant.CanCollide = false
 			descendant.Massless = true
 		elseif descendant:IsA("Humanoid") then
-			descendant.PlatformStand = true
-			descendant.WalkSpeed = 0
+			descendant.WalkSpeed = 16
 			descendant.JumpPower = 0
 			descendant.JumpHeight = 0
+			descendant:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
+			descendant:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+			descendant:SetStateEnabled(Enum.HumanoidStateType.Climbing, false)
+			descendant:SetStateEnabled(Enum.HumanoidStateType.Swimming, false)
+			descendant:SetStateEnabled(Enum.HumanoidStateType.Flying, false)
+			descendant:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics, false)
 		end
 	end
 end
