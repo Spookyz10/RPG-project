@@ -18,6 +18,7 @@ local InventoryManager = require(ServerStorage.Modules.InventoryManager)
 local PartySystem = require(ServerStorage.Modules.PartySystem)
 local SpeedManager = require(ServerStorage.Modules.SpeedManager)
 local StatsReplicator = require(ServerStorage.Modules.StatsReplicator)
+local StunManager = require(ServerStorage.Modules.StunManager)
 
 local RESPAWN_TIME = 6
 
@@ -113,4 +114,5 @@ Players.PlayerRemoving:Connect(function(Player)
 	PartySystem:OnPlayerRemoved(Player)
 	PetTalentManager.OnPlayerRemoved(Player)
 	PetFollowManager.OnPlayerRemoved(Player)
+	StunManager.OnPlayerRemoved(Player)
 end)

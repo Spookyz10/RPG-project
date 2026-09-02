@@ -13,20 +13,20 @@ local HITBOX_SIZE = Vector3.new(12, 8, 12)
 local HITBOX_OFFSET = CFrame.new(0, -2, -3)
 local MARKER_NAME = "Attack"
 
-function Behavior:Execute(caster: Player, definition: Types.SkillDefinition)
+function Behavior:Execute(caster: Player, definition: Types.SkillDefinition): AnimationTrack?
 	local Character = caster.Character
 	if not Character then
-		return
+		return nil
 	end
 
 	if not Functions:isEntityAlive(Character) then
-		return
+		return nil
 	end
 
 	local Handler = AnimationHandler.GetOrCreate(Character)
 	local Track = Handler:Play("Ground Break", 0.1)
 	if not Track then
-		return
+		return nil
 	end
 
 	local Connection: RBXScriptConnection
@@ -53,6 +53,8 @@ function Behavior:Execute(caster: Player, definition: Types.SkillDefinition)
 			end,
 		})
 	end)
+
+	return Track
 end
 
 return Behavior

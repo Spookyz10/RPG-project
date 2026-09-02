@@ -1,5 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
+local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
 local DamageHandler = require(ServerStorage.Modules.DamageHandler)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
@@ -9,25 +10,29 @@ local Behavior = {} :: Types.SkillBehavior
 
 local HEAL_PERCENT = 0.25
 
-function Behavior:Execute(caster: Player, definition: Types.SkillDefinition)
+function Behavior:Execute(caster: Player, definition: Types.SkillDefinition): AnimationTrack?
 	local Character = caster.Character
 	if not Character then
-		return
+		return nil
 	end
 
 	if not Functions:isEntityAlive(Character) then
-		return
+		return nil
 	end
 
 	local Humanoid = Character:FindFirstChildOfClass("Humanoid")
 	if not Humanoid then
-		return
+		return nil
 	end
 
 	RemoteManager.SendClientEvent("SkillVFX", { All = true }, "Blessing", Character)
-	RemoteManager.SendClientEvent("SkillAnimation", { All = true }, Character, "Blessing", 0.1)
+
+	local Handler = AnimationHandler.GetOrCreate(Character)
+	local Track = Handler:Play("Blessing", 0.1)
 
 	DamageHandler:heal(Character, Character, Humanoid.MaxHealth * HEAL_PERCENT)
+
+	return Track
 end
 
 return Behavior

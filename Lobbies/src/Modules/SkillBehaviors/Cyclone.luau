@@ -1,5 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
+local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
 local DamageHandler = require(ServerStorage.Modules.DamageHandler)
 local Hitbox = require(ServerStorage.Modules.Hitbox)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
@@ -11,18 +12,20 @@ local Behavior = {} :: Types.SkillBehavior
 local TICK_COUNT = 6
 local TICK_INTERVAL = 0.2
 
-function Behavior:Execute(caster: Player, definition: Types.SkillDefinition)
+function Behavior:Execute(caster: Player, definition: Types.SkillDefinition): AnimationTrack?
 	local Character = caster.Character
 	if not Character then
-		return
+		return nil
 	end
 
 	if not Functions:isEntityAlive(Character) then
-		return
+		return nil
 	end
 
 	RemoteManager.SendClientEvent("SkillVFX", { All = true }, "Cyclone", Character)
-	RemoteManager.SendClientEvent("SkillAnimation", { All = true }, Character, "Cyclone", 0.1)
+
+	local Handler = AnimationHandler.GetOrCreate(Character)
+	local Track = Handler:Play("Cyclone", 0.1)
 
 	task.spawn(function()
 		for tick = 1, TICK_COUNT do
@@ -47,6 +50,8 @@ function Behavior:Execute(caster: Player, definition: Types.SkillDefinition)
 			end
 		end
 	end)
+
+	return Track
 end
 
 return Behavior

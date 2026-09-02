@@ -1,5 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
+local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
 local Data = require(ReplicatedStorage.Shared.Data).server
 local BuffsManager = require(ServerStorage.Modules.BuffsManager)
 local DamageHandler = require(ServerStorage.Modules.DamageHandler)
@@ -14,14 +15,14 @@ local EFFECT_ID = "Lure Jab"
 local BASE_DEFENSE_MULTIPLIER = 0.5
 local BASE_DURATION = 5
 
-function Behavior:Execute(caster: Player, definition: Types.SkillDefinition)
+function Behavior:Execute(caster: Player, definition: Types.SkillDefinition): AnimationTrack?
 	local Character = caster.Character
 	if not Character then
-		return
+		return nil
 	end
 
 	if not Functions:isEntityAlive(Character) then
-		return
+		return nil
 	end
 
 	local PlayerData = Data.Service:waitForData(caster) :: Types.PlayerData
@@ -32,7 +33,9 @@ function Behavior:Execute(caster: Player, definition: Types.SkillDefinition)
 	local HealPercent = Override and Override.HealPercent
 
 	RemoteManager.SendClientEvent("SkillVFX", { All = true }, "Lure Jab", Character)
-	RemoteManager.SendClientEvent("SkillAnimation", { All = true }, Character, "Lure Jab", 0.1)
+
+	local Handler = AnimationHandler.GetOrCreate(Character)
+	local Track = Handler:Play("Lure Jab", 0.1)
 
 	Hitbox:Create({
 		Size = Vector3.new(10, 10, 10),
@@ -66,6 +69,8 @@ function Behavior:Execute(caster: Player, definition: Types.SkillDefinition)
 			end
 		end,
 	})
+
+	return Track
 end
 
 return Behavior

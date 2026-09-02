@@ -7,7 +7,6 @@ local Data = require(ReplicatedStorage.Shared.Data).client
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local AttackStyles = require(ReplicatedStorage.Shared.Combat.AttackStyles)
 local CombatConstants = require(ReplicatedStorage.Shared.Combat.Constants)
-local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
 local SoundManager = require(ReplicatedStorage.Shared.SoundManager)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
@@ -17,7 +16,6 @@ local Player = Players.LocalPlayer
 
 local DEFAULT_STYLE = "Solo"
 
-local ComboIndex = 0
 local LastAttackTime = 0
 local IsHolding = false
 
@@ -50,16 +48,6 @@ local function GetCooldown(Style)
 	return Style.Cooldown or CombatConstants.SwingCooldown
 end
 
-local function PlayAttackAnimation(Style)
-	local Character = Player.Character
-	if not Character then
-		return
-	end
-
-	local Handler = AnimationHandler.GetOrCreate(Character)
-	Handler:Play(Style.Prefix .. ComboIndex, 0.1)
-end
-
 local function TryAttack()
 	local Style = GetAttackStyle()
 	local Cooldown = GetCooldown(Style)
@@ -69,14 +57,7 @@ local function TryAttack()
 		return
 	end
 
-	if Now - LastAttackTime > Cooldown * CombatConstants.ComboResetMultiplier then
-		ComboIndex = 0
-	end
-
 	LastAttackTime = Now
-	ComboIndex = (ComboIndex % Style.MaxCombo) + 1
-
-	PlayAttackAnimation(Style)
 
 	local Character = Player.Character
 	SoundManager:PlayAttackSound(Character and Character.PrimaryPart)

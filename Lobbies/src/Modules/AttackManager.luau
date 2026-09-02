@@ -1,9 +1,12 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Data = require(ReplicatedStorage.Shared.Data).server
 local CombatConstants = require(ReplicatedStorage.Shared.Combat.Constants)
+local AttackStyles = require(ReplicatedStorage.Shared.Combat.AttackStyles)
+local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
 
 local CooldownSystem = require(script.Parent.CooldownSystem)
 local ComboManager = require(script.Parent.ComboManager)
+local StunManager = require(script.Parent.StunManager)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local DamageHandler = require(script.Parent.DamageHandler)
 local Hitbox = require(script.Parent.Hitbox)
@@ -14,9 +17,25 @@ local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 
 local AttackManager = {}
 
+local DEFAULT_SKILL_STUN_DURATION = 0.6
+local STUN_RELEASE_BUFFER = 0.1
+local DEFAULT_STYLE = "Solo"
+
+local SwingComboIndex: { [Player]: number } = {}
+local LastSwingTime: { [Player]: number } = {}
+
+local function GetAttackStyle(WeaponData: Types.Equipment?)
+	local WeaponType = WeaponData and WeaponData.WeaponType
+	return (WeaponType and AttackStyles[WeaponType]) or AttackStyles[DEFAULT_STYLE]
+end
+
 function AttackManager:Swing(Player: Player)
 	local Character = Player.Character
 	if not Character then
+		return
+	end
+
+	if StunManager:IsStunned(Player) then
 		return
 	end
 
@@ -53,7 +72,23 @@ function AttackManager:Swing(Player: Player)
 		return
 	end
 
-	CooldownSystem:StartCooldown(Player, "Swing", CombatConstants.SwingCooldown - 0.2)
+	local Style = GetAttackStyle(WeaponData)
+	local Cooldown = Style.Cooldown or CombatConstants.SwingCooldown
+
+	local Now = os.clock()
+	local LastTime = LastSwingTime[Player] or 0
+	if Now - LastTime > Cooldown * CombatConstants.ComboResetMultiplier then
+		SwingComboIndex[Player] = 0
+	end
+	LastSwingTime[Player] = Now
+	SwingComboIndex[Player] = ((SwingComboIndex[Player] or 0) % Style.MaxCombo) + 1
+
+	CooldownSystem:StartCooldown(Player, "Swing", Cooldown - 0.2)
+
+	local Handler = AnimationHandler.GetOrCreate(Character)
+	local Track = Handler:Play(Style.Prefix .. SwingComboIndex[Player], 0.1)
+
+	StunManager:StunUntilAnimationEnds(Player, Track, STUN_RELEASE_BUFFER, Cooldown)
 
 	Hitbox:Create({
 		Size = Vector3.new(5, 5, 5),
@@ -74,6 +109,10 @@ end
 function AttackManager:UseSkill(Player: Player, slot: string)
 	local Character = Player.Character
 	if not Character then
+		return
+	end
+
+	if StunManager:IsStunned(Player) then
 		return
 	end
 
@@ -99,9 +138,16 @@ function AttackManager:UseSkill(Player: Player, slot: string)
 
 	RemoteManager.SendClientEvent("SkillCooldown", { Player = Player }, slot, Definition.Cooldown)
 
-	Behavior:Execute(Player, Definition)
+	local Track = Behavior:Execute(Player, Definition)
+
+	StunManager:StunUntilAnimationEnds(Player, Track, STUN_RELEASE_BUFFER, DEFAULT_SKILL_STUN_DURATION)
 
 	ComboManager:RecordSkill(Player, Definition.Name)
+end
+
+function AttackManager.OnPlayerRemoved(Player: Player)
+	SwingComboIndex[Player] = nil
+	LastSwingTime[Player] = nil
 end
 
 return AttackManager
