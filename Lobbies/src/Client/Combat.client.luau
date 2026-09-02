@@ -1,4 +1,3 @@
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -7,12 +6,9 @@ local Data = require(ReplicatedStorage.Shared.Data).client
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local AttackStyles = require(ReplicatedStorage.Shared.Combat.AttackStyles)
 local CombatConstants = require(ReplicatedStorage.Shared.Combat.Constants)
-local SoundManager = require(ReplicatedStorage.Shared.SoundManager)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
-
-local Player = Players.LocalPlayer
 
 local DEFAULT_STYLE = "Solo"
 
@@ -58,9 +54,6 @@ local function TryAttack()
 	end
 
 	LastAttackTime = Now
-
-	local Character = Player.Character
-	SoundManager:PlayAttackSound(Character and Character.PrimaryPart)
 
 	RemoteManager.SendServerEvent("Attack")
 end

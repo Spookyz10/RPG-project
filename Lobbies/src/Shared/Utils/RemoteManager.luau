@@ -47,6 +47,7 @@ local Remotes = {
 	Indicator = "Client",
 	BuffVFX = "Client",
 	Notification = "Client",
+	AttackSound = "Client",
 }
 
 local RemoteFunctions = {

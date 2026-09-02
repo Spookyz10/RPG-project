@@ -18,7 +18,7 @@ local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local AttackManager = {}
 
 local DEFAULT_SKILL_STUN_DURATION = 0.6
-local STUN_RELEASE_BUFFER = 0.1
+local SKILL_STUN_RELEASE_BUFFER = 0.1
 local DEFAULT_STYLE = "Solo"
 
 local SwingComboIndex: { [Player]: number } = {}
@@ -86,9 +86,9 @@ function AttackManager:Swing(Player: Player)
 	CooldownSystem:StartCooldown(Player, "Swing", Cooldown - 0.2)
 
 	local Handler = AnimationHandler.GetOrCreate(Character)
-	local Track = Handler:Play(Style.Prefix .. SwingComboIndex[Player], 0.1)
+	Handler:Play(Style.Prefix .. SwingComboIndex[Player], 0.1)
 
-	StunManager:StunUntilAnimationEnds(Player, Track, STUN_RELEASE_BUFFER, Cooldown)
+	RemoteManager.SendClientEvent("AttackSound", { All = true }, Character)
 
 	Hitbox:Create({
 		Size = Vector3.new(5, 5, 5),
@@ -140,7 +140,7 @@ function AttackManager:UseSkill(Player: Player, slot: string)
 
 	local Track = Behavior:Execute(Player, Definition)
 
-	StunManager:StunUntilAnimationEnds(Player, Track, STUN_RELEASE_BUFFER, DEFAULT_SKILL_STUN_DURATION)
+	StunManager:StunUntilAnimationEnds(Player, Track, SKILL_STUN_RELEASE_BUFFER, DEFAULT_SKILL_STUN_DURATION)
 
 	ComboManager:RecordSkill(Player, Definition.Name)
 end
