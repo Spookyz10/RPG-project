@@ -8,17 +8,17 @@ local Talents: { [string]: Types.TalentInfo } = {
 		Effects = {},
 	},
 
-	["Strenght 1"] = {
+	["Strength 1"] = {
 		Rarity = "Rare",
 		Weight = 10,
 		Effects = { { Stat = "Damage", Type = "Percentage", Value = 5 } },
 	},
-	["Strenght 2"] = {
+	["Strength 2"] = {
 		Rarity = "Rare",
 		Weight = 7,
 		Effects = { { Stat = "Damage", Type = "Percentage", Value = 10 } },
 	},
-	["Strenght 3"] = {
+	["Strength 3"] = {
 		Rarity = "Legendary",
 		Weight = 6,
 		Effects = { { Stat = "Damage", Type = "Percentage", Value = 15 } },

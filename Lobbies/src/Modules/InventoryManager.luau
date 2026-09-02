@@ -13,6 +13,20 @@ local VanitySlots = {
 	Weapon = true,
 }
 
+local function BackfillID(
+	PlayerData: Types.PlayerData,
+	container: string,
+	UUID: string,
+	ItemEntry: Types.ItemData,
+	ItemInfo: Types.Item
+)
+	if ItemEntry.ID and ItemEntry.ID ~= "" then
+		return
+	end
+
+	(PlayerData[container] :: any)[UUID].ID(ItemInfo.Data.ID)
+end
+
 function InventoryManager:AddItem(Player: Player, ItemID: string, Amount: number): (string, string?)
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
 	local ItemInfo = ItemsData[ItemID] :: Types.Item
@@ -187,11 +201,13 @@ function InventoryManager:ItemAction(player: Player, UUID: string)
 		return
 	end
 
-	local Info = ItemsData[Item.ID] :: Types.Item
+	local Info = Functions:GetItemInfo(Item) :: Types.Item
 	if not Info then
 		RemoteManager.SendClientEvent("Notification", { Player = player }, "Item has no info, how.")
 		return
 	end
+
+	BackfillID(PlayerData, "Inventory", UUID, Item, Info)
 
 	local canEquip = Info:Elligable(PlayerData)
 	if not canEquip then
@@ -219,11 +235,13 @@ function InventoryManager:UnequipItem(player: Player, UUID: string)
 		return
 	end
 
-	local Info = ItemsData[Item.ID] :: Types.Item
+	local Info = Functions:GetItemInfo(Item) :: Types.Item
 	if not Info then
 		RemoteManager.SendClientEvent("Notification", { Player = player }, "Item has no info, how.")
 		return
 	end
+
+	BackfillID(PlayerData, "Inventory", UUID, Item, Info)
 
 	if Info.Data.ItemType == "Equipment" then
 		PlayerData.Equipment[Info.Data.SubType]("")
@@ -247,11 +265,13 @@ function InventoryManager:VanityEquip(player: Player, UUID: string)
 		return
 	end
 
-	local Info = ItemsData[Item.ID] :: Types.Item
+	local Info = Functions:GetItemInfo(Item) :: Types.Item
 	if not Info or Info.Kind ~= "Equipment" then
 		RemoteManager.SendClientEvent("Notification", { Player = player }, "This item cannot be used as a vanity")
 		return
 	end
+
+	BackfillID(PlayerData, "Inventory", UUID, Item, Info)
 
 	local SubType = Info.Data.SubType
 	if not VanitySlots[SubType] then
@@ -312,11 +332,13 @@ function InventoryManager:ConsumeItem(player: Player, UUID: string, useAll: bool
 		return "Item not found"
 	end
 
-	local ItemInfo = ItemsData[ItemEntry.ID] :: Types.Consumable
+	local ItemInfo = Functions:GetItemInfo(ItemEntry) :: Types.Consumable
 	if not ItemInfo or ItemInfo.Kind ~= "Consumable" then
 		RemoteManager.SendClientEvent("Notification", { Player = player }, "This item cannot be used")
 		return "Not a consumable"
 	end
+
+	BackfillID(PlayerData, "Inventory", UUID, ItemEntry, ItemInfo)
 
 	local canUse = ItemInfo:Elligable(PlayerData)
 	if not canUse then
@@ -358,7 +380,7 @@ function InventoryManager:DrinkAllPotions(player: Player)
 	local Inventory = PlayerData.Inventory()
 
 	for UUID, ItemEntry in Inventory do
-		local ItemInfo = ItemsData[ItemEntry.ID] :: Types.Item
+		local ItemInfo = Functions:GetItemInfo(ItemEntry) :: Types.Item
 		if not ItemInfo or ItemInfo.Kind ~= "Consumable" then
 			continue
 		end

@@ -10,6 +10,7 @@ local MobsFolder = workspace:WaitForChild("Mobs")
 local ActiveOverheads: { [Model]: BillboardGui } = {}
 
 local MOVE_THRESHOLD = 1
+local WAIT_TIMEOUT = 5
 
 local function UpdateHP(Overhead: BillboardGui, Humanoid: Humanoid)
 	local Bar = Overhead.HP.Bar
@@ -77,7 +78,15 @@ end
 
 local function SetupMob(mobModel: Model)
 	local Humanoid = mobModel:FindFirstChildOfClass("Humanoid") :: Humanoid?
-	local RootPart = mobModel.PrimaryPart or (mobModel:FindFirstChild("HumanoidRootPart") :: BasePart?)
+		or (mobModel:WaitForChild("Humanoid", WAIT_TIMEOUT) :: Humanoid?)
+
+	local RootPart = mobModel.PrimaryPart
+		or (mobModel:FindFirstChild("HumanoidRootPart") :: BasePart?)
+		or (mobModel:WaitForChild("HumanoidRootPart", WAIT_TIMEOUT) :: BasePart?)
+
+	if not mobModel.Parent then
+		return
+	end
 
 	if not Humanoid or not RootPart then
 		return
@@ -120,12 +129,12 @@ end
 
 for _, mobModel in MobsFolder:GetChildren() do
 	if mobModel:IsA("Model") then
-		SetupMob(mobModel)
+		task.spawn(SetupMob, mobModel)
 	end
 end
 
 MobsFolder.ChildAdded:Connect(function(child)
 	if child:IsA("Model") then
-		SetupMob(child)
+		task.spawn(SetupMob, child)
 	end
 end)

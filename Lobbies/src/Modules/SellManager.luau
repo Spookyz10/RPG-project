@@ -1,12 +1,22 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local Data = require(ReplicatedStorage.Shared.Data).server
 local InventoryManager = require(script.Parent.InventoryManager)
 local RewardManager = require(script.Parent.RewardManager)
+local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local SellManager = {}
+
+local function IsInUseAsVanity(PlayerData: Types.PlayerData, UUID: string): boolean
+	for _, VanityUUID in PlayerData.Vanity() do
+		if VanityUUID == UUID then
+			return true
+		end
+	end
+
+	return false
+end
 
 function SellManager:SellItems(player: Player, sellList: { [string]: number })
 	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
@@ -34,9 +44,17 @@ function SellManager:SellItems(player: Player, sellList: { [string]: number })
 			continue
 		end
 
-		local ItemInfo = ItemsData[ItemEntry.ID] :: Types.Item
+		if IsInUseAsVanity(PlayerData, UUID) then
+			continue
+		end
+
+		local ItemInfo = Functions:GetItemInfo(ItemEntry) :: Types.Item
 		if not ItemInfo then
 			continue
+		end
+
+		if not ItemEntry.ID or ItemEntry.ID == "" then
+			PlayerData.Inventory[UUID].ID(ItemInfo.Data.ID)
 		end
 
 		local SellAmount = math.clamp(math.floor(amount), 1, ItemEntry.Amount)

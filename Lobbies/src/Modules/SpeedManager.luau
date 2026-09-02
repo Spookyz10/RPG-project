@@ -62,11 +62,15 @@ function SpeedManager:Listen(player: Player)
 	end)
 
 	player.CharacterAdded:Connect(function()
-		self:Refresh(player)
+		task.defer(function()
+			self:Refresh(player)
+		end)
 	end)
 
 	if player.Character then
-		self:Refresh(player)
+		task.defer(function()
+			self:Refresh(player)
+		end)
 	end
 end
 

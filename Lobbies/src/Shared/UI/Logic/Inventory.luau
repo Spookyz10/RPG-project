@@ -388,6 +388,10 @@ local function OpenStackSell(UUID: string, Button: TextButton, ItemData: Types.I
 end
 
 local function ToggleSellSelection(UUID: string, Button: TextButton, ItemData: Types.ItemData, ItemInfo: Types.Item)
+	if FindEquippedKey(UUID) then
+		return
+	end
+
 	if SellList[UUID] then
 		SellTotal -= GetSellValue(ItemInfo, SellList[UUID])
 		SellList[UUID] = nil

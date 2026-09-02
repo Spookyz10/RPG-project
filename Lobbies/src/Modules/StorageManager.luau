@@ -1,6 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
@@ -34,9 +33,15 @@ local function MoveEntry(
 		return "Item equipped"
 	end
 
-	local ItemInfo = ItemsData[SourceEntry.ID] :: Types.Item
+	local ItemInfo = Functions:GetItemInfo(SourceEntry) :: Types.Item
 	if not ItemInfo then
 		return "Invalid item info"
+	end
+
+	if not SourceEntry.ID or SourceEntry.ID == "" then
+		(PlayerData[FromKey] :: any)[UUID].ID(ItemInfo.Data.ID)
+		SourceEntry = table.clone(SourceEntry)
+		SourceEntry.ID = ItemInfo.Data.ID
 	end
 
 	local ToMove = math.clamp(math.floor(Amount or SourceEntry.Amount), 1, SourceEntry.Amount)

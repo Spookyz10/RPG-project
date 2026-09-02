@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Functions = {}
 
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
+local ItemsDataByName = require(ReplicatedStorage.Shared.ItemsDataByName)
 
 local Types = require(script.Parent.Types)
 
@@ -45,6 +46,19 @@ function Functions:HasKeyWithValueIntable(table: {}, field: string, value: any):
 	return false, nil
 end
 
+function Functions:GetItemInfo(ItemEntry: Types.ItemData?): Types.Item?
+	if not ItemEntry then
+		return nil
+	end
+
+	local Info = ItemsData[ItemEntry.ID]
+	if Info then
+		return Info
+	end
+
+	return ItemsDataByName[ItemEntry.Name]
+end
+
 function Functions:GetEquippedItemInfo(PlayerData: Types.PlayerData, slot: string): Types.Item?
 	local UUID = PlayerData.Equipment[slot]()
 	if not UUID or UUID == "" then
@@ -56,7 +70,7 @@ function Functions:GetEquippedItemInfo(PlayerData: Types.PlayerData, slot: strin
 		return nil
 	end
 
-	return ItemsData[ItemEntry.ID]
+	return Functions:GetItemInfo(ItemEntry)
 end
 
 local function getTotalStats(Data: Types.PlayerData, StatName: string)
@@ -67,7 +81,7 @@ local function getTotalStats(Data: Types.PlayerData, StatName: string)
 			continue
 		end
 
-		local ItemInfo = ItemsData[KeyEntry.ID] :: Types.Equipment
+		local ItemInfo = Functions:GetItemInfo(KeyEntry) :: Types.Equipment
 		if ItemInfo then
 			local StatValue = ItemInfo.Stats[StatName]
 
