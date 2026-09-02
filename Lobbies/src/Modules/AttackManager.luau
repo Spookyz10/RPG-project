@@ -18,7 +18,7 @@ local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local AttackManager = {}
 
 local DEFAULT_SKILL_STUN_DURATION = 0.6
-local SKILL_STUN_RELEASE_BUFFER = 0.1
+local SKILL_STUN_RELEASE_BUFFER = 0
 local DEFAULT_STYLE = "Solo"
 
 local SwingComboIndex: { [Player]: number } = {}

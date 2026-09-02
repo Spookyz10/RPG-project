@@ -23,7 +23,7 @@ local GILDED_MAX_DAMAGE_BONUS = 0.625
 local MYSTIC_EXECUTE_THRESHOLD = 0.25
 local MEDIC_HEAL_PERCENT = 0.05
 local MEDIC_INTERVAL = 15
-local VAMPIRIC_LIFESTEAL_PERCENT = 0.005
+local VAMPIRIC_LIFESTEAL_PERCENT = 1 / 100
 
 local ActiveTalent: { [Player]: string } = {}
 local ActiveLoops: { [Player]: boolean } = {}
