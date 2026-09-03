@@ -16,9 +16,6 @@ export type PlayerData = {
 	Honor: number,
 	Inventory: { [string]: ItemData },
 	Storage: { [string]: ItemData },
-	Pets: { [string]: PetData },
-	EquippedPet: string,
-	VanityPet: string,
 	Equipment: {
 		Weapon: string,
 		Armor: string,
