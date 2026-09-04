@@ -7,6 +7,7 @@ local Item: Types.Equipment = {
 		Attack = 1,
 		Defense = 0,
 		Critical = 0,
+		["Critical Power"] = 0,
 		Speed = 0,
 		Health = 0,
 	},

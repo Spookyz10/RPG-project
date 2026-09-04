@@ -3,27 +3,25 @@ local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local getCappedInfo = require(ReplicatedStorage.Shared.getCappedInfo)
 local Item: Types.Consumable = {
-	Kind = "Consumable",
-	Amount = 1,
-	Stat = "Defense",
+	Kind = "Material",
 	Data = {
 		SellsFor = 10,
-		ItemType = "Consumable",
-		SubType = "Potion",
+		ItemType = "Material",
+		SubType = "Mob Material",
 		Name = script.Name,
 		Stackable = true,
 		Cap = 25,
-		Icon = "rbxassetid://115748822332547",
+		Icon = "rbxassetid://101167188679290",
 		Rarity = "Common",
 		Level = 1,
-		Description = "Drink this to gain +1 Defense",
-		ActionName = "Use",
-		ID = "Small Defense Potion",
+		Description = "Used to Craft Fang Dagger.",
+		ActionName = nil,
+		ID = "Wolf's Fang",
 	},
 }
 
 function Item:Elligable(PlayerData: Types.PlayerData): boolean
-	return PlayerData and PlayerData.Level() >= Item.Data.Level
+	return PlayerData and PlayerData.Level() >= 1
 end
 
 function Item:Action(UUID: string)
@@ -31,9 +29,9 @@ function Item:Action(UUID: string)
 end
 
 function Item:Use(Data: Types.PlayerData)
-	if Data.ExtraStats[Item.Stat]() <= getCappedInfo[Item.Stat] then
-		local newStat = math.min(Data.ExtraStats[Item.Stat] + Item.Amount, getCappedInfo[Item.Stat])
-		Data.ExtraStats[Item.Stat](newStat)
+	if Data.ExtraStats.Attack() <= getCappedInfo.Attack then
+		local newAttack = math.min(Data.ExtraStats.Attack() + Item.Amount, getCappedInfo.Attack)
+		Data.ExtraStats.Attack = newAttack
 	end
 end
 

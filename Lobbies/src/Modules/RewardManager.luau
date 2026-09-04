@@ -4,7 +4,6 @@ local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Events = require(script.Parent.Events)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local getCappedInfo = require(ReplicatedStorage.Shared.getCappedInfo)
-local PetTalentManager = require(script.Parent.PetTalentManager)
 
 local RewardManager = {}
 
@@ -37,10 +36,6 @@ function RewardManager:AddCurrency(player: Player, currency: string, amount: num
 	local Multipliers = Events:GetEventMultipliers()
 	if Multipliers[currency] then
 		amount *= Multipliers[currency]
-	end
-
-	if currency == "Gold" then
-		amount *= PetTalentManager:GetGoldMultiplier(player)
 	end
 
 	local Currencies = PlayerData.Currencies()
@@ -82,7 +77,6 @@ function RewardManager:AddXP(player: Player, amount: number, params: XPParams?)
 	end
 
 	amount *= Events:GetEventMultipliers().XP
-	amount *= PetTalentManager:GetXPMultiplier(player)
 
 	PlayerData.XP(function(currentXP)
 		return currentXP + amount

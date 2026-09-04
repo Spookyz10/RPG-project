@@ -4,31 +4,30 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Item: Types.Equipment = {
 	Kind = "Equipment",
 	Stats = {
-		Attack = 21,
-		Defense = 0,
+		Attack = 5,
+		Defense = 10,
 		Critical = 0,
-		Speed = 0,
-		Health = 0,
+		["Critical Power"] = 0,
+		Speed = 2,
+		Health = 5,
 	},
 	Passive = "",
-	WeaponType = "Solo",
 	Data = {
 		SellsFor = 10,
 		ItemType = "Equipment",
-		SubType = "Weapon",
+		SubType = "Necklace",
 		Name = script.Name,
 		Stackable = false,
-		Icon = "rbxassetid://3740593698",
-		Rarity = "Uncommon",
-		Level = 15,
-		Description = "arrr arrr arrr arrr",
+		Icon = "rbxassetid://79095020208761",
+		Rarity = "Rare",
+		Level = 7,
 		ActionName = "Equip",
-		ID = "Pirate Scmitar",
+		ID = "Clawed Pendant",
 	},
 }
 
 function Item:Elligable(PlayerData: Types.PlayerData): boolean
-	return PlayerData and PlayerData.Level() >= 2
+	return PlayerData and PlayerData.Level() >= Item.Data.Level
 end
 
 function Item:Action(UUID: string)

@@ -52,9 +52,6 @@ local Remotes = {
 
 local RemoteFunctions = {
 	GetPlayerInfo = "Server",
-	FusePet = "Server",
-	BuyPetBox = "Server",
-	RerollTalent = "Server",
 }
 
 local RemoteCache: { [string]: Instance } = {}

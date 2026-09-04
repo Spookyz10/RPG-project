@@ -2,6 +2,7 @@ export type Stats = {
 	Attack: number,
 	Defense: number,
 	Critical: number,
+	["Critical Power"]: number,
 	Speed: number,
 	Health: number,
 }
@@ -265,29 +266,6 @@ export type DamageContext = {
 	Multiplier: number?,
 	Tags: { string },
 	Cancelled: boolean,
-}
-
-export type PetData = {
-	Name: string,
-	Rarity: string,
-	Level: number,
-	XP: number,
-	Talent: string,
-	Locked: boolean,
-}
-
-export type TalentEffect = {
-	Stat: string,
-	Type: "Flat" | "Percentage",
-	Value: number,
-}
-
-export type TalentInfo = {
-	Rarity: string,
-	Weight: number,
-	Unique: string?,
-	HealsOverTime: boolean?,
-	Effects: { TalentEffect },
 }
 
 return {}
