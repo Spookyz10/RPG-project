@@ -1,0 +1,127 @@
+Sim — e acho que o caminho pra você conseguir isso de forma consistente com o Astra não é pedir “faz uma UI bonita parecida com essa”. O ideal é transformar essa imagem em um design system do seu jogo.
+
+Essa UI que você mandou tem identidade porque ela repete as mesmas regras em tudo: painel escuro, bordas fortes, botões coloridos com gradiente, textos grandes com outline, divisores cinza, cards inclinados para os pets, espaçamento compacto e bastante contraste. Se você só mandar uma imagem para a IA, ela provavelmente vai entender o conteúdo, mas não necessariamente essas regras visuais.
+
+Eu faria assim: primeiro você cria uma espécie de UI Style Guide descrevendo exatamente o estilo. Algo como:
+
+> Quero que todas as interfaces do jogo sigam este mesmo design system.
+
+O visual deve lembrar interfaces de simuladores/cartoon do Roblox, com aparência polida e não minimalista.
+
+Use painéis principais em tons de preto/cinza muito escuro, com bordas pretas grossas e cantos levemente arredondados. As interfaces devem parecer “pesadas” e bem definidas, nunca flat ou genéricas.
+
+Textos principais devem usar fonte bold/cartoon, branca, com UIStroke preto relativamente forte. Títulos devem ser grandes e destacados. Textos secundários podem usar cores relacionadas à função, como verde, azul, amarelo, roxo e vermelho.
+
+Botões devem ter fundo colorido vivo, gradiente vertical sutil, borda escura, cantos arredondados e texto branco bold com outline preto. Deve haver sensação de profundidade: highlight claro na parte superior e sombra ou tom mais escuro embaixo.
+
+Barras de seção devem ser cinza escuro, horizontais e compactas, com o nome centralizado em branco.
+
+Cards de itens/personagens devem usar fundos de raridade coloridos e formas levemente inclinadas ou assimétricas, em vez de simples quadrados retos. O objeto deve ocupar boa parte do card. Informações como level ficam sobrepostas ao card no topo.
+
+A interface deve ser densa, com pouco espaço vazio, mas ainda organizada. Evite grandes áreas sem conteúdo, bordas finíssimas, glassmorphism, minimalismo moderno e botões genéricos do Roblox.
+
+Use UICorner, UIStroke, UIGradient, UIPadding, UIListLayout e UIAspectRatioConstraint de forma consistente. A UI deve escalar corretamente para diferentes resoluções.
+
+
+
+Aí eu iria além e faria o Astra criar componentes reutilizáveis, em vez de montar cada tela do zero. Por exemplo, teríamos algo como PrimaryButton, BlueButton, RedButton, SectionHeader, MainPanel, ItemCard, StatRow, SearchBox, CloseButton, TabButton etc.
+
+Essa parte é provavelmente a mais importante. Em vez de falar:
+
+> Faça a UI de inventário.
+
+
+
+Você poderia falar:
+
+> Faça a UI de inventário usando exclusivamente os componentes e regras do nosso design system. Não invente novos estilos visuais. Use MainPanel para a janela, SectionHeader para separar categorias, ItemCard para os itens e os botões padronizados já existentes.
+
+
+
+Isso faz uma diferença absurda porque uma das coisas que deixa UI gerada por IA com cara de “IA” é justamente cada tela parecer feita por uma pessoa diferente.
+
+Inclusive, olhando especificamente para a imagem que você mandou, eu separaria o estilo dela mais ou menos assim:
+
+Janela: #1C1C21 / #202025, outline preto de uns 3–5 px visualmente.
+
+Divisores: cinza médio escuro, bastante largos.
+
+Botões: verde, azul e vermelho saturados, gradiente + stroke preto.
+
+Tipografia: branca bold com outline preto forte.
+
+Hierarquia: título enorme → headers de seção → cards → informações pequenas.
+
+Cards: fundo colorido por raridade, ângulo/recorte irregular e personagem por cima.
+
+Detalhes: ícones pequenos coloridos identificando funções, como espada/folha.
+
+Layout: painel de conteúdo grande à esquerda + painel de detalhes fixo à direita.
+
+Sensação geral: cartoon, gamey, robusta e funcional; não clean/minimalista.
+
+
+E eu faria uma coisa ainda melhor no seu projeto: criar um módulo UITheme com todos os valores centrais. Algo conceitualmente assim:
+
+local Theme = {
+	Colors = {
+		Background = Color3.fromRGB(28, 28, 33),
+		Panel = Color3.fromRGB(35, 35, 41),
+		Section = Color3.fromRGB(61, 60, 69),
+		Stroke = Color3.fromRGB(8, 8, 10),
+
+		Green = Color3.fromRGB(35, 218, 80),
+		Blue = Color3.fromRGB(40, 155, 235),
+		Red = Color3.fromRGB(238, 67, 68),
+		Yellow = Color3.fromRGB(244, 187, 44),
+		Purple = Color3.fromRGB(136, 67, 222),
+
+		Text = Color3.fromRGB(255, 255, 255),
+		MutedText = Color3.fromRGB(185, 185, 195)
+	},
+
+	CornerRadius = 8,
+	StrokeThickness = 3,
+
+	TextStrokeTransparency = 0,
+	TextStrokeColor = Color3.fromRGB(10, 10, 10)
+}
+
+return Theme
+
+Aí o Astra nunca deveria colocar Color3.fromRGB(...) aleatoriamente em 40 scripts. Ele consulta o tema.
+
+Outra coisa que eu recomendo muito para você: faça uma UI de referência oficial dentro do próprio jogo, mesmo que seja só uma janela de teste contendo todos os elementos. Tipo:
+
+UIStylePreview
+
+Título
+
+Botão verde
+
+Botão azul
+
+Botão vermelho
+
+SearchBox
+
+SectionHeader
+
+ItemCard comum
+
+ItemCard raro
+
+StatRow
+
+Tab selecionada
+
+Tab não selecionada
+
+CloseButton
+
+
+Ela vira literalmente a “folha de componentes” do seu jogo. Depois você mostra isso ao Astra e fala: “todas as novas interfaces precisam parecer que poderiam existir nessa tela.”
+
+E tem mais uma coisa que faria muita diferença: não tentar copiar essa UI 1:1. Eu usaria ela como base para construir a identidade do seu jogo. Por exemplo, no seu caso de runas/luta, poderíamos pegar exatamente essa linguagem visual, mas trocar os elementos de ants/pets por uma estética associada às runas: cards com recortes parecidos, raridades, bordas, ícones de stats, barras de seção etc. Assim fica com esse nível de acabamento, mas ainda parece o seu jogo.
+
+Se você quiser, posso também pegar essa imagem especificamente e desmontar ela inteira em um design system para Roblox, definindo tamanhos, strokes, cores aproximadas, fontes, gradients, paddings, cards, botões e componentes, e te entregar um prompt enorme já pronto para você mandar ao Astra.

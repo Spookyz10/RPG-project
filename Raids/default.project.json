@@ -1,5 +1,5 @@
 {
-  "name": "Rpg Simulator - Lobbies",
+  "name": "Rpg Simulator - Raids",
   "tree": {
     "$className": "DataModel",
     "ReplicatedStorage": {
