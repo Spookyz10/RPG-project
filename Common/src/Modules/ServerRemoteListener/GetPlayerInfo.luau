@@ -7,7 +7,7 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Remote = {}
 
 function Remote:Invoke(_Player: Player, TargetPlayer: Player)
-	if not TargetPlayer then
+	if typeof(TargetPlayer) ~= "Instance" or not TargetPlayer:IsA("Player") or TargetPlayer.Parent ~= game:GetService("Players") then
 		return nil
 	end
 
@@ -51,6 +51,7 @@ function Remote:Invoke(_Player: Player, TargetPlayer: Player)
 		Kills = PlayerData.Kills(),
 		Deaths = PlayerData.Deaths(),
 		PlayTime = PlayerData.PlayTime(),
+		SessionTime = math.max(0, workspace:GetServerTimeNow() - (TargetPlayer:GetAttribute("SessionStartedAt") or workspace:GetServerTimeNow())),
 		Equipment = Equipment,
 	}
 end

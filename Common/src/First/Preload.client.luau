@@ -10,7 +10,6 @@ local Bootstrap = require(Shared:WaitForChild("UI"):WaitForChild("Bootstrap"))
 local gui = Bootstrap.Ensure()
 gui:SetAttribute("UIBlocking", true)
 local screen = gui.LoadingScreen
-screen.Enabled = true
 local frame = screen.Frame
 ReplicatedFirst:RemoveDefaultLoadingScreen()
 
@@ -18,7 +17,9 @@ local PreloadStatus = require(script.Parent:WaitForChild("PreloadStatus"))
 local Data = require(Shared:WaitForChild("Data")).client
 require(Shared.CollisionGroups)
 
-if not game:IsLoaded() then game.Loaded:Wait() end
+if not game:IsLoaded() then
+	game.Loaded:Wait()
+end
 pcall(function()
 	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health, false)
 	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
@@ -54,7 +55,9 @@ task.spawn(function()
 	done = true
 end)
 local started = os.clock()
-while not done and os.clock() - started < 15 do task.wait(0.1) end
+while not done and os.clock() - started < 15 do
+	task.wait(0.1)
+end
 ready = true
 PreloadStatus:MarkComplete()
 frame.Progress.Fill.Size = UDim2.fromScale(1, 1)
@@ -64,9 +67,13 @@ frame.Play.Visible = true
 local entered = false
 local keyConnection
 local function enter()
-	if entered then return end
+	if entered then
+		return
+	end
 	entered = true
-	if keyConnection then keyConnection:Disconnect() end
+	if keyConnection then
+		keyConnection:Disconnect()
+	end
 	screen:Destroy()
 	gui:SetAttribute("UIBlocking", false)
 	local player = Players.LocalPlayer
@@ -76,5 +83,7 @@ local function enter()
 end
 frame.Play.Activated:Connect(enter)
 keyConnection = UserInputService.InputBegan:Connect(function(input, processed)
-	if not processed and (input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.ButtonA) then enter() end
+	if not processed and (input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.ButtonA) then
+		enter()
+	end
 end)

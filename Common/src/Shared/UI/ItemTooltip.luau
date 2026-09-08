@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local GuiService = game:GetService("GuiService")
 local RunService = game:GetService("RunService")
 local Items = require(script.Parent.Parent.ItemsData)
 local Theme = require(script.Parent.Theme)
@@ -24,15 +25,24 @@ local function place()
 		if ancestor:IsA("GuiObject") and not ancestor.Visible then Tooltip.Hide(); return end
 		ancestor = ancestor.Parent
 	end
-	local origin = screen.AbsolutePosition
+	-- GetMouseLocation includes the top bar; GuiObject.AbsolutePosition does not.
+	local inset = screen.IgnoreGuiInset and Vector2.new() or GuiService:GetGuiInset()
+	local rawMouse = UserInputService:GetMouseLocation()
+	local mouse = Vector2.new(rawMouse.X - inset.X, rawMouse.Y - inset.Y)
 	local bounds = screen.AbsoluteSize
-	local mouse = UserInputService:GetMouseLocation()
-	local point = lastInputWasTouch and (target.AbsolutePosition + target.AbsoluteSize) or mouse
-	local x = point.X - origin.X + 16
-	local y = point.Y - origin.Y + 14
-	if x + tip.AbsoluteSize.X > bounds.X - 8 then x = point.X - origin.X - tip.AbsoluteSize.X - 12 end
-	if y + tip.AbsoluteSize.Y > bounds.Y - 8 then y = bounds.Y - tip.AbsoluteSize.Y - 8 end
-	tip.Position = UDim2.fromScale(math.clamp(x, 8, math.max(8, bounds.X - tip.AbsoluteSize.X - 8)) / math.max(1, bounds.X), math.max(8, y) / math.max(1, bounds.Y))
+	local origin = screen.AbsolutePosition
+	local x, y = mouse.X + 12, mouse.Y + 12
+	if x + tip.AbsoluteSize.X > origin.X + bounds.X - 8 then x = mouse.X - tip.AbsoluteSize.X - 12 end
+	if y + tip.AbsoluteSize.Y > origin.Y + bounds.Y - 8 then y = mouse.Y - tip.AbsoluteSize.Y - 12 end
+	x = math.clamp(x, origin.X + 8, math.max(origin.X + 8, origin.X + bounds.X - tip.AbsoluteSize.X - 8))
+	y = math.clamp(y, origin.Y + 8, math.max(origin.Y + 8, origin.Y + bounds.Y - tip.AbsoluteSize.Y - 8))
+	-- Move by the rendered delta: respects custom AnchorPoint, parent and UIScale.
+	local parentSize = tip.Parent.AbsoluteSize
+	tip.Position = UDim2.fromScale(
+		tip.Position.X.Scale + (tip.Position.X.Offset + x - tip.AbsolutePosition.X) / math.max(1, parentSize.X),
+		tip.Position.Y.Scale + (tip.Position.Y.Offset + y - tip.AbsolutePosition.Y) / math.max(1, parentSize.Y)
+	)
+
 end
 
 function Tooltip.Bind(button, getItem)

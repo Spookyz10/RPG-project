@@ -20,10 +20,12 @@ local function refresh(character: Model)
 
 	local ItemEntry = Data.Inventory[UUID]()
 	if not ItemEntry then
+		local handler = AnimationHandler.Get(character)
+		if handler then handler:PlayWeaponIdle(nil) end
 		return
 	end
 
-	local ItemInfo = ItemsData[ItemEntry.Name] :: Types.Equipment
+	local ItemInfo = ItemsData[ItemEntry.ID] :: Types.Equipment
 	local Handler = AnimationHandler.GetOrCreate(character)
 	Handler:PlayWeaponIdle(ItemInfo and ItemInfo.WeaponType)
 end
@@ -43,3 +45,7 @@ if Player.Character then
 end
 
 Player.CharacterAdded:Connect(onCharacterAdded)
+
+Data.Inventory.Changed(function()
+	if Player.Character then refresh(Player.Character) end
+end)

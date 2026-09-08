@@ -11,7 +11,7 @@ ENTRIES = [
     ("Raids", "RaidsGUI"), ("Players", "Playerlist"), ("Party", "Partylist"),
     ("Dialogue", "Dialogue"), ("Shop", "Shop"), ("Journal", "Journal"),
     ("Notifications", "Notifications"), ("Tutorial", "Tutorial"), ("StylePreview", "UIStylePreview"),
-    ("Admin", "Main"),
+    ("Admin", "Main"), ("PlayerCard", "PlayerCard"),
 ]
 
 

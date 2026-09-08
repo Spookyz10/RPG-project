@@ -384,20 +384,33 @@ builders.Loading = (function()
 
 return function(parent)
 	local screen = C.Screen(parent, "LoadingScreen", 100)
-	local frame = C.Frame(screen, "Frame", UDim2.new(), UDim2.fromScale(1, 1), T.Paper)
-	local title = C.Label(frame, "Title", "RISE BEYOND", UDim2.fromScale(0.08, 0.22), UDim2.fromScale(0.84, 0.15), true)
-	title.TextSize = 36
-	title.TextColor3 = T.Green
-	title.TextXAlignment = Enum.TextXAlignment.Center
-	local subtitle = C.Label(frame, "Subtitle", "A little courage. A whole world to explore.", UDim2.fromScale(0.08, 0.38), UDim2.fromScale(0.84, 0.1))
-	subtitle.TextXAlignment = Enum.TextXAlignment.Center
-	subtitle.TextColor3 = T.Muted
-	local track = C.Round(C.Frame(frame, "Progress", UDim2.fromScale(0.18, 0.55), UDim2.new(0.64, 0, 0, 12), T.Soft), 6)
-	C.Round(C.Frame(track, "Fill", UDim2.new(), UDim2.fromScale(0, 1), T.Green), 6)
-	local status = C.Label(frame, "Status", "Preparing your adventure...", UDim2.fromScale(0.08, 0.61), UDim2.fromScale(0.84, 0.08))
-	status.TextXAlignment = Enum.TextXAlignment.Center
-	local play = C.Button(frame, "Play", "Let's explore", UDim2.new(0.5, -108, 0.76, 0), UDim2.fromOffset(216, 52), T.Mint)
-	play.Visible = false
+	screen.ScreenInsets = Enum.ScreenInsets.None
+	local bg = Color3.fromRGB(12, 19, 28)
+	local gold = Color3.fromRGB(192, 167, 112)
+	local frame = C.Frame(screen, "Frame", UDim2.fromScale(0, 0), UDim2.fromScale(1, 1), bg)
+	C.New("UIGradient", "Atmosphere", frame, { Rotation = 35, Color = ColorSequence.new(Color3.fromRGB(130, 160, 190), Color3.fromRGB(255, 255, 255)) })
+	local art = C.Image(frame, "BackgroundArt", UDim2.fromScale(0, 0), UDim2.fromScale(1, 1))
+	art.ScaleType = Enum.ScaleType.Crop
+	art.ImageTransparency = 0.7
+	C.Frame(frame, "TopRule", UDim2.fromScale(0.07, 0.12), UDim2.fromScale(0.86, 0.002), gold)
+	local function text(name, value, x, y, w, h, color, font)
+		local label = C.Label(frame, name, value, UDim2.fromScale(x, y), UDim2.fromScale(w, h))
+		label.Font = font or Enum.Font.Gotham
+		label.TextColor3 = color or Color3.fromRGB(231, 234, 238)
+		label.TextStrokeTransparency = 1
+		return label
+	end
+	text("Chapter", "A WORLD BEYOND THE FAMILIAR", 0.08, 0.22, 0.8, 0.035, gold, Enum.Font.GothamMedium)
+	text("Title", "RISE BEYOND", 0.075, 0.31, 0.85, 0.13, nil, Enum.Font.GothamBold)
+	text("Subtitle", "Every journey leaves its mark.", 0.08, 0.47, 0.75, 0.045)
+	text("Edition", "EXPLORE  /  GROW  /  ENDURE", 0.08, 0.56, 0.72, 0.027, gold)
+	local progress = C.Frame(frame, "Progress", UDim2.fromScale(0.08, 0.77), UDim2.fromScale(0.84, 0.004), Color3.fromRGB(42, 51, 63))
+	C.Frame(progress, "Fill", UDim2.fromScale(0, 0), UDim2.fromScale(0, 1), gold)
+	text("Status", "Connecting to the world...", 0.08, 0.8, 0.58, 0.035)
+	local play = C.New("TextButton", "Play", frame, { Position = UDim2.fromScale(0.66, 0.84), Size = UDim2.fromScale(0.26, 0.085), Text = "ENTER WORLD", Font = Enum.Font.GothamMedium, TextStrokeTransparency = 1, BackgroundColor3 = bg, TextColor3 = gold, Visible = false })
+	local stroke = C.Stroke(play, gold)
+	stroke.Thickness = 1
+	text("Footer", "YOUR STORY CONTINUES", 0.08, 0.91, 0.5, 0.022, Color3.fromRGB(126, 139, 157))
 	return screen
 end
 end)()
@@ -631,11 +644,26 @@ return function(parent)
 			C.Button(cell, "Confirm", "CONFIRM", nil, nil, T.Sand).Visible = false
 		end
 	end
-	local bank = C.Round(C.Frame(items, "Bank", UDim2.fromOffset(6, 238), UDim2.new(1, -12, 0, 176), T.Paper), 6)
+	-- A full-height storage panel covers the hero column; the backpack stays
+	-- available beside it for deposits. Keep Bank under Items for saved-UI bindings.
+	local bank = C.Round(C.Frame(items, "Bank", UDim2.fromScale(-2 / 3, 0), UDim2.fromScale(0.64, 1), T.Paper), 8)
 	bank.Visible = false
-	C.Label(bank, "Title", "STORAGE / tap to withdraw", UDim2.fromOffset(8, 4), UDim2.new(1, -80, 0, 28), true).TextSize = 11
-	C.Label(bank, "ItemLimit", "0 / 100", UDim2.new(1, -72, 0, 4), UDim2.fromOffset(64, 28)).TextSize = 11
-	C.Scroll(bank, "ScrollingFrame", UDim2.fromOffset(6, 38), UDim2.new(1, -12, 1, -44), 72, 96)
+	bank.Active = true
+	bank.ZIndex = 5
+	C.Stroke(bank)
+	C.Section(bank, "Header", "STORAGE", UDim2.fromScale(0.025, 0.012), UDim2.fromScale(0.95, 0.055))
+	local bankLimit = C.Label(bank, "ItemLimit", "0 / 100", UDim2.fromScale(0.05, 0.085), UDim2.fromScale(0.9, 0.055), true)
+	bankLimit.TextXAlignment = Enum.TextXAlignment.Center
+	bankLimit.TextColor3 = T.Gold
+	local bankHint = C.Label(bank, "Title", "Tap stored items to withdraw", UDim2.fromScale(0.05, 0.15), UDim2.fromScale(0.9, 0.07))
+	bankHint.TextXAlignment = Enum.TextXAlignment.Center
+	bankHint.TextColor3 = T.Muted
+	local storedItems = C.Scroll(bank, "ScrollingFrame", UDim2.fromScale(0.03, 0.24), UDim2.fromScale(0.94, 0.63), 72, 96)
+	storedItems.UIGridLayout.CellSize = UDim2.fromScale(0.44, 0.28)
+	storedItems.UIGridLayout.CellPadding = UDim2.fromScale(0.04, 0.035)
+	local help = C.Label(bank, "Help", "Tap backpack items to deposit.\nUse BACK to return to your hero.", UDim2.fromScale(0.05, 0.9), UDim2.fromScale(0.9, 0.085))
+	help.TextXAlignment = Enum.TextXAlignment.Center
+	help.TextColor3 = T.Muted
 	quantity(root, "StackMove")
 	quantity(root, "StackSell")
 	quantity(root, "BankStackMove")
@@ -722,46 +750,33 @@ end)()
 builders.Players = (function()
 
 return function(parent)
-	local screen, root, body = C.Window(parent, "Playerlist", "List", "Fellow adventurers", "View equipment and invite someone to your party.", 470, 470)
-	C.Scroll(body, "Container", UDim2.new(), UDim2.fromScale(1, 1))
-	local card = C.Frame(root, "Card", UDim2.fromOffset(8, 72), UDim2.new(1, -16, 1, -80), T.Paper)
-	card.Active = true
-	card.Visible = false
-	card.ZIndex = 4
-	local main = C.Scroll(card, "Main", UDim2.fromOffset(12, 8), UDim2.new(1, -24, 1, -16))
-	local title = C.Label(main, "PlayerName", "Player card", nil, UDim2.new(1, -8, 0, 36), true)
-	title.LayoutOrder = 1
-	local avatar = C.Image(main, "ImageLabel", UDim2.new(), UDim2.fromOffset(72, 72))
-	avatar.LayoutOrder = 2
-	C.Image(avatar, "Rune", UDim2.fromOffset(52, 48), UDim2.fromOffset(28, 28))
-	local stats = C.Frame(main, "Stats", UDim2.new(), UDim2.new(1, -8, 0, 224))
-	stats.LayoutOrder = 3
-	for index, name in { "Gold", "Kills", "Honor" } do
-		local cell = C.Frame(stats, name, UDim2.new((index - 1) / 3, 0, 0, 0), UDim2.new(1 / 3, 0, 0, 54))
-		C.Label(cell, "Label", name, UDim2.new(), UDim2.new(1, 0, 0, 24)).TextColor3 = T.Muted
-		C.Label(cell, "Amount", "0", UDim2.fromOffset(0, 26), UDim2.new(1, 0, 0, 24), true)
-	end
-	local attributes = C.Frame(stats, "Attributes", UDim2.fromOffset(0, 66), UDim2.new(1, 0, 0, 152))
-	C.List(attributes, false, 4)
-	for _, name in { "ATK", "DEF", "SPD", "CRT", "HP" } do C.Label(attributes, name, name, nil, UDim2.new(1, 0, 0, 26)) end
-	local items = C.Frame(main, "Items", UDim2.new(), UDim2.new(1, -8, 0, 120))
-	items.LayoutOrder = 4
-	local grid = C.New("UIGridLayout", "UIGridLayout", items, { CellSize = UDim2.fromOffset(48, 48), CellPadding = UDim2.fromOffset(8, 8) })
-	grid:SetAttribute("CellMinWidth", 48)
-	grid:SetAttribute("CellHeight", 48)
-	for _, name in { "Sword", "Accessory", "Accessory2", "Aura", "Armor", "Pet" } do
-		local icon = C.Image(items, name, nil, UDim2.fromOffset(48, 48))
-		icon.BackgroundTransparency = 0
-		icon.BackgroundColor3 = T.Soft
-		C.Round(icon, 8)
-		C.Image(icon, "Rarity", UDim2.new(0, 0, 1, -3), UDim2.new(1, 0, 0, 3)).BackgroundTransparency = 0
-	end
-	C.Label(main, "Hours", "", nil, UDim2.new(1, -8, 0, 24)).LayoutOrder = 5
-	C.Button(main, "Invite", "Invite to party").LayoutOrder = 6
-	C.Button(main, "Close", "Back to adventurers", nil, nil, T.Soft).LayoutOrder = 7
-	for _, name in { "Trade", "Titles", "Party", "Title", "Rep" } do
-		C.Label(main, name, "").Visible = false
-	end
+	local screen = C.Screen(parent, "Playerlist", 14)
+	screen.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
+	local list = C.Frame(screen, "List", UDim2.fromScale(1, 0.045), UDim2.fromScale(0.22, 0.4), Color3.fromRGB(30, 32, 40))
+	list.AnchorPoint = Vector2.new(1, 0)
+	list:SetAttribute("SideTab", true)
+	C.New("UISizeConstraint", "Bounds", list, { MinSize = Vector2.new(175, 180), MaxSize = Vector2.new(290, 360) })
+	local border = C.Stroke(list, Color3.fromRGB(16, 18, 25))
+	border.Thickness = 1
+	local toggle = C.New("TextButton", "Toggle", list, { Text = "", Position = UDim2.fromScale(-0.12, 0), Size = UDim2.fromScale(0.12, 1), BackgroundColor3 = Color3.fromRGB(39, 40, 59), AutoButtonColor = true })
+	local arrow = C.Label(toggle, "Arrow", ">", UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.65, 0.07))
+	arrow.AnchorPoint = Vector2.new(0.5, 0.5)
+	arrow.TextXAlignment = Enum.TextXAlignment.Center
+	arrow.Font = Enum.Font.GothamBold
+	C.New("UISizeConstraint", "TouchBounds", toggle, { MinSize = Vector2.new(32, 44) })
+	local title = C.Label(list, "Title", "ADVENTURERS", UDim2.fromScale(0.055, 0.03), UDim2.fromScale(0.89, 0.075), true)
+	title.Font = Enum.Font.GothamBold
+	title.TextXAlignment = Enum.TextXAlignment.Center
+	title.TextStrokeTransparency = 1
+	C.Frame(list, "Divider", UDim2.fromScale(0.06, 0.135), UDim2.fromScale(0.88, 0.003), Color3.fromRGB(58, 61, 76))
+	local container = C.Scroll(list, "Container", UDim2.fromScale(0.025, 0.15), UDim2.fromScale(0.95, 0.82))
+	container.UIListLayout.Padding = UDim.new(0.025, 0)
+	local row = C.New("TextButton", "EntryTemplate", list, { Text = "", Visible = false, Size = UDim2.fromScale(0.97, 0.18), BackgroundColor3 = T.Surface })
+	C.Round(row, 4)
+	C.Image(row, "Rank", UDim2.fromScale(0.025, 0.17), UDim2.fromScale(0.12, 0.66))
+	local name = C.Label(row, "PlayerName", "Adventurer", UDim2.fromScale(0.175, 0.15), UDim2.fromScale(0.59, 0.7))
+	name.TextWrapped = false
+	C.Label(row, "Level", "1", UDim2.fromScale(0.8, 0.15), UDim2.fromScale(0.17, 0.7), true).TextXAlignment = Enum.TextXAlignment.Center
 	return screen
 end
 end)()
@@ -885,6 +900,38 @@ return function(parent)
 end
 end)()
 
+builders.PlayerCard = (function()
+
+return function(parent)
+	local screen, root, body = C.Window(parent, "PlayerCard", "Main", "PLAYER PROFILE", "Equipment, progress and combat record", 490, 490)
+	root.Bounds.MaxSize = Vector2.new(720, 620)
+	C.Label(body, "PlayerName", "Adventurer", UDim2.fromScale(0.02, 0), UDim2.fromScale(0.96, 0.065), true)
+	C.Label(body, "Level", "Level 1", UDim2.fromScale(0.02, 0.075), UDim2.fromScale(0.96, 0.045))
+	local preview = C.New("ViewportFrame", "Avatar", body, { Position = UDim2.fromScale(0.02, 0.15), Size = UDim2.fromScale(0.4, 0.51), BackgroundColor3 = T.Surface, Ambient = Color3.fromRGB(200, 205, 220), LightColor = Color3.fromRGB(255, 241, 220), LightDirection = Vector3.new(-1, -1, -2) })
+	C.Round(preview)
+	C.New("WorldModel", "World", preview)
+	C.New("Camera", "Camera", preview, { FieldOfView = 32 })
+	C.Label(preview, "Status", "Loading avatar...", UDim2.fromScale(0.05, 0.4), UDim2.fromScale(0.9, 0.2))
+	local record = C.Frame(body, "Record", UDim2.fromScale(0.46, 0.15), UDim2.fromScale(0.52, 0.51))
+	for index, key in { "Gold", "Kills", "Deaths", "PlayTime", "SessionTime" } do
+		local row = C.Frame(record, key, UDim2.fromScale(0, (index - 1) * 0.2), UDim2.fromScale(1, 0.17), T.Surface)
+		C.Label(row, "Label", key, UDim2.fromScale(0.04, 0.12), UDim2.fromScale(0.48, 0.76))
+		C.Label(row, "Value", "--", UDim2.fromScale(0.54, 0.12), UDim2.fromScale(0.42, 0.76), true).TextXAlignment = Enum.TextXAlignment.Right
+	end
+	local gear = C.Frame(body, "Gear", UDim2.fromScale(0.02, 0.69), UDim2.fromScale(0.96, 0.14))
+	for index, key in { "Weapon", "Armor", "Ring", "Necklace", "Aura", "Rune" } do
+		local slot = C.Image(gear, key, UDim2.fromScale((index - 1) / 6, 0), UDim2.fromScale(0.15, 0.72))
+		slot.BackgroundTransparency = 0
+		slot.BackgroundColor3 = T.Surface
+		C.Label(slot, "Slot", key, UDim2.fromScale(0, 1.04), UDim2.fromScale(1, 0.32))
+	end
+	C.Label(body, "Stats", "ATK --   DEF --   HP --   SPD --   CRIT --", UDim2.fromScale(0.02, 0.85), UDim2.fromScale(0.96, 0.055), true)
+	C.Button(body, "Invite", "INVITE TO PARTY", UDim2.fromScale(0.52, 0.93), UDim2.fromScale(0.46, 0.07), T.Sky)
+	C.Label(body, "Status", "", UDim2.fromScale(0.02, 0.93), UDim2.fromScale(0.47, 0.07))
+	return screen
+end
+end)()
+
 local staging = Instance.new("Folder")
 local generated = {}
 local ok, reason = pcall(function()
@@ -924,6 +971,8 @@ local ok, reason = pcall(function()
     table.insert(generated, { Object = builders.StylePreview(staging), Target = StarterGui })
 
     table.insert(generated, { Object = builders.Admin(staging), Target = StarterGui })
+
+    table.insert(generated, { Object = builders.PlayerCard(staging), Target = StarterGui })
 
 for _, entry in generated do C.SaveScale(entry.Object) end
 end)

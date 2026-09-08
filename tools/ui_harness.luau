@@ -29,7 +29,9 @@ function UDim2.new(xs, xo, ys, yo) return { X = UDim.new(xs or 0, xo or 0), Y = 
 function UDim2.fromScale(x, y) return UDim2.new(x, 0, y, 0) end
 function UDim2.fromOffset(x, y) return UDim2.new(0, x, 0, y) end
 local Vector2 = { new = function(x, y) return { X = x, Y = y } end }
-local Vector3 = { new = function(x, y, z) return { X = x, Y = y, Z = z } end }
+local vector3Meta = { __add = function(a, b) return { X = a.X + b.X, Y = a.Y + b.Y, Z = a.Z + b.Z } end }
+local Vector3 = { new = function(x, y, z) return setmetatable({ X = x, Y = y, Z = z }, vector3Meta) end }
+local CFrame = { Angles = function() return {} end, lookAt = function(position, target) return { Position = position, Target = target } end }
 local Color3 = { fromRGB = function(r, g, b) return { R = r / 255, G = g / 255, B = b / 255 } end }
 local ColorSequence = { new = function(...) return { ... } end }
 local ColorSequenceKeypoint = { new = function(...) return { ... } end }
@@ -106,7 +108,14 @@ function Instance.new(class)
 	setmetatable(object, {
 		__index = function(self, key)
 			if methods[key] then return methods[key] end
-			if key == "AbsolutePosition" then return Vector2.new(0, 0) end
+			if key == "IgnoreGuiInset" then return false end
+			if key == "AbsolutePosition" then
+				if self:IsA("LayerCollector") or self.ClassName == "PlayerGui" then return Vector2.new(0, 0) end
+				local parentSize = self.Parent.AbsoluteSize
+				local origin = self.Parent.AbsolutePosition
+				local anchor = self._properties.AnchorPoint or Vector2.new(0, 0)
+				return Vector2.new(origin.X + self.Position.X.Scale * parentSize.X + self.Position.X.Offset - anchor.X * self.AbsoluteSize.X, origin.Y + self.Position.Y.Scale * parentSize.Y + self.Position.Y.Offset - anchor.Y * self.AbsoluteSize.Y)
+			end
 			if key == "AbsoluteSize" then
 				if self:IsA("LayerCollector") or self.ClassName == "PlayerGui" then return viewport end
 				local parent = self.Parent and self.Parent.AbsoluteSize or viewport
@@ -170,6 +179,18 @@ gui.Parent = player
 players.LocalPlayer = player
 players.GetPlayers = function() return { player } end
 players.GetUserThumbnailAsync = function() return "" end
+local avatarRequests = 0
+local resources = folder(rs, "Resources")
+folder(resources, "Weapons")
+folder(resources, "Animations")
+players.CreateHumanoidModelFromUserIdAsync = function(_, userId)
+	assert(userId == player.UserId)
+	avatarRequests += 1
+	local model = Instance.new("Model")
+	model.PivotTo = function() end
+	model.GetBoundingBox = function() return { Position = Vector3.new(0, 0, 0) }, Vector3.new(4, 6, 2) end
+	return model
+end
 local stats = folder(player, "PublicStats")
 folder(stats, "Level", "NumberValue").Value = 25
 folder(stats, "Honor", "NumberValue").Value = 0
@@ -178,6 +199,7 @@ services.StarterGui = folder(nil, "StarterGui")
 services.ServerStorage = folder(nil, "ServerStorage")
 services.Selection = { Set = function() end }
 services.ChangeHistoryService = { TryBeginRecording = function() return "test-recording" end, FinishRecording = function() end }
+services.GuiService = { GetGuiInset = function() return Vector2.new(0, 36) end }
 services.UserInputService = { TouchEnabled = false, MouseEnabled = true, InputBegan = signal(), GetMouseLocation = function() return Vector2.new(400, 200) end }
 services.Debris = { AddItem = function() end }
 services.TweenService = { Create = function(_, object, _, properties) return { Play = function() for k, v in properties do object[k] = v end end, Cancel = function() end } end }
@@ -249,7 +271,7 @@ task.spawn = function(callback, ...)
 	return co
 end
 local cache = {}
-local env = setmetatable({ game = game, workspace = workspace, Instance = Instance, Enum = Enum, UDim = UDim, UDim2 = UDim2, Vector2 = Vector2, Vector3 = Vector3, Color3 = Color3, ColorSequence = ColorSequence, ColorSequenceKeypoint = ColorSequenceKeypoint, TweenInfo = { new = function() return {} end }, task = task, warn = print }, { __index = getfenv() })
+local env = setmetatable({ game = game, workspace = workspace, Instance = Instance, Enum = Enum, UDim = UDim, UDim2 = UDim2, Vector2 = Vector2, Vector3 = Vector3, CFrame = CFrame, Color3 = Color3, ColorSequence = ColorSequence, ColorSequenceKeypoint = ColorSequenceKeypoint, TweenInfo = { new = function() return {} end }, task = task, warn = print }, { __index = getfenv() })
 local function loadModule(module)
 	if overrides[module] then return overrides[module] end
 	if cache[module] then return cache[module] end
@@ -291,7 +313,10 @@ assert(original:GetAttribute("UserEdit") == "preserve this" and original.Parent.
 assert(rs.RPGUITemplates and not services.StarterGui:FindFirstChild("RPGUITemplates"), "Templates placed in wrong service")
 for _, screen in services.StarterGui:GetChildren() do screen.Parent = gui end
 local bootstrap = loadModule(modules["UI/Bootstrap"])
-bootstrap.Ensure()
+-- Simulate personal Studio edits, including grid dimensions.
+gui.Inventory.Main.Position = UDim2.fromScale(0.48, 0.49)
+gui.Inventory.Main.Body.Content.Items.Container.Size = UDim2.fromScale(0.91, 0.51)
+gui.Inventory.Main.Body.Content.Items.Container.UIGridLayout.CellSize = UDim2.fromScale(0.22, 0.31)
 local savedGeometry = {}
 for _, object in gui:GetDescendants() do
 	if object:IsA("GuiObject") then
@@ -316,8 +341,19 @@ assert(inv.Container.sword.ItemName.Text == "Paper Sword")
 for _, job in jobs do job() end
 table.clear(jobs)
 assert(content.Hero.Stats.Attack.Value.Text == "12", "Hero stats did not update")
+assert(avatarRequests == 1, "Preview must load the user avatar once")
+local cachedAvatar = content.Hero.CharacterPreview.World.HeroPreview
+windows.Close()
+windows.Open("Inventory")
+for _, job in jobs do job() end
+table.clear(jobs)
+assert(avatarRequests == 1 and content.Hero.CharacterPreview.World.HeroPreview == cachedAvatar, "Reopening rebuilt cached avatar")
 inv.Container.sword.MouseEnter:Fire()
 assert(gui.Inventory.ItemTooltip.Visible, "Item hover did not show details")
+local tooltipPosition = gui.Inventory.ItemTooltip.AbsolutePosition
+assert(math.abs(tooltipPosition.X - 412) < 0.01 and math.abs(tooltipPosition.Y - 176) < 0.01, "Tooltip is not beside mouse after topbar inset")
+services.RunService.RenderStepped:Fire()
+assert(math.abs(gui.Inventory.ItemTooltip.AbsolutePosition.Y - 176) < 0.01, "Tooltip drifts each frame")
 assert(gui.Inventory.ItemTooltip.ItemName.Text == "Paper Sword")
 inv.Container.sword.MouseLeave:Fire()
 assert(not gui.Inventory.ItemTooltip.Visible, "Item tooltip did not close")
@@ -381,6 +417,43 @@ click(gui.Partylist.PartyInvite.YES)
 assert(last("AcceptPartyInvite")[2] == "Friend")
 logic.Party.OnLeave()
 assert(gui.Partylist.Panel.Body.Content.Empty.Visible)
+-- Persistent roster: local priority, descending levels, colors, Rank and card data.
+assert(gui.Playerlist.ScreenInsets == Enum.ScreenInsets.DeviceSafeInsets)
+click(gui.Playerlist.List.Toggle)
+assert(gui.Playerlist.List.Position.X.Scale == 1.251 and gui.Playerlist.List.Position.Y.Scale == 0)
+assert(gui.Playerlist.List.Toggle.Arrow.Rotation == 180)
+click(gui.Playerlist.List.Toggle)
+assert(gui.Playerlist.List.Visible and gui.Playerlist.List.Toggle.Arrow.Rotation == 0)
+assert(gui.Playerlist.List.Position.X.Scale == 1 and gui.Playerlist.List.Position.Y.Scale == 0)
+local roster = gui.Playerlist.List.Container
+assert(roster.Tester.Level.Text == "Lvl 25")
+local function otherPlayer(name, id, level)
+	local other = folder(players, name, "Player")
+	other.UserId = id; other.DisplayName = name
+	folder(folder(other, "PublicStats"), "Level", "NumberValue").Value = level
+	players.PlayerAdded:Fire(other)
+	return other
+end
+local veteran = otherPlayer("Veteran", 456, 30)
+local novice = otherPlayer("Novice", 789, 2)
+assert(roster.Tester.LayoutOrder == 1 and roster.Veteran.LayoutOrder == 2 and roster.Novice.LayoutOrder == 3)
+assert(roster.Tester.Rank:IsA("ImageLabel"))
+assert(roster.Tester.PlayerName.TextColor3 == loadModule(modules["UI/Theme"]).Blue)
+assert(roster.Veteran.PlayerName.TextColor3 == loadModule(modules["UI/Theme"]).Gold)
+local previousInvoke = remotes.InvokeServerFunction
+remotes.InvokeServerFunction = function(name, target)
+	assert(name == "GetPlayerInfo" and target == player)
+	return { Level = 25, Gold = 150, Kills = 10, Deaths = 2, PlayTime = 3600, SessionTime = 60, Stats = { Attack = 12 }, Equipment = {} }
+end
+click(roster.Tester)
+assert(gui.PlayerCard.Main.Visible and gui.PlayerCard.Main.Body.Content.Record.Deaths.Value.Text == "2")
+assert(gui.PlayerCard.Main.Body.Content.Record.PlayTime.Value.Text == "01:00:00")
+assert(gui.PlayerCard.Main.Body.Content.Record.SessionTime.Value.Text == "00:01:00")
+windows.Close()
+remotes.InvokeServerFunction = previousInvoke
+players.PlayerRemoving:Fire(veteran); veteran.Parent = nil
+players.PlayerRemoving:Fire(novice); novice.Parent = nil
+assert(not roster:FindFirstChild("Veteran"))
 local dialogues = loadModule(modules.Dialogues)
 logic.Dialog.Open(dialogues["Tutorial Guy"], "Tutorial Guy")
 assert(logic.Dialog.IsOpen())
@@ -413,7 +486,7 @@ for _, size in { { 1280, 720 }, { 844, 326 }, { 390, 760 }, { 320, 568 } } do
 		end
 	end
 	for object, properties in savedGeometry do
-		if object.Parent and object ~= gui.Inventory.ItemTooltip and not object:FindFirstAncestor("Attack") and object.Name ~= "Bar" then
+		if object.Parent and object ~= gui.Inventory.ItemTooltip and object ~= gui.Playerlist.List and not object:FindFirstAncestor("Attack") and object.Name ~= "Bar" then
 			for key, value in properties do
 				assert(object[key] == value, object.Name .. "." .. key .. " overwrote Studio layout")
 			end
@@ -422,4 +495,4 @@ for _, size in { { 1280, 720 }, { 844, 326 }, { 390, 760 }, { 320, 568 } } do
 	assert(content.Hero.Visible and content.Items.Visible and not content.MobileTabs.Visible, "Viewport changed saved visibility")
 
 end
-print("PASS: 18 standalone Edit generators, backup preservation, saved-UI bootstrap, hero stats, item hovers, saved layout preservation, UI initialization, inventory/equipment/search/quantities/sale, skill locks, raids, party, dialogue, journal, shop, bars, buffs, and 4 viewport sizes.")
+print("PASS: 19 standalone Edit generators, backup preservation, saved-UI bootstrap, hero stats, item hovers, saved layout preservation, UI initialization, inventory/equipment/search/quantities/sale, skill locks, raids, party, dialogue, journal, shop, bars, buffs, and 4 viewport sizes.")

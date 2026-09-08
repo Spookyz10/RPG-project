@@ -233,7 +233,16 @@ function AnimationHandler:PlayWeaponIdle(weaponType: string?): AnimationTrack?
 		return nil
 	end
 
-	return self:Play(weaponType, 0.2)
+	-- Loading can yield; an unequip or newer weapon selection must win.
+	if not self:WaitUntilReady() then return nil end
+	if PreloadStatus then PreloadStatus:WaitUntilReady() end
+	if self._Destroyed or self.CurrentWeaponIdle ~= weaponType then return nil end
+	local track = self:Play(weaponType, 0.2)
+	if track then
+		track.Looped = true
+		track.Priority = Enum.AnimationPriority.Idle
+	end
+	return track
 end
 
 function AnimationHandler:Destroy()

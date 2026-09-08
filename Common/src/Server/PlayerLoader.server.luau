@@ -43,7 +43,7 @@ local function LoadPlayer(Player: Player)
 	Player:LoadCharacterAsync()
 	DailyReward.ResetDailyStreak(Player)
 
-	-- Loading UI is generated locally by ReplicatedFirst.
+	Player:WaitForChild("PlayerGui"):WaitForChild("LoadingScreen").Enabled = true
 end
 
 local function SetupHitbox(Character: Model)

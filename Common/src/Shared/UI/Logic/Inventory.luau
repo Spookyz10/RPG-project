@@ -92,9 +92,14 @@ local DEFAULT_LAYOUT_ORDER = 100
 local QuantityConnection: RBXScriptConnection? = nil
 
 local function CloseQuantities()
-	if QuantityConnection then QuantityConnection:Disconnect(); QuantityConnection = nil end
+	if QuantityConnection then
+		QuantityConnection:Disconnect()
+		QuantityConnection = nil
+	end
 	for _, box in { MainStackMove, MainStackSell, BankStackMove } do
-		if box then box.Visible = false end
+		if box then
+			box.Visible = false
+		end
 	end
 end
 
@@ -127,9 +132,13 @@ local function UpdateEntry(Button: TextButton, ItemData: Types.ItemData)
 	end
 
 	local NameLabel = Button:FindFirstChild("ItemName")
-	if NameLabel then NameLabel.Text = ItemData.Name end
+	if NameLabel then
+		NameLabel.Text = ItemData.Name
+	end
 	local LevelLabel = Button:FindFirstChild("ItemLevel")
-	if LevelLabel then LevelLabel.Text = "Lv. " .. (ItemInfo.Data.Level or 1) end
+	if LevelLabel then
+		LevelLabel.Text = "Lv. " .. (ItemInfo.Data.Level or 1)
+	end
 	local Icon = Button:FindFirstChild("Icon") :: ImageLabel?
 	local Amount = Button:FindFirstChild("Amount") :: TextLabel?
 
@@ -165,15 +174,11 @@ end
 
 local function UpdateEquippedLabel(UUID: string, Button: TextButton)
 	local EquippedLabel = Button:FindFirstChild("EquippedLabel") :: ImageLabel?
-
-	Button.BorderColor3 = Color3.fromRGB(255, 255, 255)
-
 	local Key = FindEquippedKey(UUID)
 
 	if Key then
 		if EquippedLabel then
 			EquippedLabel.Visible = true
-			EquippedLabel.ImageColor3 = EquippedLabelColors[Key] or Color3.fromRGB(255, 255, 255)
 		end
 		Button.BorderSizePixel = 1
 		Button.LayoutOrder = SlotOrder[Key] or DEFAULT_LAYOUT_ORDER
@@ -203,12 +208,15 @@ local function ApplySearchFilter()
 			local Name = EntryNames[UUID]
 			Button.Visible = Name ~= nil and string.find(string.lower(Name), Query, 1, true) ~= nil
 		end
-		if Button.Visible then shown += 1 end
+		if Button.Visible then
+			shown += 1
+		end
 	end
 	local empty = Container.Parent:FindFirstChild("Empty")
 	if empty then
 		empty.Visible = shown == 0
-		empty.Text = Query == "" and "Your backpack is empty. Explore a zone to find your first loot." or "No items match your search."
+		empty.Text = Query == "" and "Your backpack is empty. Explore a zone to find your first loot."
+			or "No items match your search."
 	end
 end
 
@@ -427,7 +435,9 @@ local function UpdateSellLabel()
 end
 local function OpenStackSell(UUID: string, Button: TextButton, ItemData: Types.ItemData, ItemInfo: Types.Item)
 	PromptQuantity(MainStackSell, ItemData.Amount, function(amount)
-		if not SellMode or not Entries[UUID] then return end
+		if not SellMode or not Entries[UUID] then
+			return
+		end
 		SellTotal -= GetSellValue(ItemInfo, SellList[UUID] or 0)
 		SellList[UUID] = amount
 		SellTotal += GetSellValue(ItemInfo, amount)
@@ -598,7 +608,9 @@ local function CreateEntry(UUID: string, ItemData: Types.ItemData)
 	Button.Name = UUID
 	Button.LayoutOrder = DEFAULT_LAYOUT_ORDER
 	Button.Parent = Container
-	Tooltip.Bind(Button, function() return UIConstants.Data.Inventory[UUID]() end)
+	Tooltip.Bind(Button, function()
+		return UIConstants.Data.Inventory[UUID]()
+	end)
 
 	UpdateEntry(Button, ItemData)
 
@@ -653,7 +665,9 @@ local function CreateBankEntry(UUID: string, ItemData: Types.ItemData)
 	Button.Name = UUID
 	Button.LayoutOrder = DEFAULT_LAYOUT_ORDER
 	Button.Parent = BankContainer
-	Tooltip.Bind(Button, function() return UIConstants.Data.Storage[UUID]() end)
+	Tooltip.Bind(Button, function()
+		return UIConstants.Data.Storage[UUID]()
+	end)
 
 	UpdateEntry(Button, ItemData)
 
@@ -854,7 +868,9 @@ function Inventory.Init()
 	UsableFrame = Root:WaitForChild("UsableFrame") :: Frame
 	MaterialFrame = Root:WaitForChild("MaterialFrame")
 	MaterialFrame.Visible = false
-	MaterialFrame.Inner.Cancel.Activated:Connect(function() MaterialFrame.Visible = false end)
+	MaterialFrame.Inner.Cancel.Activated:Connect(function()
+		MaterialFrame.Visible = false
+	end)
 	VanityButton = Hero:WaitForChild("Vanity") :: TextButton
 	EquippedFrame = EquippedContainer :: Frame
 	VanitiesFrame = VanitiesContainer :: Frame

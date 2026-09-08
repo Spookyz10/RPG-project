@@ -25,7 +25,9 @@ function Buttons.Init()
 			button.Activated:Connect(function()
 				drawer.Visible = false
 				main.Backpack.Visible = true
-				if target == "Home" then
+				if target == "Playerlist" then
+					require(script.Parent.PlayerList).Toggle()
+				elseif target == "Home" then
 					local teleporters = workspace:FindFirstChild("ZoneTeleporters")
 					local lobby = teleporters and teleporters:FindFirstChild("Lobby")
 					if lobby and lobby:IsA("BasePart") and Constants.Player.Character then

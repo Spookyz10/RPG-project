@@ -32,15 +32,15 @@ Os scripts individuais abaixo geram apenas a tela indicada. Ao executar novament
 - Edite cores, textos, fontes, tamanhos e posições diretamente nos objetos. Preserve os nomes e a hierarquia, pois a lógica encontra os controles por esses caminhos.
 - Para ver uma janela no modo Edit, marque o `Visible` do seu frame principal. A inicialização fecha as janelas no Play, sem reconstruí-las. Loading e tutorial ficam desativados no Edit para não cobrir as outras telas.
 - Edite os cards em `ReplicatedStorage.RPGUITemplates`. A lógica clona esses modelos para exibir itens, skills, diálogos, notificações e jogadores. Os clones recebem os dados atuais; os templates originais não são apagados nem recriados no Play.
-- O tamanho/posição salvos são a base de desktop. Elementos responsivos têm atributos `NarrowPosition`, `NarrowSize` e, quando necessário, `Breakpoint` para a variação mobile. As grades usam `CellMinWidth` e `CellHeight` para adaptar as colunas.
+- Position, Size e as propriedades das grades salvas no Studio valem em todos os dispositivos. O runtime ignora os antigos atributos Wide/Narrow, Breakpoint, CellMinWidth/CellHeight e NormalHeight/StorageHeight; abrir o storage nao redimensiona a mochila.
 - Os objetos salvos em Studio não estão mapeados como arquivos Rojo. Salve o `.rbxl`/place para preservar suas edições. Um `rojo build` isolado contém a lógica, mas não inclui os objetos que você ainda não exportou do Studio.
 - Para restaurar uma versão, mova os objetos do backup para o serviço indicado no atributo `OriginalService`, removendo antes a versão que você está substituindo.
 
 ## Inventário
 
-Janela limitada a **740 px** de largura. Em `Inventory.Main.Body.Content`, `Hero` contém o personagem 3D, os slots ao redor e os stats abaixo; `Items` contém busca, cards, capacidade, armazenamento e ações. No celular em pé, as abas `HERO`/`ITEMS` alternam as colunas sem reduzir os alvos de toque. Na horizontal, ambas aparecem lado a lado; telas de pouca altura permitem rolar o conteúdo.
+Janela limitada a **740 px** de largura. Em `Inventory.Main.Body.Content`, `Hero` contém o personagem 3D, os slots ao redor e os stats abaixo; `Items` contém busca, cards, capacidade, armazenamento e ações. O layout mobile tambem fica sob seu controle no Studio, usando Scale e constraints. As abas HERO/ITEMS so alternam a visibilidade ao clicar, caso voce as deixe visiveis; nao existe mais troca automatica por resolucao.
 
-O personagem aparece no Play: a lógica copia o avatar real e os equipamentos que já estão no modelo do personagem, remove scripts/efeitos da cópia e ajusta a câmera ao espaço disponível. A prévia atualiza quando o avatar ou os equipamentos mudam. Os stats usam a mesma função de cálculo do jogo. Equipamentos sem modelo visual implementado continuam identificados pelos slots, sem inventar uma aparência.
+O preview carrega a aparencia do usuario e guarda o modelo em cache enquanto a UI existir. Nao clona o personagem do mapa: adiciona somente a espada de Resources.Weapons, respeita vanity e toca o idle da arma equipada. Fechar e reabrir preserva o modelo. A camera mostra o avatar de frente com enquadramento mais proximo. Os stats continuam usando o calculo do jogo.
 
 Passe o mouse por itens da mochila, armazenamento ou slots para ver nome, raridade, requisito, descrição, stats e valor. No mobile, toque no item para abrir os detalhes e ações, inclusive para materiais. O tooltip não depende de clique no desktop e fica limitado à área da tela.
 
@@ -67,3 +67,11 @@ A interface usa os serviços de gameplay existentes. Crafting e ofertas de skill
 ### Scale e TextScaled
 
 Todos os geradores convertem as medidas de referencia para Scale antes de salvar as instancias, inclusive os atributos responsivos, grades e espacamentos. TextScaled fica ativo em todos os textos. Os offsets no codigo de construcao sao medidas do desenho de referencia; nao permanecem nas propriedades salvas. A conversao usa uma referencia fixa, sem depender do tamanho da janela do Studio. Bordas e limites de tamanho continuam sendo propriedades numericas do Roblox. Rode novamente o gerador em Edit mode para aplicar ao place e salve.
+
+## Loading, player list e player card
+
+Rode separadamente `02_Loading.luau`, `10_Players.luau` e `19_PlayerCard.luau` no Edit mode e salve. Os dois ultimos sao necessarios para a nova lista e seu card. Nao precisa regerar o inventario. O loading usa tipografia limpa, fundo azul profundo e detalhes em dourado discreto; BackgroundArt pode receber uma imagem sua no Studio.
+
+A lista fica no topo direito, ordenada por nivel decrescente com o jogador local sempre primeiro e azul. Outros jogadores no limite de nivel ficam dourados, e os demais brancos. Tab alterna a lista. Ajuste no Studio sua posicao em relacao ao menu que voce personalizou. O card mostra avatar, equipamento, stats, ouro, kills, deaths, tempo total e tempo da sessao.
+
+Os ImageLabels Rank ja existem. Preencha os IDs em `Common/src/Shared/UI/RankIcons.luau` quando criar os icones e atribua Rank ao Player (D, C, B, A, S, SS ou SSS). Nenhum rank e calculado automaticamente por enquanto.

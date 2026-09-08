@@ -9,7 +9,7 @@ local ready = false
 local screenNames = {
 	"LoadingScreen", "HUD", "Buttons", "Attack", "Inventory", "SkillSelector",
 	"ZoneSelector", "RaidsGUI", "Playerlist", "Partylist", "Dialogue", "Shop",
-	"Journal", "Notifications", "Tutorial", "Main",
+	"Journal", "Notifications", "Tutorial", "Main", "PlayerCard",
 }
 
 function Bootstrap.Ensure()

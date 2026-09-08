@@ -1,304 +1,306 @@
-local Theme = require(script.Parent.Parent.Theme)
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
-
-local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
-local UIFunctions = require(ReplicatedStorage.Shared.UI.UIFunctions)
-local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
-local Abbreviation = require(ReplicatedStorage.Shared.Utils.Abbreviation)
-local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
-local getCappedInfo = require(ReplicatedStorage.Shared.getCappedInfo)
-
+local UI = script.Parent.Parent
+local Constants = require(UI.UIConstants)
+local Theme = require(UI.Theme)
+local Ranks = require(UI.RankIcons)
+local Windows = require(UI.WindowManager)
+local Remotes = require(UI.Parent.Utils.RemoteManager)
+local Cap = require(UI.Parent.getCappedInfo).Level
 local Playerlist = {}
-
-local HonorRankIcons = {
-	{ Honor = 100000, Icon = "rbxassetid://3513549243" },
-	{ Honor = 50000, Icon = "rbxassetid://3513548831" },
-	{ Honor = 10000, Icon = "rbxassetid://3513548371" },
-	{ Honor = 1000, Icon = "rbxassetid://3513548115" },
-	{ Honor = 100, Icon = "rbxassetid://3513547796" },
-}
-
-local EquipmentSlots = {
-	{ Frame = "Sword", Slot = "Weapon" },
-	{ Frame = "Accessory", Slot = "Ring" },
-	{ Frame = "Accessory2", Slot = "Necklace" },
-	{ Frame = "Aura", Slot = "Aura" },
-	{ Frame = "Armor", Slot = "Armor" },
-}
-
-local LOCAL_PLAYER_COLOR = Theme.Green
-local MAX_LEVEL_COLOR = Theme.Gold
-local DEFAULT_NAME_COLOR = Theme.Ink
-
-local AttributeStatKeys = { ATK = "Attack", DEF = "Defense", SPD = "Speed", CRT = "Critical", HP = "Health" }
-local PercentAttributes = { CRT = true }
-
-local ListGui: ScreenGui = nil
-local List: Frame = nil
-local Container: ScrollingFrame = nil
-local HiderButton: TextButton = nil
-local Template: Frame = nil
-local Card: Frame = nil
-local CardMain: Frame = nil
-
-local Entries: { [Player]: Frame } = {}
-local ViewedPlayer: Player? = nil
-
-local function GetRankIcon(honor: number): string?
-	for _, entry in HonorRankIcons do
-		if honor >= entry.Honor then
-			return entry.Icon
-		end
-	end
-	return nil
-end
-
-local function UpdateEntryLevel(Entry: Frame, level: number)
-	Entry.Stats.Level.Text = "Lv" .. tostring(level)
-	Entry.Stats.Level.TextColor3 = level >= getCappedInfo.Level and MAX_LEVEL_COLOR or DEFAULT_NAME_COLOR
-end
-
-local function UpdateEntryNameColor(Entry: Frame, targetPlayer: Player, level: number)
-	local NameLabel = Entry.Info.User :: TextLabel
-
-	if targetPlayer == UIConstants.Player then
-		NameLabel.TextColor3 = LOCAL_PLAYER_COLOR
-	elseif level >= getCappedInfo.Level then
-		NameLabel.TextColor3 = MAX_LEVEL_COLOR
-	else
-		NameLabel.TextColor3 = DEFAULT_NAME_COLOR
-	end
-end
-
-local function UpdateEntryHonor(Entry: Frame, honor: number)
-	local Icon = Entry:FindFirstChild("Icon") :: ImageLabel?
-	if not Icon then
-		return
-	end
-
-	local RankIcon = GetRankIcon(honor)
-	Icon.Visible = RankIcon ~= nil
-
-	if RankIcon then
-		Icon.Image = RankIcon
-	end
-end
-
-local function CreateEntry(targetPlayer: Player)
-	if Entries[targetPlayer] then
-		return
-	end
-
-	local Entry = Template:Clone()
-	Entry.Name = targetPlayer.Name
-	Entry.Visible = true
-	Entry.Info.User.Text = targetPlayer.Name
-
-	Entry.LayoutOrder = targetPlayer == UIConstants.Player and 0 or 1
-	Entry.Parent = Container
-
-	Entries[targetPlayer] = Entry
-
-	local Stats = targetPlayer:WaitForChild("PublicStats", 15)
-	if not Stats or not Entry.Parent then return end
-	local LevelValue = Stats:WaitForChild("Level") :: NumberValue
-	local HonorValue = Stats:WaitForChild("Honor") :: NumberValue
-
-	UpdateEntryLevel(Entry, LevelValue.Value)
-	UpdateEntryNameColor(Entry, targetPlayer, LevelValue.Value)
-	UpdateEntryHonor(Entry, HonorValue.Value)
-
-	LevelValue.Changed:Connect(function(newLevel)
-		UpdateEntryLevel(Entry, newLevel)
-		UpdateEntryNameColor(Entry, targetPlayer, newLevel)
-	end)
-
-	HonorValue.Changed:Connect(function(newHonor)
-		UpdateEntryHonor(Entry, newHonor)
-	end)
-
-	Entry.View.Activated:Connect(function()
-		Playerlist.OpenCard(targetPlayer)
-	end)
-end
-
-local function RemoveEntry(targetPlayer: Player)
-	local Entry = Entries[targetPlayer]
-	if Entry then
-		Entry:Destroy()
-		Entries[targetPlayer] = nil
-	end
-end
-
-local function ToggleList()
-	require(script.Parent.Parent.WindowManager).Open("Playerlist", true)
-end
-
-local function PopulateItems(Equipment: { [string]: { Icon: string, SubType: string, Rarity: string } })
-	local ItemsFrame = CardMain.Items
-
-	for _, entry in EquipmentSlots do
-		local ItemFrame = ItemsFrame:FindFirstChild(entry.Frame) :: ImageLabel?
-		if not ItemFrame then
-			continue
-		end
-
-		local EquippedItem = Equipment[entry.Slot]
-		local RarityTag = ItemFrame:FindFirstChild("Rarity") :: ImageLabel?
-
-		if EquippedItem then
-			ItemFrame.Image = EquippedItem.Icon
-			if RarityTag then
-				RarityTag.ImageColor3 = UIFunctions.RarityColors[EquippedItem.Rarity] or Color3.fromRGB(255, 255, 255)
-				RarityTag.ImageTransparency = 0.5
-			end
-		else
-			ItemFrame.Image = ""
-			if RarityTag then
-				RarityTag.ImageTransparency = 1
-			end
-		end
-	end
-
-	local RuneIcon = CardMain.ImageLabel:FindFirstChild("Rune") :: ImageLabel?
-	if RuneIcon then
-		local RuneItem = Equipment.Rune
-		RuneIcon.Image = RuneItem and RuneItem.Icon or ""
-	end
-end
-
-local function FormatAmount(value: number, isPercent: boolean): string
-	if isPercent then
-		return string.format("%.1f", value)
-	end
-
-	return tostring(math.floor(value))
-end
-
-local function FormatGearAmount(value: number, isPercent: boolean): string
-	if isPercent then
-		return string.format("%+.1f%%", value)
-	end
-
-	return string.format("%+d", math.floor(value))
-end
-
-local function SetAttributeLabel(
-	Label: TextLabel,
-	attributeKey: string,
-	totalValue: number,
-	extraStats: { [string]: number }
-)
-	local StatName = AttributeStatKeys[attributeKey]
-	local Cap = getCappedInfo[StatName]
-	local IsPercent = PercentAttributes[attributeKey] == true
-
-	local CurrentAmount = (extraStats and extraStats[StatName]) or 0
-	local GearAmount = totalValue - CurrentAmount
-
-	local Suffix = IsPercent and "%" or ""
-
-	Label.Text = attributeKey
-		.. ": "
-		.. FormatAmount(CurrentAmount, IsPercent)
-		.. "/"
-		.. FormatAmount(Cap or 0, IsPercent)
-		.. Suffix
-		.. " ("
-		.. FormatGearAmount(GearAmount, IsPercent)
-		.. ")"
-
-	local IsMax = Cap ~= nil and CurrentAmount >= Cap
-	Label.TextColor3 = IsMax and MAX_LEVEL_COLOR or DEFAULT_NAME_COLOR
-end
-
-function Playerlist.OpenCard(targetPlayer: Player)
-	ViewedPlayer = targetPlayer
-	local Info = RemoteManager.InvokeServerFunction("GetPlayerInfo", targetPlayer)
-	if not Info then
-		return
-	end
-
-	local success, thumbnail = pcall(
-		Players.GetUserThumbnailAsync,
-		Players,
-		targetPlayer.UserId,
-		Enum.ThumbnailType.HeadShot,
-		Enum.ThumbnailSize.Size420x420
+local panelTween
+local toggleTween
+function Playerlist.Toggle()
+	local screen = Constants.PlayerGui.Playerlist
+	local panel = screen.List
+	local toggle = panel:FindFirstChild("Toggle") or screen:FindFirstChild("Toggle")
+	local opened = panel:GetAttribute("Collapsed") == true
+	panel:SetAttribute("Collapsed", not opened)
+	panel.Visible = true
+	if panelTween then panelTween:Cancel() end
+	panelTween = game:GetService("TweenService"):Create(
+		panel,
+		TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{ Position = UDim2.fromScale(opened and 1 or 1.251, 0) }
 	)
-	CardMain.ImageLabel.Image = success and thumbnail or ""
-
-	CardMain.PlayerName.Text = Info.Name .. "'s Player Card"
-
-	CardMain.Stats.Gold.Amount.Text = Abbreviation:Number(Info.Gold)
-	CardMain.Stats.Kills.Amount.Text = tostring(Info.Kills)
-	CardMain.Stats.Honor.Amount.Text = tostring(Info.Honor)
-
-	local Attributes = CardMain.Stats.Attributes
-	local ExtraStats = Info.ExtraStats or {}
-
-	SetAttributeLabel(Attributes.ATK, "ATK", Info.Stats.Attack, ExtraStats)
-	SetAttributeLabel(Attributes.DEF, "DEF", Info.Stats.Defense, ExtraStats)
-	SetAttributeLabel(Attributes.SPD, "SPD", Info.Stats.Speed, ExtraStats)
-	SetAttributeLabel(Attributes.CRT, "CRT", Info.Stats.Critical, ExtraStats)
-	SetAttributeLabel(Attributes.HP, "HP", Info.Stats.Health, ExtraStats)
-
-	CardMain.Hours.Text = Functions.FormatTime(Info.PlayTime) .. " Played"
-
-	PopulateItems(Info.Equipment)
-
-	if ViewedPlayer ~= targetPlayer or not targetPlayer.Parent then return end
-	CardMain.Invite.Visible = targetPlayer ~= UIConstants.Player
-	Card.Visible = true
-end
-
-local function CloseCard()
-	Card.Visible = false
-end
-
-function Playerlist.Init()
-	ListGui = UIConstants.PlayerGui:WaitForChild("Playerlist") :: ScreenGui
-	List = ListGui:WaitForChild("List") :: Frame
-	Container = List.Body.Content:WaitForChild("Container") :: ScrollingFrame
-	Template = require(ReplicatedStorage.Shared.UI.Bootstrap).GetTemplates():WaitForChild("ListTemplate") :: Frame
-	Template.Visible = false
-
-	Card = List:WaitForChild("Card") :: Frame
-	CardMain = Card:WaitForChild("Main") :: Frame
-	Card.Visible = false
-
-	CardMain.Trade.Visible = false
-	CardMain.Titles.Visible = false
-	CardMain.Party.Visible = false
-	CardMain.Title.Visible = false
-	CardMain.Rep.Visible = false
-	CardMain.Items.Pet.Visible = false
-
-	CardMain.Close.Activated:Connect(CloseCard)
-	CardMain.Invite.Activated:Connect(function()
-		if ViewedPlayer and ViewedPlayer.Parent then
-			RemoteManager.SendServerEvent("InviteToParty", ViewedPlayer)
+	panelTween:Play()
+	if toggle then
+		if toggleTween then
+			toggleTween:Cancel()
 		end
-	end)
+		toggleTween = game:GetService("TweenService"):Create(
+			toggle.Arrow,
+			TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{ Rotation = opened and 0 or 180 }
+		)
+		toggleTween:Play()
+	end
+end
 
-	UserInputService.InputBegan:Connect(function(input, gameProcessed)
-		if gameProcessed then
+local entries, connections, avatars = {}, {}, {}
+local list, container, template, card, body, camera
+local viewed, request = nil, 0
+local timeReceived, playTime, sessionTime = 0, 0, 0
+
+local function duration(seconds)
+	seconds = math.max(0, math.floor(seconds or 0))
+	return string.format("%02d:%02d:%02d", seconds // 3600, seconds // 60 % 60, seconds % 60)
+end
+local function refreshTimes()
+	local elapsed = math.max(0, os.clock() - timeReceived)
+	body.Record.PlayTime.Value.Text = duration(playTime + elapsed)
+	body.Record.SessionTime.Value.Text = duration(sessionTime + elapsed)
+end
+local function level(player)
+	local stats = player:FindFirstChild("PublicStats")
+	local value = stats and stats:FindFirstChild("Level")
+	return value and value.Value or 0
+end
+local function sort()
+	local players = {}
+	for player in entries do
+		table.insert(players, player)
+	end
+	table.sort(players, function(a, b)
+		if a == b then
+			return false
+		end
+		if a == Constants.Player then
+			return true
+		end
+		if b == Constants.Player then
+			return false
+		end
+		if level(a) ~= level(b) then
+			return level(a) > level(b)
+		end
+		return a.UserId < b.UserId
+	end)
+	for index, player in players do
+		local row = entries[player]
+		row.LayoutOrder = index
+		row.Level.Text = "Lvl " .. tostring(level(player))
+		row.PlayerName.TextColor3 = player == Constants.Player and Theme.Blue
+			or level(player) >= Cap and Theme.Gold
+			or Color3.fromRGB(255, 255, 255)
+	end
+end
+local function fit()
+	local model = body.Avatar.World:FindFirstChildOfClass("Model")
+	if not model then
+		return
+	end
+	local bounds, size = model:GetBoundingBox()
+	local aspect = math.max(0.25, body.Avatar.AbsoluteSize.X / math.max(1, body.Avatar.AbsoluteSize.Y))
+	local tangent = math.tan(math.rad(camera.FieldOfView / 2))
+	local distance = math.max(size.Y / 2 / tangent, size.X / 2 / tangent / aspect) + size.Z / 2
+	camera.CFrame = CFrame.lookAt(bounds.Position + Vector3.new(0, 0, distance), bounds.Position)
+end
+local function hideAvatar()
+	for _, model in body.Avatar.World:GetChildren() do
+		model.Parent = nil
+	end
+end
+function Playerlist.OpenCard(player)
+	request += 1
+	local token = request
+	viewed = player
+	Windows.Open("PlayerCard")
+	hideAvatar()
+	body.PlayerName.Text = player.DisplayName .. "  @" .. player.Name
+	body.Status.Text = "Loading profile..."
+	body.Stats.Text = "Loading stats..."
+	body.Level.Text = "Level " .. level(player)
+	body.Avatar.Status.Text = "Loading avatar..."
+	body.Avatar.Status.Visible = true
+	body.Invite.Visible = false
+	for _, row in body.Record:GetChildren() do
+		row.Value.Text = "--"
+	end
+	for _, slot in body.Gear:GetChildren() do
+		if slot:IsA("ImageLabel") then
+			slot.Image = ""
+		end
+	end
+	local ok, info = pcall(function()
+		return Remotes.InvokeServerFunction("GetPlayerInfo", player)
+	end)
+	if request ~= token or not player.Parent or not card.Visible then
+		return
+	end
+	if not ok or not info then
+		body.Status.Text = "Profile unavailable. Try again."
+		return
+	end
+	body.Status.Text = ""
+	body.Level.Text = "Level " .. tostring(info.Level)
+	for _, key in { "Gold", "Kills", "Deaths" } do
+		body.Record[key].Value.Text = tostring(info[key] or 0)
+	end
+	playTime, sessionTime, timeReceived = info.PlayTime or 0, info.SessionTime or 0, os.clock()
+	refreshTimes()
+	local stats = info.Stats or {}
+	body.Stats.Text = string.format(
+		"ATK %s   DEF %s   HP %s   SPD %s   CRIT %s%%",
+		tostring(stats.Attack or 0),
+		tostring(stats.Defense or 0),
+		tostring(stats.Health or 0),
+		tostring(stats.Speed or 0),
+		tostring(stats.Critical or 0)
+	)
+	for _, slot in body.Gear:GetChildren() do
+		if slot:IsA("ImageLabel") then
+			local item = (info.Equipment or {})[slot.Name]
+			slot.Image = item and item.Icon or ""
+			slot.BackgroundColor3 = item and Theme.Rarities[item.Rarity] or Theme.Surface
+		end
+	end
+	body.Invite.Visible = player ~= Constants.Player
+	local avatar = avatars[player]
+	if not avatar then
+		local loaded, result = pcall(function()
+			return Players:CreateHumanoidModelFromUserIdAsync(player.UserId)
+		end)
+		if not loaded then
+			if request == token then
+				body.Avatar.Status.Text = "Avatar unavailable"
+			end
 			return
 		end
-
-		if input.KeyCode == Enum.KeyCode.Tab then
-			ToggleList()
+		avatar = result
+		for _, object in avatar:GetDescendants() do
+			if
+				object:IsA("LuaSourceContainer")
+				or object:IsA("ParticleEmitter")
+				or object:IsA("Trail")
+				or object:IsA("Beam")
+				or object:IsA("Sound")
+			then
+				object:Destroy()
+			elseif object:IsA("BasePart") then
+				object.Anchored = true
+				object.CanCollide = false
+			end
+		end
+		avatar:PivotTo(CFrame.Angles(0, math.pi, 0))
+		if not player.Parent then
+			avatar:Destroy()
+			return
+		end
+		if avatars[player] then
+			avatar:Destroy()
+			avatar = avatars[player]
+		else
+			avatars[player] = avatar
+		end
+	end
+	if request ~= token or not card.Visible then
+		return
+	end
+	avatar.Parent = body.Avatar.World
+	body.Avatar.Status.Visible = false
+	fit()
+end
+local function add(player)
+	if entries[player] then
+		return
+	end
+	local row = template:Clone()
+	row.Name = player.Name
+	row.PlayerName.Text = player.Name
+	row.Visible = true
+	row.Parent = container
+	entries[player] = row
+	connections[player] = {}
+	local function connect(signal, callback)
+		table.insert(connections[player], signal:Connect(callback))
+	end
+	connect(row.Activated, function()
+		Playerlist.OpenCard(player)
+	end)
+	local function rank()
+		row.Rank.Image = Ranks[player:GetAttribute("Rank")] or ""
+	end
+	connect(player:GetAttributeChangedSignal("Rank"), rank)
+	rank()
+	sort()
+	task.spawn(function()
+		local stats = player:WaitForChild("PublicStats", 15)
+		local value = stats and stats:WaitForChild("Level", 15)
+		if not entries[player] then
+			return
+		end
+		if value then
+			connect(value.Changed, sort)
+			sort()
 		end
 	end)
-
-	for _, existingPlayer in Players:GetPlayers() do
-		task.spawn(CreateEntry, existingPlayer)
-	end
-
-	Players.PlayerAdded:Connect(CreateEntry)
-	Players.PlayerRemoving:Connect(RemoveEntry)
 end
-
+local function remove(player)
+	if connections[player] then
+		for _, connection in connections[player] do
+			connection:Disconnect()
+		end
+	end
+	connections[player] = nil
+	if entries[player] then
+		entries[player]:Destroy()
+		entries[player] = nil
+	end
+	if avatars[player] then
+		avatars[player]:Destroy()
+		avatars[player] = nil
+	end
+	if viewed == player then
+		request += 1
+		viewed = nil
+		Windows.CloseScreen("PlayerCard")
+	end
+	sort()
+end
+function Playerlist.Init()
+	list = Constants.PlayerGui.Playerlist.List
+	local toggle = list:FindFirstChild("Toggle") or Constants.PlayerGui.Playerlist:FindFirstChild("Toggle")
+	if toggle then
+		toggle.Arrow.Rotation = list.Visible and 0 or -90
+		toggle.Activated:Connect(Playerlist.Toggle)
+	end
+	container, template = list.Container, list.EntryTemplate
+	card = Constants.PlayerGui.PlayerCard.Main
+	body = card.Body.Content
+	camera = body.Avatar:FindFirstChildOfClass("Camera") or Instance.new("Camera")
+	camera.Parent = body.Avatar
+	camera.FieldOfView = 32
+	body.Avatar.CurrentCamera = camera
+	body.Avatar:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+	card:GetPropertyChangedSignal("Visible"):Connect(function()
+		if not card.Visible then
+			request += 1
+			hideAvatar()
+		end
+	end)
+	body.Invite.Activated:Connect(function()
+		if viewed and viewed.Parent and viewed ~= Constants.Player then
+			Remotes.SendServerEvent("InviteToParty", viewed)
+		end
+	end)
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if not processed and input.KeyCode == Enum.KeyCode.Tab then
+			Playerlist.Toggle()
+		end
+	end)
+	Players.PlayerAdded:Connect(add)
+	Players.PlayerRemoving:Connect(remove)
+	for _, player in Players:GetPlayers() do
+		add(player)
+	end
+	task.spawn(function()
+		while card.Parent do
+			task.wait(1)
+			if card.Visible and body.Status.Text == "" then
+				refreshTimes()
+			end
+		end
+	end)
+end
 return Playerlist

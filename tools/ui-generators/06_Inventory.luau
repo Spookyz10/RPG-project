@@ -372,11 +372,26 @@ return function(parent)
 			C.Button(cell, "Confirm", "CONFIRM", nil, nil, T.Sand).Visible = false
 		end
 	end
-	local bank = C.Round(C.Frame(items, "Bank", UDim2.fromOffset(6, 238), UDim2.new(1, -12, 0, 176), T.Paper), 6)
+	-- A full-height storage panel covers the hero column; the backpack stays
+	-- available beside it for deposits. Keep Bank under Items for saved-UI bindings.
+	local bank = C.Round(C.Frame(items, "Bank", UDim2.fromScale(-2 / 3, 0), UDim2.fromScale(0.64, 1), T.Paper), 8)
 	bank.Visible = false
-	C.Label(bank, "Title", "STORAGE / tap to withdraw", UDim2.fromOffset(8, 4), UDim2.new(1, -80, 0, 28), true).TextSize = 11
-	C.Label(bank, "ItemLimit", "0 / 100", UDim2.new(1, -72, 0, 4), UDim2.fromOffset(64, 28)).TextSize = 11
-	C.Scroll(bank, "ScrollingFrame", UDim2.fromOffset(6, 38), UDim2.new(1, -12, 1, -44), 72, 96)
+	bank.Active = true
+	bank.ZIndex = 5
+	C.Stroke(bank)
+	C.Section(bank, "Header", "STORAGE", UDim2.fromScale(0.025, 0.012), UDim2.fromScale(0.95, 0.055))
+	local bankLimit = C.Label(bank, "ItemLimit", "0 / 100", UDim2.fromScale(0.05, 0.085), UDim2.fromScale(0.9, 0.055), true)
+	bankLimit.TextXAlignment = Enum.TextXAlignment.Center
+	bankLimit.TextColor3 = T.Gold
+	local bankHint = C.Label(bank, "Title", "Tap stored items to withdraw", UDim2.fromScale(0.05, 0.15), UDim2.fromScale(0.9, 0.07))
+	bankHint.TextXAlignment = Enum.TextXAlignment.Center
+	bankHint.TextColor3 = T.Muted
+	local storedItems = C.Scroll(bank, "ScrollingFrame", UDim2.fromScale(0.03, 0.24), UDim2.fromScale(0.94, 0.63), 72, 96)
+	storedItems.UIGridLayout.CellSize = UDim2.fromScale(0.44, 0.28)
+	storedItems.UIGridLayout.CellPadding = UDim2.fromScale(0.04, 0.035)
+	local help = C.Label(bank, "Help", "Tap backpack items to deposit.\nUse BACK to return to your hero.", UDim2.fromScale(0.05, 0.9), UDim2.fromScale(0.9, 0.085))
+	help.TextXAlignment = Enum.TextXAlignment.Center
+	help.TextColor3 = T.Muted
 	quantity(root, "StackMove")
 	quantity(root, "StackSell")
 	quantity(root, "BankStackMove")
