@@ -1,4 +1,6 @@
-return {
+local Types = require(game:GetService("ReplicatedStorage").Shared.Utils.Types)
+
+local Mob: Types.MobInfo = {
 	Level = 5, MaxLevel = 15, XP = 110, RespawnTime = 10, GlobalDrops = false,
 	Data = { Stats = { Attack = 12, Defense = 3, Critical = 0, Health = 120, Speed = 15 } },
 	Currencies = { Gold = 14 },
@@ -8,3 +10,5 @@ return {
 ["Tuskguard Mantle"] = { Chance = 5, Amount = 1 },
  Wilderbone = { Chance = 40, Amount = 1 } },
 }
+
+return Mob

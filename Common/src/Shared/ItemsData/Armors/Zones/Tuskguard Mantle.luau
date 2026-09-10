@@ -1,6 +1,7 @@
+local Types = require(game:GetService("ReplicatedStorage").Shared.Utils.Types)
 local Remote = require(game:GetService("ReplicatedStorage").Shared.Utils.RemoteManager)
 local Item = {
-	Kind = "Equipment",
+	Kind = "Equipment" :: "Equipment",
 	Stats = {
 		["Attack"] = 0,
 		["Defense"] = 5,
@@ -24,10 +25,11 @@ local Item = {
 		Description = "Last Stand: take 25% less hit damage while at or below 35% health.",
 	},
 }
-function Item:Elligable(data)
+function Item:Elligable(data: Types.PlayerDataValue): boolean
 	return data and data.Level() >= self.Data.Level
 end
-function Item:Action(uuid)
+function Item:Action(uuid: string)
 	Remote.SendServerEvent("EquipItem", uuid)
 end
-return Item
+local TypedItem: Types.Equipment = Item
+return TypedItem

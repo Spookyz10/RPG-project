@@ -1,0 +1,8 @@
+{
+  "luau-lsp.platform.type": "roblox",
+  "luau-lsp.types.newSolver": true,
+  "luau-lsp.sourcemap.enabled": true,
+  "luau-lsp.sourcemap.autogenerate": true,
+  "luau-lsp.sourcemap.rojoProjectFile": "editor.project.json",
+  "luau-lsp.sourcemap.rojoPath": "C:/Users/azvar/.rokit/tool-storage/rojo-rbx/rojo/7.7.0/rojo.exe"
+}

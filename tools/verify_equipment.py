@@ -93,6 +93,27 @@ snapshot.Inventory.w.Passive="VenomHunter"
 assert(math.abs(damage:BuildContext(caster,victim).Damage-12)<0.001)
 print("PASS: Fury timing/cap/consumption/cancellation/swap/respawn, Critical Power, healing and Venom synergy")
 
+-- Maul counts confirmed damage, never previews, cancelled hits or zero damage.
+snapshot.Equipment.Ring=nil
+snapshot.Inventory.w.Passive="Maul"
+caster.Stats.Attack=9
+for i=1,3 do assert(damage:dealDamage(caster,victim)==9) end
+assert(damage:BuildContext(caster,victim).Damage==13)
+assert(damage:BuildContext(caster,victim).Damage==13,"Preview consumed Maul")
+local cancelMaul=modules.EventBus:Subscribe("BeforeDamageCalculated",function(context) context.Cancelled=true end)
+damage:dealDamage(caster,victim)
+cancelMaul()
+victim.Stats.Defense=100
+assert(damage:dealDamage(caster,victim)==0)
+victim.Stats.Defense=0
+assert(damage:dealDamage(caster,victim)==13,"Cancelled/zero hit consumed Maul")
+assert(damage:dealDamage(caster,victim)==9,"Maul did not reset")
+snapshot.Equipment.Weapon="other"; passives:Get(caster,snapshot)
+snapshot.Equipment.Weapon="w"
+assert(passives:Get(caster,snapshot)[1].State.Hits==0,"Unequip did not reset Maul")
+caster.Stats.Attack=10
+print("PASS: Maul fourth hit, previews, cancellation, zero damage and unequip reset")
+
 -- Defender thresholds and unrelated equipment changes.
 local defender=entity(true)
 local defenseData={Equipment={Armor="armor"},Inventory={armor={Passive="Bulwark"}}}

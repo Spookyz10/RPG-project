@@ -1,8 +1,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
-local Item: Types.Equipment = {
-	Kind = "Equipment",
+local Item = {
+	Kind = "Equipment" :: "Equipment",
 	Stats = {
 		Attack = 12,
 		Defense = 0,
@@ -28,7 +28,7 @@ local Item: Types.Equipment = {
 	},
 }
 
-function Item:Elligable(PlayerData: Types.PlayerData): boolean
+function Item:Elligable(PlayerData: Types.PlayerDataValue): boolean
 	return PlayerData and PlayerData.Level() >= Item.Data.Level
 end
 
@@ -36,4 +36,5 @@ function Item:Action(UUID: string)
 	RemoteManager.SendServerEvent("EquipItem", UUID)
 end
 
-return Item
+local TypedItem: Types.Equipment = Item
+return TypedItem

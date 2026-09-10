@@ -1,8 +1,10 @@
+local Value = require(game:GetService("ReplicatedStorage").Packages._Index["leifstout_dataservicetyped@1.0.5"].dataservicetyped.Value)
+
 export type Stats = {
 	Attack: number,
 	Defense: number,
 	Critical: number,
-	["Critical Power"]: number,
+	["Critical Power"]: number?,
 	Speed: number,
 	Health: number,
 }
@@ -60,18 +62,21 @@ export type PlayerData = {
 	RaidAutoDelete: { [string]: boolean },
 }
 
+-- Reactive data cells returned by Data.Service:waitForData / Data.client.
+export type PlayerDataValue = Value.Value<PlayerData>
+
 export type Drop = {
 	[string]: { Chance: number, Amount: number },
 }
 
 export type MobInfo = {
-	HP: number,
-	MaxHP: number,
+	HP: number?,
+	MaxHP: number?,
 	Level: number,
 	MaxLevel: number,
 	Data: { Stats: Stats },
 	XP: number,
-	Currencies: { [string]: { Amount: number } },
+	Currencies: { [string]: number },
 	Drops: Drop,
 	RespawnTime: number,
 	GlobalDrops: boolean?,
@@ -109,24 +114,24 @@ export type ItemInfo = {
 	Cap: number?,
 	Icon: string,
 	Rarity: string,
-	Description: string,
+	Description: string?,
 	Level: number,
 	ActionName: string?,
 }
 
 export type ItemBase<T> = {
 	Data: ItemInfo,
-	Elligable: (self: T, Data: PlayerData) -> boolean,
+	Elligable: (self: T, Data: PlayerDataValue) -> boolean,
 	Action: (self: T, UUID: string) -> (),
-	OnDropped: (self: T, Data: PlayerData) -> (),
-	OnUse: (self: T, Data: PlayerData) -> ()?,
+	OnDropped: ((self: T, Data: PlayerDataValue) -> ())?,
+	OnUse: ((self: T, Data: PlayerDataValue) -> ())?,
 }
 
 export type Equipment = ItemBase<Equipment> & {
 	Kind: "Equipment",
 	Stats: Stats,
 	Passive: string,
-	WeaponType: string,
+	WeaponType: ("Solo" | "Dual")?,
 	SkillOverrides: {
 		[string]: {
 			Name: string?,
@@ -147,12 +152,20 @@ export type Equipment = ItemBase<Equipment> & {
 }
 
 export type Consumable = ItemBase<Consumable> & {
+	Use: (self: Consumable, Data: PlayerDataValue) -> (),
 	Kind: "Consumable",
 	Amount: number,
-	Stat: string,
+	Stat: "Attack" | "Defense" | "Critical" | "Health" | "Speed",
 }
 
-export type Item = Equipment | Consumable
+export type Material = {
+	Kind: "Material",
+	Data: ItemInfo,
+	Elligable: ((self: Material, Data: PlayerDataValue) -> boolean)?,
+	Action: ((self: Material, UUID: string) -> ())?,
+}
+
+export type Item = Equipment | Consumable | Material
 
 export type ItemTable = {
 	[string]: { Chance: number, Amount: number },

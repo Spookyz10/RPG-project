@@ -2,10 +2,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local getCappedInfo = require(ReplicatedStorage.Shared.getCappedInfo)
-local Item: Types.Consumable = {
-	Kind = "Consumable",
+local Item = {
+	Kind = "Consumable" :: "Consumable",
 	Amount = 1,
-	Stat = "Defense",
+	Stat = "Defense" :: "Defense",
 	Data = {
 		SellsFor = 10,
 		ItemType = "Consumable",
@@ -22,7 +22,7 @@ local Item: Types.Consumable = {
 	},
 }
 
-function Item:Elligable(PlayerData: Types.PlayerData): boolean
+function Item:Elligable(PlayerData: Types.PlayerDataValue): boolean
 	return PlayerData and PlayerData.Level() >= Item.Data.Level
 end
 
@@ -30,11 +30,12 @@ function Item:Action(UUID: string)
 	RemoteManager.SendServerEvent("EquipItem", UUID)
 end
 
-function Item:Use(Data: Types.PlayerData)
+function Item:Use(Data: Types.PlayerDataValue)
 	if Data.ExtraStats[Item.Stat]() <= getCappedInfo[Item.Stat] then
-		local newStat = math.min(Data.ExtraStats[Item.Stat] + Item.Amount, getCappedInfo[Item.Stat])
+		local newStat = math.min(Data.ExtraStats[Item.Stat]() + Item.Amount, getCappedInfo[Item.Stat])
 		Data.ExtraStats[Item.Stat](newStat)
 	end
 end
 
-return Item
+local TypedItem: Types.Consumable = Item
+return TypedItem

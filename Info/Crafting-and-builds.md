@@ -6,6 +6,16 @@ A UI mostra nível, descrição da passiva, custo em Gold e contagem de materiai
 
 ## Fang Daggers
 
+Exclusiva de crafting: removida dos drops de Wolf e Dire Bear. Continua sendo a arma mais forte da zona, com 12 Attack e Fury.
+
+## Direfang Sword
+
+Espada Solo Rare, nível 10, 9 Attack, drop de 35% do Dire Bear. Maul adiciona 4 Attack a cada quarto acerto com dano, antes dos multiplicadores de skill e crítico. Prévias, ataques cancelados e dano zero não avançam nem consomem a contagem; desequipar reinicia. Cada vítima de um ataque em área conta como um acerto. A contribuição média da arma é 10 Attack por acerto sem outros modificadores, abaixo dos 12 da Fang Daggers mesmo antes de Fury.
+
+O ícone é provisório. Para exibir a arma equipada, adicione um Model chamado `Direfang Sword` em `ReplicatedStorage.Resources.Weapons`, com uma peça `Handle` e, opcionalmente, um Attachment `GripPoint`.
+
+### Receita e passiva da Fang Daggers
+
 ID canônico preservado: `Fang Dagger`; nome exibido: `Fang Daggers`.
 
 Receita: nível 12, 75 Gold, 8 Wolf's Fang, 5 Wilderbone, 3 Dark Ivy.

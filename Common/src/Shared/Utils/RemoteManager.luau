@@ -2,7 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local RemoteManager = {}
 
-local Remotes = {
+local Remotes: { [string]: string } = {
 	CraftItem = "Server",
 	Admin = "Server",
 	Attack = "Server",
@@ -51,7 +51,7 @@ local Remotes = {
 	AttackSound = "Client",
 }
 
-local RemoteFunctions = {
+local RemoteFunctions: { [string]: string } = {
 	GetPlayerInfo = "Server",
 }
 
@@ -80,7 +80,7 @@ local function getRemote(remoteName: string, folder: string): Instance?
 	return nil
 end
 
-function RemoteManager.SendClientEvent(remoteName: string, params: {}, ...: any)
+function RemoteManager.SendClientEvent(remoteName: string, params: { All: boolean?, Player: Player? }, ...: any)
 	local remote = getRemote(remoteName, "Client")
 	if not remote then
 		return
@@ -111,7 +111,7 @@ function RemoteManager.InvokeServerFunction(remoteName: string, ...: any)
 	return remote:InvokeServer(...)
 end
 
-function RemoteManager.GetRemote(remoteName: string, folder: string): Instance
+function RemoteManager.GetRemote(remoteName: string, folder: string): Instance?
 	return getRemote(remoteName, folder)
 end
 

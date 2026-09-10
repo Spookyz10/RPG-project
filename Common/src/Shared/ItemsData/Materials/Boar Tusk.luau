@@ -1,4 +1,5 @@
-return {
+local Types = require(game:GetService("ReplicatedStorage").Shared.Utils.Types)
+local Item: Types.Material = {
 	Kind = "Material",
 	Data = {
 		ID = "Boar Tusk",
@@ -14,3 +15,5 @@ return {
 		Description = "Crafting material dropped by Boars.",
 	},
 }
+
+return Item

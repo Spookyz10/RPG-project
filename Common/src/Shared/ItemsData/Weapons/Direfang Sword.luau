@@ -1,30 +1,31 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
+
 local Item = {
 	Kind = "Equipment" :: "Equipment",
 	Stats = {
-		Attack = 1,
+		Attack = 9,
 		Defense = 0,
 		Critical = 0,
 		["Critical Power"] = 0,
 		Speed = 0,
 		Health = 0,
 	},
-	Passive = "",
+	Passive = "Maul",
 	WeaponType = "Solo",
 	Data = {
-		SellsFor = 10,
+		SellsFor = 35,
 		ItemType = "Equipment",
 		SubType = "Weapon",
 		Name = script.Name,
 		Stackable = false,
 		Icon = "rbxassetid://3383616038",
-		Rarity = "Common",
-		Level = 1,
-		Description = "Made with paper and glue. I would feel bad for whoever gets killed by this",
+		Rarity = "Rare",
+		Level = 10,
+		Description = "Carved from a dire bear's fang. Maul: every fourth damaging hit gains +4 Attack before skill and critical multipliers. Unequipping resets the combo.",
 		ActionName = "Equip",
-		ID = "Paper Sword",
+		ID = "Direfang Sword",
 	},
 }
 
