@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Data = require(ReplicatedStorage.Shared.Data).server
 local ModifierSystem = require(script.Parent.ModifierSystem)
 local EventBus = require(script.Parent.EventBus)
+local Passives = require(script.Parent.EquipmentPassives)
 
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
@@ -22,7 +23,18 @@ function DamageHandler:BuildContext(caster: Model, victim: Model, multi: number?
 	local CasterStats = Functions:GetTotalStats(caster, CasterData and CasterData())
 	local VictimStats = Functions:GetTotalStats(victim, VictimData and VictimData())
 
-	local CasterAttack = CasterStats.Attack
+	local Context = {
+		Caster = caster, Victim = victim,
+		CasterPlayer = CasterPlayer, VictimPlayer = VictimPlayer,
+		Attack = CasterStats.Attack,
+		CriticalMultiplier = BASE_CRITICAL_MULTIPLIER + (CasterStats["Critical Power"] or 0) / 100,
+		ForceCritical = false, TriggeredPassives = {},
+		Multiplier = multi, Tags = {}, Cancelled = false,
+		AttackerPassives = CasterData and Passives:Get(caster, CasterData()) or {},
+		DefenderPassives = VictimData and Passives:Get(victim, VictimData()) or {},
+	}
+	EventBus:Fire("BeforeAttack", Context)
+	local CasterAttack = Context.Attack
 	local VictimDefense = VictimStats.Defense
 
 	if multi then
@@ -33,33 +45,24 @@ function DamageHandler:BuildContext(caster: Model, victim: Model, multi: number?
 	CasterAttack = ModifierSystem:Aggregate(caster, "Damage", CasterAttack)
 
 	local CritChance = ModifierSystem:Aggregate(caster, "Critical", CasterStats.Critical)
-	local IsCrit = math.random() * 100 <= CritChance
+	local IsCrit = Context.ForceCritical or math.random() * 100 < CritChance
 	if IsCrit then
-		local CritMultiplier = ModifierSystem:Aggregate(caster, "CriticalMultiplier", BASE_CRITICAL_MULTIPLIER)
-		CasterAttack *= CritMultiplier
+		CasterAttack *= ModifierSystem:Aggregate(caster, "CriticalMultiplier", Context.CriticalMultiplier)
 	end
 
 	local FinalDamage = CasterAttack - VictimDefense
 	FinalDamage = ModifierSystem:Aggregate(victim, "IncomingDamage", FinalDamage)
-
-	if FinalDamage < 0 then
-		FinalDamage = 0
-	end
-
-	return {
-		Caster = caster,
-		Victim = victim,
-		CasterPlayer = CasterPlayer,
-		VictimPlayer = VictimPlayer,
-		Damage = FinalDamage,
-		IsCrit = IsCrit,
-		Multiplier = multi,
-		Tags = {},
-		Cancelled = false,
-	}
+	Context.Damage = FinalDamage
+	Context.IsCrit = IsCrit
+	EventBus:Fire("BeforeIncomingDamage", Context)
+	Context.Damage = math.max(0, Context.Damage)
+	return Context
 end
 
 function DamageHandler:dealDamage(caster: Model, victim: Model, multi: number?): (number, boolean)
+	if not Functions:isEntityAlive(caster) or not Functions:isEntityAlive(victim) then
+		return 0, false
+	end
 	local Context = self:BuildContext(caster, victim, multi)
 
 	EventBus:Fire("BeforeDamageCalculated", Context)
@@ -69,6 +72,9 @@ function DamageHandler:dealDamage(caster: Model, victim: Model, multi: number?):
 	end
 
 	local Damage = Context.Damage
+	if Damage > 0 then
+		EventBus:Fire("HitConfirmed", Context)
+	end
 
 	if Context.CasterPlayer then
 		local HitList = victim:FindFirstChild("HitList")
@@ -86,6 +92,9 @@ function DamageHandler:dealDamage(caster: Model, victim: Model, multi: number?):
 
 	local VictimHumanoid = victim:FindFirstChildOfClass("Humanoid")
 	VictimHumanoid.Health -= Damage
+	if Damage > 0 then
+		EventBus:Fire("HitApplied", Context)
+	end
 
 	EventBus:Fire("DamageDealt", Context)
 

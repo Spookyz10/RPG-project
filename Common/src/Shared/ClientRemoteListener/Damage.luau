@@ -6,6 +6,7 @@ local Workspace = game:GetService("Workspace")
 
 local Abbreviation = require(ReplicatedStorage.Shared.Utils.Abbreviation)
 local SoundManager = require(ReplicatedStorage.Shared.SoundManager)
+local DamageStyles = require(ReplicatedStorage.Shared.DamageStyles)
 
 local Remote = {}
 
@@ -44,9 +45,11 @@ local function PlayHitSound(params: {})
 end
 
 function Remote:Activate(entityHurt: Model, amount: number, params: {})
-	if not params.CasterUserId then
+	local mobs = Workspace:FindFirstChild("Mobs")
+	if not entityHurt or not mobs or not entityHurt:IsDescendantOf(mobs) or Players:GetPlayerFromCharacter(entityHurt) then
 		return
 	end
+	local style, damageType = DamageStyles.Resolve(params.Type)
 
 	local RootPart = entityHurt:FindFirstChild("Head") or entityHurt.PrimaryPart
 	if not RootPart then
@@ -58,13 +61,13 @@ function Remote:Activate(entityHurt: Model, amount: number, params: {})
 		return
 	end
 
-	if params.Type ~= "Heal" then
+	if damageType == "Normal" or damageType == "Critical" then
 		PlayHitSound(params)
 	end
 
 	local Billboard = DamageTemplate:Clone()
 
-	local TargetFrame = Billboard:FindFirstChild(params.Type or "Base") :: GuiObject?
+	local TargetFrame = Billboard:FindFirstChild(style.Template) :: GuiObject?
 	if not TargetFrame then
 		Billboard:Destroy()
 		return
@@ -82,18 +85,22 @@ function Remote:Activate(entityHurt: Model, amount: number, params: {})
 		return
 	end
 
-	if amount <= 0 and params.Type ~= "Heal" then
+	Label.TextColor3 = style.Color
+	if amount <= 0 and damageType ~= "Heal" then
 		Label.Text = "Too weak"
 	else
-		Label.Text = (params.Type == "Heal" and "+" or "") .. Abbreviation:Number(amount)
+		Label.Text = (damageType == "Heal" and "+" or "") .. Abbreviation:Number(amount)
 	end
 
 	local Stroke = Label:FindFirstChildOfClass("UIStroke")
+	if Stroke then Stroke.Color = style.Stroke end
 
 	local Part = Instance.new("Part")
 	Part.Size = Vector3.new(1, 1, 1)
 	Part.Anchored = true
 	Part.CanCollide = false
+	Part.CanTouch = false
+	Part.CanQuery = false
 	Part.Transparency = 1
 	Part.CastShadow = false
 
@@ -103,7 +110,7 @@ function Remote:Activate(entityHurt: Model, amount: number, params: {})
 	Part.Position = RootPart.Position + Vector3.new(OffsetX, OffsetY + 2, OffsetZ)
 	Part.Parent = Workspace.Debris
 
-	local WasCausedByMe = params.CasterUserId == LocalPlayer.UserId
+	local WasCausedByMe = not params.CasterUserId or params.CasterUserId == LocalPlayer.UserId
 	local BaseTextTransparency = WasCausedByMe and 0 or 0.8
 	local BaseStrokeTransparency = WasCausedByMe and 0 or 0.65
 
@@ -124,7 +131,7 @@ function Remote:Activate(entityHurt: Model, amount: number, params: {})
 	local OriginalThickness = Stroke and Stroke.Thickness or 0
 	if Stroke then
 		Stroke.Transparency = BaseStrokeTransparency
-		Stroke.Thickness = params.Type == "Crit" and OriginalThickness * 1.8 or OriginalThickness
+		Stroke.Thickness = damageType == "Critical" and OriginalThickness * 1.8 or OriginalThickness
 	end
 
 	TweenService:Create(Label, POP_TWEEN, { Size = PopSize }):Play()

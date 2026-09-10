@@ -6,7 +6,7 @@ local Mobs = require(script.Parent.Mobs)
 local RewardManager = require(script.Parent.RewardManager)
 local QuestManager = require(script.Parent.QuestManager)
 local BehaviorManager = require(script.Parent.Mobs.BehaviorManager)
-local BuffsManager = require(script.Parent.BuffsManager)
+local StatusEffectManager = require(script.Parent.StatusEffectManager)
 local CooldownSystem = require(script.Parent.CooldownSystem)
 local CollisionGroups = require(ReplicatedStorage.Shared.CollisionGroups)
 
@@ -69,7 +69,7 @@ function MobHandler:RemoveMob(mobModel: Model)
 	end
 
 	BehaviorManager:Cancel(mobModel)
-	BuffsManager:ClearEntity(mobModel)
+	StatusEffectManager:ClearEntity(mobModel)
 	CooldownSystem:ResetAllCooldowns(mobModel)
 
 	local UUID = mobModel:FindFirstChild("UUID")
@@ -132,11 +132,29 @@ function MobHandler:AddMob(mobName: string | { string }): Model?
 	end
 
 	local MobModel = Functions:getMob(mobName)
+	if not Mobs[mobName] then
+		warn("[MobHandler] No registered behavior for " .. mobName)
+		return nil
+	end
 
 	if not MobModel then
 		return nil
 	end
 	MobModel = MobModel:Clone()
+	local root = MobModel:FindFirstChild("HumanoidRootPart")
+	local humanoid = MobModel:FindFirstChildOfClass("Humanoid")
+	if not root or not root:IsA("BasePart") or not humanoid then
+		warn("[MobHandler] " .. mobName .. " needs Humanoid and HumanoidRootPart")
+		MobModel:Destroy()
+		return nil
+	end
+	MobModel.PrimaryPart = root
+	for _, part in MobModel:GetDescendants() do
+		if part:IsA("BasePart") then part.Anchored = false end
+	end
+	humanoid.PlatformStand = false
+	humanoid.Sit = false
+	humanoid.AutoRotate = true
 	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 	local MobInfo = MobsData[MobModel.Name] :: Types.MobInfo
 	if not MobInfo then
@@ -144,6 +162,18 @@ function MobHandler:AddMob(mobName: string | { string }): Model?
 	end
 	local Origin = getEmptySlot(MobModel.Name)
 	if Origin then
+		local Config = require(ReplicatedStorage.Shared.MobCombatConfig)[MobModel.Name]
+		if Config then
+			if Config.Height then
+				MobModel:ScaleTo(MobModel:GetScale() * Config.Height / MobModel:GetExtentsSize().Y)
+			end
+			local Humanoid = MobModel:FindFirstChildOfClass("Humanoid")
+			if Humanoid then
+				Humanoid.MaxHealth = Config.Health
+				Humanoid.Health = Config.Health
+				Humanoid.WalkSpeed = Config.Speed
+			end
+		end
 		MobModel.Parent = workspace:FindFirstChild("Mobs")
 		MobModel:PivotTo(Origin.CFrame)
 		CollisionGroups:Apply(MobModel)
@@ -166,13 +196,26 @@ function MobHandler:AddMob(mobName: string | { string }): Model?
 		end
 
 		Origin:FindFirstChild("ID").Value = UUID.Value
+		if Config then
+			task.spawn(function()
+				while MobModel.Parent and Functions:isEntityAlive(MobModel) do
+					if not BehaviorManager.Active[MobModel] and Functions:GetTargetPlayer(MobModel) then
+						MobHandler:StartBehavior(MobModel)
+					end
+					task.wait(1)
+				end
+			end)
+		end
+	else
+		MobModel:Destroy()
+		return nil
 	end
 
 	return MobModel
 end
 
 function MobHandler:StartBehavior(mobModel: Model)
-	local data = Mobs[mobModel.Name] or Mobs.Default
+	local data = Mobs[mobModel.Name]
 	if data and data.Start then
 		task.spawn(function()
 			data:Start(mobModel)

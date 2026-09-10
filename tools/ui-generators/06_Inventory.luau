@@ -274,11 +274,11 @@ local function itemDialog(root, name, kind)
 		local label = C.Label(inner, field, "", UDim2.new(), UDim2.new(1, -12, 0, field == "ItemDesc" and 60 or 26), field == "ItemName")
 		label.LayoutOrder = index
 	end
-	local stats = C.Frame(inner, "Stats", UDim2.new(), UDim2.new(1, -12, 0, 140))
+	local stats = C.Frame(inner, "Stats", UDim2.new(), UDim2.new(1, -12, 0, 170))
 	stats.LayoutOrder = 5
 	stats.Visible = kind == "Equipment"
 	C.List(stats, false, 2)
-	for _, stat in { "ATK", "CRT", "SPD", "DEF", "HP" } do C.Label(stats, stat, stat .. ": 0") end
+	for _, stat in { "ATK", "CRT", "CPWR", "SPD", "DEF", "HP" } do C.Label(stats, stat, stat .. ": 0") end
 	for index, entry in { { "Action", kind == "Usable" and "Use one" or "Equip" }, { "Unequip", "Unequip" }, { "Vanity", "Use as appearance" }, { "Use All", "Use all" }, { "Cancel", "Back to backpack" } } do
 		local button = C.Button(inner, entry[1], entry[2], UDim2.new(), UDim2.new(1, -12, 0, 48), entry[1] == "Cancel" and T.Soft or T.Mint)
 		button.LayoutOrder = index + 5

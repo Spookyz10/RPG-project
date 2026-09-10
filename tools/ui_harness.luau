@@ -127,7 +127,7 @@ function Instance.new(class)
 			end
 			if self._properties[key] ~= nil then return self._properties[key] end
 			if key == "Parent" then return nil end
-			if key == "MouseEnter" or key == "MouseLeave" or key == "SelectionGained" or key == "SelectionLost" or key == "CharacterAppearanceLoaded" or key == "Activated" or key == "InputBegan" or key == "InputEnded" or key == "Destroying" or key == "DescendantAdded" or key == "ChildAdded" or key == "ChildRemoved" or key == "CharacterAdded" or key == "Changed" or key == "PlayerAdded" or key == "PlayerRemoving" then
+			if key == "MouseEnter" or key == "MouseLeave" or key == "SelectionGained" or key == "SelectionLost" or key == "CharacterAppearanceLoaded" or key == "Activated" or key == "InputBegan" or key == "InputEnded" or key == "Destroying" or key == "DescendantAdded" or key == "ChildAdded" or key == "ChildRemoved" or key == "CharacterRemoving" or key == "CharacterAdded" or key == "Changed" or key == "PlayerAdded" or key == "PlayerRemoving" then
 				self._signals[key] = self._signals[key] or signal(); return self._signals[key]
 			end
 			local child = self:FindFirstChild(key)
@@ -259,7 +259,7 @@ local overrides = {
 	[modules["Utils/RemoteManager"]] = remotes,
 	[modules.LightingManager] = { Apply = function() end, ResetToDefault = function() end },
 	[modules.MusicManager] = { PlayZone = function() end, PlayLobby = function() end },
-	[modules["Utils/Functions"]] = { FormatTime = tostring, GetXPNeeded = function() return 100 end, GetTotalStats = function() return { Attack = 12, Defense = 5, Health = 100, Speed = 16, Critical = 2 } end },
+	[modules["Utils/Functions"]] = { GetItemInfo = function(_, entry) return entry and { Data = { ID = entry.ID or entry.Name } } end, FormatTime = tostring, GetXPNeeded = function() return 100 end, GetTotalStats = function() return { Attack = 12, Defense = 5, Health = 100, Speed = 16, Critical = 2 } end },
 }
 local jobs = {}
 local task = { spawn = function(callback, ...) return callback(...) end, delay = function(_, callback) table.insert(jobs, callback) end, wait = function() coroutine.yield() end }
@@ -332,6 +332,19 @@ local logic = loadModule(modules["UI/Logic"])
 local windows = loadModule(modules["UI/WindowManager"])
 local function last(name) local call = calls[#calls]; assert(call and call[1] == name, "Expected remote " .. name); return call end
 local function click(button) assert(button:IsA("GuiButton"), "Not a button"); button.Activated:Fire() end
+
+local recipeRow = gui.Crafting.Main.Body.Content.Container["Fang Dagger"]
+assert(recipeRow and recipeRow.Craft:GetAttribute("CanCraft") == false)
+local previousInventory = state.Inventory
+state.Inventory = { fang = { ID = "Wolf's Fang", Amount = 8 }, bone = { ID = "Wilderbone", Amount = 5 }, ivy = { ID = "Dark Ivy", Amount = 3 } }
+changes.Inventory:Fire(state.Inventory)
+assert(recipeRow.Craft:GetAttribute("CanCraft") == true)
+click(recipeRow.Craft)
+assert(last("CraftItem")[2] == "Fang Dagger")
+state.Inventory = previousInventory
+changes.Inventory:Fire(state.Inventory)
+assert(recipeRow.Craft:GetAttribute("CanCraft") == false)
+
 
 windows.Open("Inventory")
 assert(gui.Inventory.Main.Visible and gui:GetAttribute("UIWindowOpen"))
@@ -468,6 +481,17 @@ assert(gui.Shop.Main.Visible)
 assert(gui.Shop.Main.Body.Content.Container["Vital Jab"].Buy.Text == "Not available yet")
 logic.Bars.UpdateBar(0, 0, "HP")
 assert(gui.HUD.Main.HP.Main.Bar.Size.X.Scale == 0)
+logic.Buffs:Start("Fury", nil, 2)
+assert(gui.Attack.Buffs.Fury.CD.Text == "2/2")
+logic.Buffs:Stop("Fury")
+logic.Buffs:Start("Lure Jab", 5)
+assert(gui.Attack.Debuffs:FindFirstChild("Lure Jab"))
+logic.Buffs:Stop("Lure Jab")
+logic.Buffs:Start("Poison", 10)
+assert(gui.Attack.Debuffs.Poison.Image == "rbxassetid://6145145342")
+assert(not gui.Attack.Buffs:FindFirstChild("Poison"))
+logic.Buffs:Stop("Poison")
+assert(not gui.Attack.Debuffs:FindFirstChild("Poison"))
 logic.Buffs:Start("Safeguard", 5)
 assert(gui.Attack.Buffs.Safeguard)
 logic.Buffs:Stop("Safeguard")
@@ -495,4 +519,4 @@ for _, size in { { 1280, 720 }, { 844, 326 }, { 390, 760 }, { 320, 568 } } do
 	assert(content.Hero.Visible and content.Items.Visible and not content.MobileTabs.Visible, "Viewport changed saved visibility")
 
 end
-print("PASS: 19 standalone Edit generators, backup preservation, saved-UI bootstrap, hero stats, item hovers, saved layout preservation, UI initialization, inventory/equipment/search/quantities/sale, skill locks, raids, party, dialogue, journal, shop, bars, buffs, and 4 viewport sizes.")
+print("PASS: 20 standalone Edit generators, backup preservation, saved-UI bootstrap, hero stats, item hovers, saved layout preservation, UI initialization, inventory/equipment/search/quantities/sale, skill locks, raids, party, dialogue, journal, shop, bars, buffs, and 4 viewport sizes.")

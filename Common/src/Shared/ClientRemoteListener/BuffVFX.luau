@@ -5,7 +5,7 @@ local Logic = require(ReplicatedStorage.Shared.UI.Logic)
 
 local Remote = {}
 
-function Remote:Activate(Effect: string, Entity: Model, Function: string, Duration: number?)
+function Remote:Activate(Effect: string, Entity: Model, Function: string, Duration: number?, Stacks: number?)
 	if BuffEffects[Effect] then
 		if Function == "Start" then
 			BuffEffects[Effect].Apply(Entity)
@@ -18,7 +18,7 @@ function Remote:Activate(Effect: string, Entity: Model, Function: string, Durati
 		local BuffsUI = Logic["Buffs"]
 		if BuffsUI then
 			if Function == "Start" then
-				BuffsUI:Start(Effect, Duration or 0)
+				BuffsUI:Start(Effect, Duration, Stacks)
 			elseif Function == "End" then
 				BuffsUI:Stop(Effect)
 			end

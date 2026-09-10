@@ -1,6 +1,6 @@
 local Behavior = {}
 
-Behavior.Active = {} :: { [Model]: boolean }
+Behavior.Active = {} :: { [Model]: {} }
 
 function Behavior:Move(Humanoid: Humanoid, Position: Vector3)
 	Humanoid:MoveTo(Position)
@@ -38,7 +38,8 @@ function Behavior:Reset(mobModel: Model)
 		local Humanoid = mobModel:FindFirstChildOfClass("Humanoid")
 		if Humanoid then
 			Humanoid.Health = Humanoid.MaxHealth
-			Humanoid.WalkSpeed = 16
+			local config = require(game:GetService("ReplicatedStorage").Shared.MobCombatConfig)[mobModel.Name]
+			Humanoid.WalkSpeed = config and config.Speed or 16
 		end
 
 		mobModel:PivotTo(origin.CFrame)

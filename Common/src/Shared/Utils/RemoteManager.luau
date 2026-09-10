@@ -3,6 +3,7 @@ local RunService = game:GetService("RunService")
 local RemoteManager = {}
 
 local Remotes = {
+	CraftItem = "Server",
 	Admin = "Server",
 	Attack = "Server",
 	UseSkill = "Server",

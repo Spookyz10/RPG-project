@@ -87,18 +87,7 @@ return function(parent)
 	C.Button(player, "View", "View", UDim2.new(1, -88, 0, 8), UDim2.fromOffset(80, 48), T.Sky)
 	C.Image(player, "Icon", UDim2.new(1, -124, 0, 22), UDim2.fromOffset(24, 24))
 
-	local mob = C.New("BillboardGui", "MobOverhead", folder, { Size = UDim2.fromOffset(180, 52), StudsOffset = Vector3.new(0, 3.5, 0), AlwaysOnTop = true, MaxDistance = 85 })
-	local mobInfo = C.Frame(mob, "Info", UDim2.new(), UDim2.new(1, 0, 0, 26))
-	local mobName = C.Label(mobInfo, "MobName", "Mob", nil, UDim2.fromScale(1, 1), true)
-	mobName.TextColor3 = T.Ink
-	mobName.TextXAlignment = Enum.TextXAlignment.Center
-	C.New("UIStroke", "UIStroke", mobName, { Color = T.Ink, Thickness = 1.5 })
-	local hp = C.Round(C.Frame(mob, "HP", UDim2.fromOffset(0, 30), UDim2.new(1, 0, 0, 20), T.Paper), 7)
-	hp.ClipsDescendants = true
-	C.Round(C.Frame(hp, "Bar", UDim2.new(), UDim2.fromScale(1, 1), T.Mint), 7)
-	local health = C.Label(hp, "Health", "", nil, UDim2.fromScale(1, 1), true)
-	health.TextSize = 11
-	health.TextXAlignment = Enum.TextXAlignment.Center
+	local mob = require(script.Parent.MobOverhead)(folder)
 	local damage = C.New("BillboardGui", "Damage", folder, { Size = UDim2.fromOffset(140, 70), AlwaysOnTop = true })
 	for _, name in { "Base", "Crit", "Heal" } do
 		local frame = C.Frame(damage, name)

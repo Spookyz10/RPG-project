@@ -13,11 +13,11 @@ type HitboxResults = {
 }
 
 local DebugBool = ServerScriptService:FindFirstChild("DebugHitboxes") :: BoolValue
-local Debug = DebugBool.Value
+local Debug = DebugBool and DebugBool.Value or false
 
-DebugBool.Changed:Connect(function(value: boolean)
+if DebugBool then DebugBool.Changed:Connect(function(value: boolean)
 	Debug = value
-end)
+end) end
 
 function Hitbox.GetHitModels(hitbox: BasePart): HitboxResults
 	local PlayersHit = {}
@@ -25,33 +25,12 @@ function Hitbox.GetHitModels(hitbox: BasePart): HitboxResults
 
 	local partsHit = workspace:GetPartsInPart(hitbox)
 	for _, part in partsHit do
-		if part.Name == "Hitbox" then
-			local Character = part.Parent :: Model?
-			if not Character then
-				continue
-			end
-
-			local Humanoid = Character:FindFirstChildOfClass("Humanoid")
-			if not Humanoid or Humanoid.Health <= 0 then
-				continue
-			end
-
-			MobsHit[Character] = Character
-		else
-			local Character = part.Parent :: Model?
-			if not Character then
-				continue
-			end
-
-			local Humanoid = Character:FindFirstChildOfClass("Humanoid")
-			if not Humanoid or Humanoid.Health <= 0 then
-				continue
-			end
-
-			local player = Players:GetPlayerFromCharacter(Character)
-			if player then
-				PlayersHit[Character] = Character
-			end
+		local character = require(script.Parent.BodyQuery).Resolve(part)
+		if not character then continue end
+		if Players:GetPlayerFromCharacter(character) then
+			PlayersHit[character] = character
+		elseif workspace:FindFirstChild("Mobs") and character:IsDescendantOf(workspace.Mobs) then
+			MobsHit[character] = character
 		end
 	end
 

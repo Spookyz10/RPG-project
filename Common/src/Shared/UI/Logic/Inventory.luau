@@ -44,9 +44,9 @@ local ActionConnections: { RBXScriptConnection } = {}
 local GeneralConnections: { RBXScriptConnection } = {}
 local UsableConnections: { RBXScriptConnection } = {}
 
-local StatLabels = { "ATK", "CRT", "SPD", "DEF", "HP" }
-local StatKeys = { ATK = "Attack", CRT = "Critical", SPD = "Speed", DEF = "Defense", HP = "Health" }
-local PercentStats = { CRT = true }
+local StatLabels = { "ATK", "CRT", "CPWR", "SPD", "DEF", "HP" }
+local StatKeys = { ATK = "Attack", CRT = "Critical", CPWR = "Critical Power", SPD = "Speed", DEF = "Defense", HP = "Health" }
+local PercentStats = { CRT = true, CPWR = true }
 
 local SELECTED_COLOR = Theme.Sand
 local SELL_LIMIT = 25
@@ -294,6 +294,7 @@ local function OpenGeneralFrame(UUID: string, ItemData: Types.ItemData, ItemInfo
 	Inner.ItemLevel.TextColor3 = MeetsLevel and Theme.Green or Theme.Red
 
 	for _, statLabel in StatLabels do
+		if not Inner.Stats:FindFirstChild(statLabel) then continue end
 		local StatValue = ItemInfo.Stats[StatKeys[statLabel]] or 0
 
 		if PercentStats[statLabel] then

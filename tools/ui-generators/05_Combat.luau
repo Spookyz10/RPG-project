@@ -274,6 +274,9 @@ return function(parent)
 	local buffs = C.Frame(screen, "Buffs", UDim2.new(0.5, -112, 1, -134), UDim2.fromOffset(224, 38))
 	C.Responsive(buffs, buffs.Position, buffs.Size, UDim2.new(1, -256, 1, -326), UDim2.fromOffset(232, 38))
 	C.List(buffs, true, 6)
+	local debuffs = C.Frame(screen, "Debuffs", UDim2.new(0.5, -112, 1, -178), UDim2.fromOffset(224, 38))
+	C.Responsive(debuffs, debuffs.Position, debuffs.Size, UDim2.new(1, -256, 1, -370), UDim2.fromOffset(232, 38))
+	C.List(debuffs, true, 6)
 	return screen
 end
 end)()

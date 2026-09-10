@@ -266,6 +266,12 @@ export type DamageContext = {
 	Multiplier: number?,
 	Tags: { string },
 	Cancelled: boolean,
+	Attack: number,
+	CriticalMultiplier: number,
+	ForceCritical: boolean,
+	TriggeredPassives: { [string]: boolean },
+	AttackerPassives: { any },
+	DefenderPassives: { any },
 }
 
 return {}

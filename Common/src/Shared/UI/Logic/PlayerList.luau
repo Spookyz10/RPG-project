@@ -86,6 +86,9 @@ local function sort()
 	end
 end
 local function fit()
+	body.Avatar.CurrentCamera = camera
+	body.Avatar.ImageTransparency = 0
+	body.Avatar.Visible = true
 	local model = body.Avatar.World:FindFirstChildOfClass("Model")
 	if not model then
 		return
@@ -159,6 +162,14 @@ function Playerlist.OpenCard(player)
 	local avatar = avatars[player]
 	if not avatar then
 		local loaded, result = pcall(function()
+			local character = player.Character
+			if character and character:FindFirstChild("HumanoidRootPart") then
+				local archivable = character.Archivable
+				character.Archivable = true
+				local success, clone = pcall(function() return character:Clone() end)
+				character.Archivable = archivable
+				if success and clone then return clone end
+			end
 			return Players:CreateHumanoidModelFromUserIdAsync(player.UserId)
 		end)
 		if not loaded then
@@ -170,7 +181,7 @@ function Playerlist.OpenCard(player)
 		avatar = result
 		for _, object in avatar:GetDescendants() do
 			if
-				object:IsA("LuaSourceContainer")
+				object:IsA("LuaSourceContainer") or object:IsA("LayerCollector") or object.Name == "Hitbox"
 				or object:IsA("ParticleEmitter")
 				or object:IsA("Trail")
 				or object:IsA("Beam")
@@ -179,6 +190,9 @@ function Playerlist.OpenCard(player)
 				object:Destroy()
 			elseif object:IsA("BasePart") then
 				object.Anchored = true
+				object.LocalTransparencyModifier = 0
+				object.CanTouch = false
+				object.CanQuery = false
 				object.CanCollide = false
 			end
 		end
@@ -198,8 +212,8 @@ function Playerlist.OpenCard(player)
 		return
 	end
 	avatar.Parent = body.Avatar.World
-	body.Avatar.Status.Visible = false
 	fit()
+	body.Avatar.Status.Visible = false
 end
 local function add(player)
 	if entries[player] then

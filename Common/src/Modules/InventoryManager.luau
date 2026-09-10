@@ -30,6 +30,7 @@ end
 function InventoryManager:AddItem(Player: Player, ItemID: string, Amount: number): (string, string?)
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
 	local ItemInfo = ItemsData[ItemID] :: Types.Item
+	ItemInfo = ItemInfo or require(ReplicatedStorage.Shared.ItemsDataByName)[ItemID]
 
 	if not PlayerData or not ItemInfo then
 		return "Invalid player data or itemInfo", nil

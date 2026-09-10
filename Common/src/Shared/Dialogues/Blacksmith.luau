@@ -37,8 +37,8 @@ local Dialogue: Types.Dialogue = {
 		CraftingOffer = {
 			Text = "If you've got the materials and the blueprint, I can get you crafting right away.",
 			Action = function(self, PlayerData, Goto, Close)
-				UIFunctions:OpenUI("Crafting")
 				Close()
+				UIFunctions:OpenUI("Crafting")
 			end,
 		},
 	},

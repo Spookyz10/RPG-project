@@ -29,6 +29,11 @@ local function BindHumanoid(character: Model)
 	Humanoid = newHumanoid
 
 	table.insert(HumanoidConnections, Humanoid.HealthChanged:Connect(UpdateHP))
+	for _, effect in require(ReplicatedStorage.Shared.StatusEffects) do
+		if effect.Attribute and effect.HealthBar then
+			table.insert(HumanoidConnections, character:GetAttributeChangedSignal(effect.Attribute):Connect(UpdateHP))
+		end
+	end
 	table.insert(HumanoidConnections, Humanoid:GetPropertyChangedSignal("MaxHealth"):Connect(UpdateHP))
 
 	UpdateHP()

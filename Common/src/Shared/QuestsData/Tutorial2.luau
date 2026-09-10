@@ -3,13 +3,13 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Quest: Types.QuestInfo = {
 	Name = script.Name,
-	Description = "Defeat the Bear that lurks at the edge of the Village Outskirts.",
+	Description = "Defeat the Dire Bear that lurks at the edge of the Village Outskirts.",
 	Repeatable = false,
 	RequiredLevel = 1,
 	RequiredQuest = "Tutorial1",
 	SkipIfOverleveled = false,
 	Objectives = {
-		{ Type = "KillMob", Target = "Bear", Amount = 1 },
+		{ Type = "KillMob", Target = "Dire Bear", Amount = 1 },
 	},
 	Rewards = {
 		Currencies = { Gold = 50 },

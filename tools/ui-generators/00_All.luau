@@ -332,18 +332,67 @@ return function(parent)
 	C.Button(player, "View", "View", UDim2.new(1, -88, 0, 8), UDim2.fromOffset(80, 48), T.Sky)
 	C.Image(player, "Icon", UDim2.new(1, -124, 0, 22), UDim2.fromOffset(24, 24))
 
-	local mob = C.New("BillboardGui", "MobOverhead", folder, { Size = UDim2.fromOffset(180, 52), StudsOffset = Vector3.new(0, 3.5, 0), AlwaysOnTop = true, MaxDistance = 85 })
-	local mobInfo = C.Frame(mob, "Info", UDim2.new(), UDim2.new(1, 0, 0, 26))
-	local mobName = C.Label(mobInfo, "MobName", "Mob", nil, UDim2.fromScale(1, 1), true)
-	mobName.TextColor3 = T.Ink
-	mobName.TextXAlignment = Enum.TextXAlignment.Center
-	C.New("UIStroke", "UIStroke", mobName, { Color = T.Ink, Thickness = 1.5 })
-	local hp = C.Round(C.Frame(mob, "HP", UDim2.fromOffset(0, 30), UDim2.new(1, 0, 0, 20), T.Paper), 7)
-	hp.ClipsDescendants = true
-	C.Round(C.Frame(hp, "Bar", UDim2.new(), UDim2.fromScale(1, 1), T.Mint), 7)
-	local health = C.Label(hp, "Health", "", nil, UDim2.fromScale(1, 1), true)
-	health.TextSize = 11
-	health.TextXAlignment = Enum.TextXAlignment.Center
+	local mob = (function()
+-- All UI dimensions use Scale. Billboard scale is measured in world studs.
+return function(parent)
+	local function create(class, name, owner, properties)
+		local object = Instance.new(class)
+		object.Name = name
+		for key, value in properties do object[key] = value end
+		object.Parent = owner
+		return object
+	end
+	local function round(owner, radius)
+		create("UICorner", "Corner", owner, { CornerRadius = UDim.new(radius, 0) })
+	end
+	local function gradient(owner, top, bottom)
+		create("UIGradient", "Gradient", owner, { Rotation = 90, Color = ColorSequence.new(top, bottom) })
+	end
+	local function label(owner, name, text, position, size, color)
+		return create("TextLabel", name, owner, {
+			Position = position, Size = size, BackgroundTransparency = 1,
+			Text = text, TextScaled = true, TextColor3 = color,
+			Font = Enum.Font.GothamBold, TextStrokeTransparency = 0.65,
+			TextStrokeColor3 = Color3.fromRGB(20, 39, 34), ZIndex = 3,
+		})
+	end
+	local gui = create("BillboardGui", "MobOverhead", parent, {
+		Size = UDim2.fromScale(5.4, 1.45), StudsOffsetWorldSpace = Vector3.new(0, 4, 0),
+		AlwaysOnTop = true, MaxDistance = 85, LightInfluence = 0,
+	})
+	local info = create("Frame", "Info", gui, {
+		Position = UDim2.fromScale(0.02, 0), Size = UDim2.fromScale(0.96, 0.44), BackgroundTransparency = 1,
+	})
+	local name = label(info, "MobName", "Bushling", UDim2.fromScale(0, 0.06), UDim2.fromScale(0.73, 0.88), Color3.fromRGB(255, 248, 227))
+	name.TextXAlignment = Enum.TextXAlignment.Left
+	local badge = create("Frame", "LevelBadge", info, {
+		Position = UDim2.fromScale(0.77, 0.1), Size = UDim2.fromScale(0.23, 0.8),
+		BackgroundColor3 = Color3.fromRGB(37, 65, 54), BorderSizePixel = 0,
+	})
+	round(badge, 0.28)
+	gradient(badge, Color3.fromRGB(106, 139, 103), Color3.fromRGB(49, 79, 62))
+	label(badge, "Level", "Lv. 1", UDim2.fromScale(0.06, 0.1), UDim2.fromScale(0.88, 0.8), Color3.fromRGB(255, 235, 181))
+	local hp = create("Frame", "HP", gui, {
+		Position = UDim2.fromScale(0, 0.51), Size = UDim2.fromScale(1, 0.47),
+		BackgroundColor3 = Color3.fromRGB(22, 40, 34), BorderSizePixel = 0,
+	})
+	round(hp, 0.3)
+	local track = create("Frame", "Track", hp, {
+		Position = UDim2.fromScale(0.015, 0.12), Size = UDim2.fromScale(0.97, 0.76),
+		BackgroundColor3 = Color3.fromRGB(67, 86, 68), BorderSizePixel = 0, ClipsDescendants = true,
+	})
+	round(track, 0.25)
+	gradient(track, Color3.fromRGB(73, 91, 69), Color3.fromRGB(34, 54, 45))
+	local bar = create("Frame", "Bar", track, {
+		Position = UDim2.fromScale(0, 0), Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = Color3.fromRGB(255, 255, 255), BorderSizePixel = 0,
+	})
+	round(bar, 0.25)
+	gradient(bar, Color3.fromRGB(177, 241, 176), Color3.fromRGB(67, 165, 119))
+	label(hp, "Health", "HP  45 / 45", UDim2.fromScale(0.04, 0.17), UDim2.fromScale(0.92, 0.66), Color3.fromRGB(255, 255, 240))
+	return gui
+end
+end)()(folder)
 	local damage = C.New("BillboardGui", "Damage", folder, { Size = UDim2.fromOffset(140, 70), AlwaysOnTop = true })
 	for _, name in { "Base", "Crit", "Heal" } do
 		local frame = C.Frame(damage, name)
@@ -385,30 +434,41 @@ builders.Loading = (function()
 return function(parent)
 	local screen = C.Screen(parent, "LoadingScreen", 100)
 	screen.ScreenInsets = Enum.ScreenInsets.None
-	local bg = Color3.fromRGB(12, 19, 28)
-	local gold = Color3.fromRGB(192, 167, 112)
+	local bg = T.Paper
+	local gold = T.Gold
 	local frame = C.Frame(screen, "Frame", UDim2.fromScale(0, 0), UDim2.fromScale(1, 1), bg)
-	C.New("UIGradient", "Atmosphere", frame, { Rotation = 35, Color = ColorSequence.new(Color3.fromRGB(130, 160, 190), Color3.fromRGB(255, 255, 255)) })
+	C.New("UIGradient", "Atmosphere", frame, { Rotation = 35, Color = ColorSequence.new(Color3.fromRGB(170, 160, 205), Color3.fromRGB(255, 255, 255)) })
 	local art = C.Image(frame, "BackgroundArt", UDim2.fromScale(0, 0), UDim2.fromScale(1, 1))
 	art.ScaleType = Enum.ScaleType.Crop
 	art.ImageTransparency = 0.7
 	C.Frame(frame, "TopRule", UDim2.fromScale(0.07, 0.12), UDim2.fromScale(0.86, 0.002), gold)
 	local function text(name, value, x, y, w, h, color, font)
 		local label = C.Label(frame, name, value, UDim2.fromScale(x, y), UDim2.fromScale(w, h))
-		label.Font = font or Enum.Font.Gotham
+		label.Font = font or T.Font
 		label.TextColor3 = color or Color3.fromRGB(231, 234, 238)
 		label.TextStrokeTransparency = 1
 		return label
 	end
-	text("Chapter", "A WORLD BEYOND THE FAMILIAR", 0.08, 0.22, 0.8, 0.035, gold, Enum.Font.GothamMedium)
-	text("Title", "RISE BEYOND", 0.075, 0.31, 0.85, 0.13, nil, Enum.Font.GothamBold)
-	text("Subtitle", "Every journey leaves its mark.", 0.08, 0.47, 0.75, 0.045)
+	text("Chapter", "YOUR NEXT ADVENTURE AWAITS", 0.08, 0.22, 0.8, 0.035, gold, Enum.Font.GothamMedium)
+	text("Title", "BOOTLEG SIM", 0.075, 0.31, 0.85, 0.13, nil, T.Bold)
+	text("Subtitle", "Small beginnings. Legendary adventures.", 0.08, 0.47, 0.75, 0.045)
 	text("Edition", "EXPLORE  /  GROW  /  ENDURE", 0.08, 0.56, 0.72, 0.027, gold)
-	local progress = C.Frame(frame, "Progress", UDim2.fromScale(0.08, 0.77), UDim2.fromScale(0.84, 0.004), Color3.fromRGB(42, 51, 63))
-	C.Frame(progress, "Fill", UDim2.fromScale(0, 0), UDim2.fromScale(0, 1), gold)
+	local progress = C.Frame(frame, "Progress", UDim2.fromScale(0.08, 0.77), UDim2.fromScale(0.84, 0.025), T.Soft)
+	C.Round(progress)
+	progress.ClipsDescendants = true
+	local fill = C.Frame(progress, "Fill", UDim2.fromScale(0, 0), UDim2.fromScale(0, 1), T.Mint)
+	C.Round(fill)
+	C.New("UIGradient", "Gradient", fill, { Color = ColorSequence.new(T.Mint, T.Green) })
+	local spark = C.Frame(frame, "Spark", UDim2.fromScale(0.88, 0.32), UDim2.fromScale(0.025, 0.025), T.Gold)
+	spark.Rotation = 45
+	C.New("UIAspectRatioConstraint", "Aspect", spark, { AspectRatio = 1 })
+	text("Tip", "TIP  ?  Watch the red ground markers and dodge before they fill.", 0.08, 0.67, 0.84, 0.045, T.Muted)
+	text("Percent", "0%", 0.8, 0.81, 0.12, 0.035, T.Green, T.Bold)
 	text("Status", "Connecting to the world...", 0.08, 0.8, 0.58, 0.035)
-	local play = C.New("TextButton", "Play", frame, { Position = UDim2.fromScale(0.66, 0.84), Size = UDim2.fromScale(0.26, 0.085), Text = "ENTER WORLD", Font = Enum.Font.GothamMedium, TextStrokeTransparency = 1, BackgroundColor3 = bg, TextColor3 = gold, Visible = false })
-	local stroke = C.Stroke(play, gold)
+	local play = C.New("TextButton", "Play", frame, { Position = UDim2.fromScale(0.66, 0.84), Size = UDim2.fromScale(0.26, 0.085), Text = "ENTER WORLD", Font = Enum.Font.GothamMedium, TextStrokeTransparency = 1, BackgroundColor3 = T.Mint, TextColor3 = T.Ink, Visible = false })
+	C.Round(play)
+	C.Gradient(play)
+	local stroke = C.Stroke(play, T.Line)
 	stroke.Thickness = 1
 	text("Footer", "YOUR STORY CONTINUES", 0.08, 0.91, 0.5, 0.022, Color3.fromRGB(126, 139, 157))
 	return screen
@@ -512,6 +572,9 @@ return function(parent)
 	local buffs = C.Frame(screen, "Buffs", UDim2.new(0.5, -112, 1, -134), UDim2.fromOffset(224, 38))
 	C.Responsive(buffs, buffs.Position, buffs.Size, UDim2.new(1, -256, 1, -326), UDim2.fromOffset(232, 38))
 	C.List(buffs, true, 6)
+	local debuffs = C.Frame(screen, "Debuffs", UDim2.new(0.5, -112, 1, -178), UDim2.fromOffset(224, 38))
+	C.Responsive(debuffs, debuffs.Position, debuffs.Size, UDim2.new(1, -256, 1, -370), UDim2.fromOffset(232, 38))
+	C.List(debuffs, true, 6)
 	return screen
 end
 end)()
@@ -546,11 +609,11 @@ local function itemDialog(root, name, kind)
 		local label = C.Label(inner, field, "", UDim2.new(), UDim2.new(1, -12, 0, field == "ItemDesc" and 60 or 26), field == "ItemName")
 		label.LayoutOrder = index
 	end
-	local stats = C.Frame(inner, "Stats", UDim2.new(), UDim2.new(1, -12, 0, 140))
+	local stats = C.Frame(inner, "Stats", UDim2.new(), UDim2.new(1, -12, 0, 170))
 	stats.LayoutOrder = 5
 	stats.Visible = kind == "Equipment"
 	C.List(stats, false, 2)
-	for _, stat in { "ATK", "CRT", "SPD", "DEF", "HP" } do C.Label(stats, stat, stat .. ": 0") end
+	for _, stat in { "ATK", "CRT", "CPWR", "SPD", "DEF", "HP" } do C.Label(stats, stat, stat .. ": 0") end
 	for index, entry in { { "Action", kind == "Usable" and "Use one" or "Equip" }, { "Unequip", "Unequip" }, { "Vanity", "Use as appearance" }, { "Use All", "Use all" }, { "Cancel", "Back to backpack" } } do
 		local button = C.Button(inner, entry[1], entry[2], UDim2.new(), UDim2.new(1, -12, 0, 48), entry[1] == "Cancel" and T.Soft or T.Mint)
 		button.LayoutOrder = index + 5
@@ -752,31 +815,37 @@ builders.Players = (function()
 return function(parent)
 	local screen = C.Screen(parent, "Playerlist", 14)
 	screen.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
-	local list = C.Frame(screen, "List", UDim2.fromScale(1, 0.045), UDim2.fromScale(0.22, 0.4), Color3.fromRGB(30, 32, 40))
+	local list = C.Round(C.Frame(screen, "List", UDim2.fromScale(1, 0), UDim2.fromScale(0.22, 0.4), T.Paper))
 	list.AnchorPoint = Vector2.new(1, 0)
 	list:SetAttribute("SideTab", true)
-	C.New("UISizeConstraint", "Bounds", list, { MinSize = Vector2.new(175, 180), MaxSize = Vector2.new(290, 360) })
-	local border = C.Stroke(list, Color3.fromRGB(16, 18, 25))
-	border.Thickness = 1
-	local toggle = C.New("TextButton", "Toggle", list, { Text = "", Position = UDim2.fromScale(-0.12, 0), Size = UDim2.fromScale(0.12, 1), BackgroundColor3 = Color3.fromRGB(39, 40, 59), AutoButtonColor = true })
-	local arrow = C.Label(toggle, "Arrow", ">", UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.65, 0.07))
-	arrow.AnchorPoint = Vector2.new(0.5, 0.5)
+	C.New("UISizeConstraint", "Bounds", list, { MinSize = Vector2.new(220, 200), MaxSize = Vector2.new(320, 360) })
+	C.Stroke(list)
+	C.Frame(list, "Accent", UDim2.fromScale(0.05, 0), UDim2.fromScale(0.9, 0.012), T.Sky)
+	local toggle = C.Button(list, "Toggle", "", UDim2.fromScale(-0.12, 0.02), UDim2.fromScale(0.12, 0.18), T.Sky)
+	local arrow = C.Label(toggle, "Arrow", ">", UDim2.fromScale(0.15, 0.2), UDim2.fromScale(0.7, 0.6), true)
 	arrow.TextXAlignment = Enum.TextXAlignment.Center
-	arrow.Font = Enum.Font.GothamBold
 	C.New("UISizeConstraint", "TouchBounds", toggle, { MinSize = Vector2.new(32, 44) })
-	local title = C.Label(list, "Title", "ADVENTURERS", UDim2.fromScale(0.055, 0.03), UDim2.fromScale(0.89, 0.075), true)
-	title.Font = Enum.Font.GothamBold
+	local title = C.Label(list, "Title", "ADVENTURERS", UDim2.fromScale(0.06, 0.035), UDim2.fromScale(0.88, 0.09), true)
 	title.TextXAlignment = Enum.TextXAlignment.Center
-	title.TextStrokeTransparency = 1
-	C.Frame(list, "Divider", UDim2.fromScale(0.06, 0.135), UDim2.fromScale(0.88, 0.003), Color3.fromRGB(58, 61, 76))
-	local container = C.Scroll(list, "Container", UDim2.fromScale(0.025, 0.15), UDim2.fromScale(0.95, 0.82))
-	container.UIListLayout.Padding = UDim.new(0.025, 0)
-	local row = C.New("TextButton", "EntryTemplate", list, { Text = "", Visible = false, Size = UDim2.fromScale(0.97, 0.18), BackgroundColor3 = T.Surface })
-	C.Round(row, 4)
-	C.Image(row, "Rank", UDim2.fromScale(0.025, 0.17), UDim2.fromScale(0.12, 0.66))
-	local name = C.Label(row, "PlayerName", "Adventurer", UDim2.fromScale(0.175, 0.15), UDim2.fromScale(0.59, 0.7))
+	local heading = C.Round(C.Frame(list, "Columns", UDim2.fromScale(0.04, 0.15), UDim2.fromScale(0.92, 0.09), T.Soft), 6)
+	C.Label(heading, "Adventurer", "Adventurer", UDim2.fromScale(0.15, 0.1), UDim2.fromScale(0.57, 0.8), true)
+	local levelHeading = C.Label(heading, "Level", "Lvl", UDim2.fromScale(0.75, 0.1), UDim2.fromScale(0.22, 0.8), true)
+	levelHeading.TextColor3 = T.Gold
+	levelHeading.TextXAlignment = Enum.TextXAlignment.Center
+	local container = C.Scroll(list, "Container", UDim2.fromScale(0.035, 0.26), UDim2.fromScale(0.94, 0.71))
+	container.UIListLayout.Padding = UDim.new(0.035, 0)
+	local row = C.New("TextButton", "EntryTemplate", list, { Text = "", Visible = false, Size = UDim2.fromScale(0.96, 0.2), BackgroundColor3 = T.Surface, AutoButtonColor = true })
+	C.Round(row, 6)
+	C.Stroke(row)
+	C.Gradient(row)
+	C.Image(row, "Rank", UDim2.fromScale(0.025, 0.22), UDim2.fromScale(0.11, 0.56))
+	local name = C.Label(row, "PlayerName", "Adventurer", UDim2.fromScale(0.15, 0.16), UDim2.fromScale(0.56, 0.68), true)
 	name.TextWrapped = false
-	C.Label(row, "Level", "1", UDim2.fromScale(0.8, 0.15), UDim2.fromScale(0.17, 0.7), true).TextXAlignment = Enum.TextXAlignment.Center
+	name.TextTruncate = Enum.TextTruncate.AtEnd
+	C.Frame(row, "Divider", UDim2.fromScale(0.735, 0.2), UDim2.fromScale(0.006, 0.6), T.Soft)
+	local level = C.Label(row, "Level", "1", UDim2.fromScale(0.76, 0.18), UDim2.fromScale(0.21, 0.64), true)
+	level.TextColor3 = T.Gold
+	level.TextXAlignment = Enum.TextXAlignment.Center
 	return screen
 end
 end)()
@@ -932,6 +1001,26 @@ return function(parent)
 end
 end)()
 
+builders.Crafting = (function()
+
+return function(parent)
+	local screen, _, body = C.Window(parent, "Crafting", "Main", "Blacksmith crafting", "Turn trophies from the wild into equipment. Craft one at a time.", 600, 560)
+	local container = C.Scroll(body, "Container", UDim2.new(), UDim2.fromScale(1, 1))
+	local row = C.Frame(screen, "RecipeTemplate", UDim2.new(), UDim2.new(1, -12, 0, 210), T.Paper)
+	row.Visible = false
+	C.Stroke(row)
+	C.Label(row, "Title", "Recipe", UDim2.fromOffset(12, 8), UDim2.new(1, -24, 0, 24), true)
+	local description = C.Label(row, "Description", "", UDim2.fromOffset(12, 36), UDim2.new(1, -24, 0, 68))
+	description.TextWrapped = true
+	description.TextSize = 13
+	local cost = C.Label(row, "Cost", "", UDim2.fromOffset(12, 106), UDim2.new(1, -24, 0, 52))
+	cost.TextWrapped = true
+	cost.TextSize = 13
+	C.Button(row, "Craft", "CRAFT", UDim2.new(0, 12, 1, -42), UDim2.new(1, -24, 0, 32), T.Mint)
+	return screen
+end
+end)()
+
 local staging = Instance.new("Folder")
 local generated = {}
 local ok, reason = pcall(function()
@@ -973,6 +1062,8 @@ local ok, reason = pcall(function()
     table.insert(generated, { Object = builders.Admin(staging), Target = StarterGui })
 
     table.insert(generated, { Object = builders.PlayerCard(staging), Target = StarterGui })
+
+    table.insert(generated, { Object = builders.Crafting(staging), Target = StarterGui })
 
 for _, entry in generated do C.SaveScale(entry.Object) end
 end)

@@ -58,7 +58,7 @@ function AttackManager:Swing(Player: Player)
 		return
 	end
 
-	local WeaponData = ItemsData[WeaponEntry.Name] :: Types.Equipment
+	local WeaponData = Functions:GetItemInfo(WeaponEntry) :: Types.Equipment
 	if not WeaponData then
 		return
 	end

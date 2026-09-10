@@ -81,7 +81,7 @@ local Dialogue: Types.Dialogue = {
 		},
 
 		strong = {
-			Text = "Because of that let's skip the first quest and give you the rewards upfront, Your next goal now is to kill the Bear, beware as he has special attacks that are dangerous! Watch out for red indicators.",
+			Text = "Because of that let's skip the first quest and give you the rewards upfront, Your next goal now is to kill the Dire Bear, beware as he has special attacks that are dangerous! Watch out for red indicators.",
 			Action = function(self, PlayerData, Goto, Close)
 				RemoteManager.SendServerEvent("AcceptQuest", "Tutorial2", true)
 				Close()
@@ -120,7 +120,7 @@ local Dialogue: Types.Dialogue = {
 				if Quests["Tutorial1"] then
 					return "Remember, go to the blue portal accross the river, select the first zone by clicking on it, and then click the 'Enter' button. You need to defeat 3 Bushlings."
 				elseif Quests["Tutorial2"] then
-					return "Go back there and kill the Bear boss, after you do so come back, you can find it at the cave which is located at the end of the zone"
+					return "Go back there and kill the Dire Bear boss, after you do so come back, you can find it at the cave which is located at the end of the zone"
 				elseif Quests["Tutorial3"] then
 					return "Go to the blacksmith, select the Fang Dagger item and craft it, the blacksmith is right there next!"
 				else
@@ -130,7 +130,7 @@ local Dialogue: Types.Dialogue = {
 		},
 
 		OfferTutorial2 = {
-			Text = "You handled those bushlings well! Your next goal is to kill the Bear, beware as he has special attacks that are dangerous! Watch out for red indicators.",
+			Text = "You handled those bushlings well! Your next goal is to kill the Dire Bear, beware as he has special attacks that are dangerous! Watch out for red indicators.",
 			Action = function(self, PlayerData, Goto, Close)
 				RemoteManager.SendServerEvent("AcceptQuest", "Tutorial2")
 				Close()
@@ -138,7 +138,7 @@ local Dialogue: Types.Dialogue = {
 		},
 
 		OfferTutorial3 = {
-			Text = "You slew the Bear, impressive! Now go to the blacksmith, select the Fang Dagger item and craft it to finish your training.",
+			Text = "You slew the Dire Bear, impressive! Now go to the blacksmith, select the Fang Dagger item and craft it to finish your training.",
 			Action = function(self, PlayerData, Goto, Close)
 				RemoteManager.SendServerEvent("AcceptQuest", "Tutorial3")
 				Close()

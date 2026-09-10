@@ -83,7 +83,7 @@ local function getTotalStats(Data: Types.PlayerData, StatName: string)
 
 		local ItemInfo = Functions:GetItemInfo(KeyEntry) :: Types.Equipment
 		if ItemInfo then
-			local StatValue = ItemInfo.Stats[StatName]
+			local StatValue = ItemInfo.Stats[StatName] or 0
 
 			if not NON_UPGRADABLE_STATS[StatName] then
 				StatValue *= 1 + (KeyEntry.Upgrades or 0) * 0.1
@@ -111,6 +111,7 @@ function Functions:GetTotalStats(entity: Model, Data: Types.PlayerData): Types.S
 				Attack = getTotalStats(Data, "Attack"),
 				Defense = getTotalStats(Data, "Defense"),
 				Critical = getTotalStats(Data, "Critical"),
+				["Critical Power"] = getTotalStats(Data, "Critical Power"),
 				Health = getTotalStats(Data, "Health"),
 				Speed = getTotalStats(Data, "Speed"),
 			}
@@ -136,11 +137,12 @@ function Functions:GetXPNeeded(level: number): number
 end
 
 function Functions:GetNearestPlayer(part: BasePart, range: number): Player?
+	if not part then return nil end
 	local nearestPlayer = nil
 	local nearestDistance = range
 
 	for _, player in Players:GetPlayers() do
-		if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+		if player.Character and self:isEntityAlive(player.Character) and player.Character:FindFirstChild("HumanoidRootPart") then
 			local distance = self:getDistance(part, player.Character.HumanoidRootPart)
 			if distance < nearestDistance then
 				nearestDistance = distance
@@ -171,7 +173,7 @@ function Functions:GetTargetPlayer(mobModel: Model, hitlist: { [Player]: number 
 
 		return HighestPlayer
 	else
-		return self:GetNearestPlayer(mobModel.PrimaryPart, 30)
+		return self:GetNearestPlayer(mobModel:FindFirstChild("HumanoidRootPart") or mobModel.PrimaryPart, 30)
 	end
 end
 

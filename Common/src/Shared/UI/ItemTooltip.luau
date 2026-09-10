@@ -56,9 +56,9 @@ function Tooltip.Bind(button, getItem)
 		tip.Meta.Text = info.Data.Rarity .. " · " .. (info.Data.SubType or info.Kind) .. " · Lv. " .. (info.Data.Level or 1)
 		tip.Description.Text = info.Data.Description or ""
 		local stats = {}
-		for _, entry in { { "Attack", "ATK" }, { "Defense", "DEF" }, { "Health", "HP" }, { "Speed", "SPD" }, { "Critical", "CRIT" } } do
+		for _, entry in { { "Attack", "ATK" }, { "Defense", "DEF" }, { "Health", "HP" }, { "Speed", "SPD" }, { "Critical", "CRIT" }, { "Critical Power", "CRIT POWER" } } do
 			local value = info.Stats and info.Stats[entry[1]] or 0
-			if value ~= 0 then table.insert(stats, entry[2] .. " +" .. value .. (entry[1] == "Critical" and "%" or "")) end
+			if value ~= 0 then table.insert(stats, entry[2] .. " +" .. value .. ((entry[1] == "Critical" or entry[1] == "Critical Power") and "%" or "")) end
 		end
 		tip.Stats.Text = #stats > 0 and table.concat(stats, "  ·  ") or (info.Kind == "Consumable" and "Use from your backpack." or "Collect and keep for your adventure.")
 		tip.Footer.Text = "x" .. (item.Amount or 1) .. "  ·  Sell: " .. (info.Data.SellsFor or 0) .. " gold each"

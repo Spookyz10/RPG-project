@@ -12,11 +12,14 @@ ENTRIES = [
     ("Dialogue", "Dialogue"), ("Shop", "Shop"), ("Journal", "Journal"),
     ("Notifications", "Notifications"), ("Tutorial", "Tutorial"), ("StylePreview", "UIStylePreview"),
     ("Admin", "Main"), ("PlayerCard", "PlayerCard"),
+    ("Crafting", "Crafting"),
 ]
 
 
 def inline(path):
     text = path.read_text(encoding="utf-8-sig")
+    if path.name == "Templates.luau":
+        text = text.replace("require(script.Parent.MobOverhead)(folder)", "(function()\n" + inline(SOURCE / "MobOverhead.luau") + "\nend)()(folder)")
     # Only the builders' two local dependencies are folded in; no dynamic code evaluation.
     return "\n".join(line for line in text.splitlines() if line not in {
         "local C = require(script.Parent.Parent.Components)",
@@ -107,3 +110,20 @@ for index, entry in enumerate(ENTRIES, 1):
     (OUTPUT / f"{index:02d}_{entry[0]}.luau").write_text(bundle([entry]), encoding="utf-8")
 (OUTPUT / "00_All.luau").write_text(bundle(ENTRIES), encoding="utf-8")
 print(f"Bundled {len(ENTRIES)} standalone Edit generators + 00_All.luau.")
+
+# Dedicated overhead generator replaces only the template, preserving other UI assets.
+overhead = HEADER + "local build = (function()\n" + inline(SOURCE / "MobOverhead.luau") + "\nend)()\n" + r'''local templates = ReplicatedStorage:FindFirstChild("RPGUITemplates")
+if not templates then templates = Instance.new("Folder"); templates.Name = "RPGUITemplates"; templates.Parent = ReplicatedStorage end
+local replacement = build(nil)
+local old = templates:FindFirstChild("MobOverhead")
+if old then
+ local backups = ServerStorage:FindFirstChild("RPGUIBackups")
+ if not backups then backups = Instance.new("Folder"); backups.Name = "RPGUIBackups"; backups.Parent = ServerStorage end
+ local backup = Instance.new("Folder"); backup.Name = "MobOverhead_" .. os.date("%Y-%m-%d_%H-%M-%S"); backup.Parent = backups
+ old.Parent = backup
+end
+replacement.Parent = templates
+Selection:Set({replacement})
+print("MobOverhead saved. Scale-only layout. Save the place, then Play.")
+'''
+(OUTPUT / "21_MobOverhead.luau").write_text(overhead, encoding="utf-8")

@@ -11,7 +11,7 @@ local Item: Types.Equipment = {
 		Speed = 0,
 		Health = 0,
 	},
-	Passive = "Fatal Strike",
+	Passive = "Fury",
 	WeaponType = "Dual",
 	Data = {
 		SellsFor = 10,
@@ -22,7 +22,7 @@ local Item: Types.Equipment = {
 		Icon = "rbxassetid://3500778015",
 		Rarity = "Rare",
 		Level = 12,
-		Description = "A sharp dagger with a fang-like blade.",
+		Description = "Fury: gain a charge every 15s while equipped (max 2). A damaging hit consumes one: guaranteed critical hit and +150% Critical Power.",
 		ActionName = "Equip",
 		ID = "Fang Dagger",
 	},

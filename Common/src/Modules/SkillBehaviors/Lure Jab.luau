@@ -2,7 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
 local Data = require(ReplicatedStorage.Shared.Data).server
-local BuffsManager = require(ServerStorage.Modules.BuffsManager)
+local StatusEffectManager = require(ServerStorage.Modules.StatusEffectManager)
 local DamageHandler = require(ServerStorage.Modules.DamageHandler)
 local Hitbox = require(ServerStorage.Modules.Hitbox)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
@@ -47,19 +47,13 @@ function Behavior:Execute(caster: Player, definition: Types.SkillDefinition): An
 		OnHit = function(_, HitEntity)
 			DamageHandler:dealDamage(Character, HitEntity, definition.Multiplier)
 
-			BuffsManager:Apply(HitEntity, EFFECT_ID, {
+			StatusEffectManager:Apply(HitEntity, EFFECT_ID, {
 				Property = "Defense",
 				Operation = "Multiply",
 				Value = DefenseMultiplier,
 				Duration = BASE_DURATION,
 				Source = caster,
 			})
-
-			RemoteManager.SendClientEvent("BuffVFX", { All = true }, EFFECT_ID, HitEntity, "Start", BASE_DURATION)
-
-			task.delay(BASE_DURATION, function()
-				RemoteManager.SendClientEvent("BuffVFX", { All = true }, EFFECT_ID, HitEntity, "End")
-			end)
 
 			if HealPercent then
 				local Humanoid = Character:FindFirstChildOfClass("Humanoid")
