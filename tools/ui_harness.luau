@@ -328,6 +328,12 @@ end
 local before = #gui:GetDescendants()
 bootstrap.Ensure()
 assert(#gui:GetDescendants() == before, "Bootstrap duplicated the UI")
+for _, id in { "Gold", "Kills", "Donations", "PlayTime" } do
+ local panel = gui.Leaderboards[id]
+ assert(panel:IsA("SurfaceGui"))
+ assert(panel.Main.Rows and panel.Main.RowTemplate.Username and panel.Main.RowTemplate.Value)
+ assert(not panel.Main.RowTemplate.Visible)
+end
 local logic = loadModule(modules["UI/Logic"])
 local windows = loadModule(modules["UI/WindowManager"])
 local function last(name) local call = calls[#calls]; assert(call and call[1] == name, "Expected remote " .. name); return call end
@@ -519,4 +525,4 @@ for _, size in { { 1280, 720 }, { 844, 326 }, { 390, 760 }, { 320, 568 } } do
 	assert(content.Hero.Visible and content.Items.Visible and not content.MobileTabs.Visible, "Viewport changed saved visibility")
 
 end
-print("PASS: 20 standalone Edit generators, backup preservation, saved-UI bootstrap, hero stats, item hovers, saved layout preservation, UI initialization, inventory/equipment/search/quantities/sale, skill locks, raids, party, dialogue, journal, shop, bars, buffs, and 4 viewport sizes.")
+print("PASS: 21 standalone Edit generators, backup preservation, saved-UI bootstrap, hero stats, item hovers, saved layout preservation, UI initialization, inventory/equipment/search/quantities/sale, skill locks, raids, party, dialogue, journal, shop, bars, buffs, and 4 viewport sizes.")

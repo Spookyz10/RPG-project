@@ -13,6 +13,7 @@ ENTRIES = [
     ("Notifications", "Notifications"), ("Tutorial", "Tutorial"), ("StylePreview", "UIStylePreview"),
     ("Admin", "Main"), ("PlayerCard", "PlayerCard"),
     ("Crafting", "Crafting"),
+    ("Leaderboards", "Leaderboards"),
 ]
 
 
@@ -107,7 +108,7 @@ print("RPG UI saved as editable instances. Save the place before Play. Backups: 
 
 OUTPUT.mkdir(parents=True, exist_ok=True)
 for index, entry in enumerate(ENTRIES, 1):
-    (OUTPUT / f"{index:02d}_{entry[0]}.luau").write_text(bundle([entry]), encoding="utf-8")
+    (OUTPUT / f"{22 if entry[0] == 'Leaderboards' else index:02d}_{entry[0]}.luau").write_text(bundle([entry]), encoding="utf-8")
 (OUTPUT / "00_All.luau").write_text(bundle(ENTRIES), encoding="utf-8")
 print(f"Bundled {len(ENTRIES)} standalone Edit generators + 00_All.luau.")
 

@@ -8,6 +8,7 @@ local template: Types.PlayerData = {
 	Level = 1,
 	XP = 0,
 	Kills = 0,
+	Donations = 0,
 	Deaths = 0,
 	Honor = 0,
 	PlayTime = 0,

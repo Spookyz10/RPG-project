@@ -12,6 +12,7 @@ export type PlayerData = {
 	Level: number,
 	XP: number,
 	Kills: number,
+	Donations: number,
 	Deaths: number,
 	PlayTime: number,
 	Honor: number,
