@@ -282,19 +282,55 @@ local function rocks(holder, radius, count)
    CFrame.new(math.cos(angle) * radius, 0.3, math.sin(angle) * radius) * CFrame.Angles(0.2, angle, 0.25), dirt)
  end
 end
+local function cleanTemplate(source, group, name, duration)
+ local model, holder = template(source, group, name, duration)
+ for _, child in holder:GetChildren() do child:Destroy() end
+ return model, holder
+end
+local windColor = Color3.fromRGB(211, 242, 249)
 local function slash(holder, radius, color)
- for i = 1, 9 do
-  local angle = math.rad(-70 + i * 14)
-  solid(holder, "WedgePart", "Slash" .. i, Vector3.new(0.15, 0.3 + math.sin(i / 10 * math.pi) * 0.4, radius * 0.3),
-   CFrame.new(math.sin(angle) * radius, 0, -math.cos(angle) * radius) * CFrame.Angles(0, -angle, math.pi / 2),
-   color, Enum.Material.Neon, 0.2)
+ -- A tapered crescent rather than individual glowing wedges.
+ local previous
+ for i = 0, 16 do
+  local t = i / 16
+  local angle = math.rad(-75 + t * 150)
+  local point = at(holder, "SlashPoint" .. i, Vector3.new(math.sin(angle) * radius, (t - 0.5) * 0.7, -math.cos(angle) * radius))
+  if previous then
+   local ribbon = beam(holder, "Crescent" .. i, previous, point, color, math.sin(t * math.pi) * 0.55 + 0.015, 0, 0.26)
+   ribbon.Width0 = math.sin((i - 1) / 16 * math.pi) * 0.55 + 0.015
+   ribbon.Width1 = math.sin(t * math.pi) * 0.55 + 0.015
+  end
+  previous = point
+ end
+end
+local function funnel(holder, bottom, top, height, duration)
+ -- Two open helices: narrow at the floor, broad at the shoulders/top.
+ for strand = 1, 2 do
+  local previous
+  for i = 0, 36 do
+   local t = i / 36
+   local radius = bottom + (top - bottom) * t
+   local angle = t * math.pi * 4 + strand * math.pi
+   local point = at(holder, "WindPoint" .. strand .. "_" .. i, Vector3.new(math.cos(angle) * radius, -2.5 + t * height, math.sin(angle) * radius))
+   if previous then
+    local ribbon = beam(holder, "WindRibbon" .. strand .. "_" .. i, previous, point, windColor, 0.08 + t * 0.25, 0, duration)
+    ribbon.Transparency = NumberSequence.new(0.3)
+   end
+   previous = point
+  end
  end
 end
 local function buildResources()
  build()
  template("01_Poison", "Statuses", "Poison", 10)
  template("02_VenomMark", "Statuses", "Venom", 6)
- template("06_FuryCharge", "Statuses", "Fury", 3600)
+ local fury, fh = cleanTemplate("06_FuryCharge", "Statuses", "Fury", 3600)
+ for _, side in {-1, 1} do
+  local a = at(fh, "ChargeLow" .. side, Vector3.new(side * 1.25, 0.5, 0))
+  local b = at(fh, "ChargeHigh" .. side, Vector3.new(side * 1.1, 2.4, 0))
+  local ribbon = beam(fh, "Charge" .. side, a, b, ivory, 0.1, 0.12, 3600)
+  ribbon.Width1 = 0
+ end
  local lure = template("02_VenomMark", "Statuses", "Lure Jab", 5)
  for _, v in lure:GetDescendants() do
   if v:IsA("Beam") or v:IsA("ParticleEmitter") then v.Color = ColorSequence.new(Color3.fromRGB(188, 112, 255)) end
@@ -313,11 +349,28 @@ local function buildResources()
   solid(sh, "WedgePart", "ThornEdge" .. i, Vector3.new(0.08, height * 0.93, 1.12), cf, green, Enum.Material.Neon, 0.15)
  end
  rocks(sh, 2.5, 9)
- local melee, mh = template("07_DireMaul", "Attacks", "Melee", 0.3)
- slash(mh, 2.5, ivory)
+ local melee, mh = cleanTemplate("07_DireMaul", "Attacks", "Melee", 0.3)
+ slash(mh, 3.3, windColor)
  melee:SetAttribute("SpinSpeed", 4)
  local swipe = melee:Clone(); swipe.Name = "DoubleSwipe"; swipe.Parent = groups.Attacks; swipe:ScaleTo(2)
  local basic = melee:Clone(); basic.Name = "Basic"; basic.Parent = groups.Skills
+ for i = 1, 3 do
+  local variant = basic:Clone(); variant.Name = "Basic" .. i
+  for _, attachment in variant:GetDescendants() do
+   if attachment:IsA("Attachment") then attachment.CFrame = CFrame.Angles(0, 0, math.rad((i - 2) * 30)) * attachment.CFrame end
+  end
+  variant:SetAttribute("SpinSpeed", i % 2 == 0 and -6 or 6)
+  variant.Parent = groups.Skills
+ end
+ for i, name in {"Bushling", "Wolf", "Boar", "Dire Bear"} do
+  local variant = melee:Clone(); variant.Name = name .. "Melee"
+  local palette = {green, windColor, Color3.fromRGB(216, 190, 155), ivory}
+  for _, effect in variant:GetDescendants() do
+   if effect:IsA("Beam") then effect.Color = ColorSequence.new(palette[i]); effect.Width0 *= 0.65 + i * 0.22; effect.Width1 *= 0.65 + i * 0.22 end
+   if effect:IsA("Attachment") then effect.CFrame = CFrame.Angles(0, 0, math.rad(i * 15 - 30)) * effect.CFrame end
+  end
+  variant:ScaleTo(0.7 + i * 0.25); variant.Parent = groups.Attacks
+ end
  local slam, gh = template("07_DireMaul", "Attacks", "GroundSlam", 1)
  rocks(gh, 12, 22)
  beamRing(gh, "SlamWave", 16, 0.15, gold, 0.18)
@@ -325,9 +378,9 @@ local function buildResources()
  local roar, rh = template("07_DireMaul", "Attacks", "Roar", 1.1)
  for i = 1, 3 do beamRing(rh, "SoundWave" .. i, 8 * i, i * 0.6, ivory, 0.12) end
  roar:SetAttribute("ExpandFrom", 0.1)
- local spin, th = template("06_FuryCharge", "Attacks", "TailSpin", 2)
- for i = 1, 3 do beamRing(th, "Wind" .. i, 7 + i, i * 0.35, ivory, 0.15) end
- slash(th, 9, ivory); spin:SetAttribute("SpinSpeed", math.pi * 4)
+ local spin, th = cleanTemplate("06_FuryCharge", "Attacks", "TailSpin", 2)
+ funnel(th, 2, 8, 6, 2)
+ spin:SetAttribute("SpinSpeed", math.pi * 3)
  local rush, bh = template("04_SpikeEruption", "Attacks", "Rush", 0.95)
  for i = -1, 1, 2 do
   local a = at(bh, "SpeedStart" .. i, Vector3.new(i * 3, 0, -2))
@@ -335,9 +388,9 @@ local function buildResources()
   beam(bh, "RushRibbon" .. i, a, b, ivory, 0.18, 0, 0.9)
  end
  for _, v in rush:GetDescendants() do if v:IsA("ParticleEmitter") then v.Rate = 12 end end
- local cyclone, ch = template("06_FuryCharge", "Skills", "Cyclone", 1.2)
- for i = 1, 4 do beamRing(ch, "CycloneBand" .. i, 4.8 - i * 0.45, i * 0.65 - 1.5, mint, 0.2) end
- slash(ch, 4.5, mint); cyclone:SetAttribute("SpinSpeed", 12)
+ local cyclone, ch = cleanTemplate("06_FuryCharge", "Skills", "Cyclone", 1.2)
+ funnel(ch, 0.9, 4.5, 6, 1.2)
+ cyclone:SetAttribute("SpinSpeed", 10)
  local jab, jh = template("07_DireMaul", "Skills", "Lure Jab", 0.4)
  slash(jh, 3, Color3.fromRGB(188, 112, 255)); jab:SetAttribute("SpinSpeed", -7)
  local ground, gr = template("04_SpikeEruption", "Skills", "Ground Break", 1.2)

@@ -173,7 +173,8 @@ function Functions:GetTargetPlayer(mobModel: Model, hitlist: { [Player]: number 
 
 		return HighestPlayer
 	else
-		return self:GetNearestPlayer(mobModel:FindFirstChild("HumanoidRootPart") or mobModel.PrimaryPart, 30)
+		local config = require(ReplicatedStorage.Shared.MobCombatConfig)[mobModel.Name]
+		return self:GetNearestPlayer(mobModel:FindFirstChild("HumanoidRootPart") or mobModel.PrimaryPart, config and config.AggroRange or 30)
 	end
 end
 

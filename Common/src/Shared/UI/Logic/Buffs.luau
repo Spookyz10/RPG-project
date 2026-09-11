@@ -22,10 +22,23 @@ local BuffIcons = {
 local Container: Instance = nil
 local DebuffContainer: Instance = nil
 local Template: GuiObject = nil
+local descriptions = {
+ Poison = "Poison damage is applied every second.",
+ Safeguard = "Incoming damage is reduced by 70%.",
+ ["Lure Jab"] = "Defense is reduced by 50%.",
+ Venom = "Venom mark: interacts with poison and venom equipment effects.",
+ Fury = "Your next confirmed hit is a guaranteed critical with bonus critical damage. One charge every 15s, up to 2.",
+}
+local tooltip
+local hovered
+local function hideTip(entry)
+ if hovered == entry and tooltip then tooltip.Visible = false; hovered = nil end
+end
 local ActiveEntries: { [string]: GuiObject } = {}
 
 function BuffsUI.Init()
 	local AttackGui = UIConstants.PlayerGui:WaitForChild("Attack")
+	tooltip = AttackGui:FindFirstChild("StatusTooltip")
 	Container = AttackGui:WaitForChild("Buffs")
 	DebuffContainer = AttackGui:FindFirstChild("Debuffs")
 	-- Older saved screens can still bind until the Combat generator is rerun.
@@ -67,6 +80,19 @@ function BuffsUI:Start(effectId: string, duration: number?, stacks: number?)
 
 	Entry.Parent = definition.Category == "Debuff" and DebuffContainer or Container
 	ActiveEntries[effectId] = Entry
+	local function show()
+		if not tooltip then return end
+		hovered = Entry
+		tooltip.Title.Text = effectId .. " - " .. (definition.Category or "Buff")
+		tooltip.Description.Text = definition.Description or descriptions[effectId] or "This effect is currently active on your character."
+		tooltip.Visible = true
+	end
+	Entry.MouseEnter:Connect(show)
+	Entry.MouseLeave:Connect(function() hideTip(Entry) end)
+	Entry.SelectionGained:Connect(show)
+	Entry.SelectionLost:Connect(function() hideTip(Entry) end)
+	if Entry:IsA("GuiButton") then Entry.Activated:Connect(function() if hovered == Entry then hideTip(Entry) else show() end end) end
+	Entry.Destroying:Connect(function() hideTip(Entry) end)
 
 	local CDLabel = Entry:FindFirstChild("CD") :: TextLabel?
 	if duration == nil then

@@ -9,6 +9,12 @@ local Buttons = {}
 function Buttons.Init()
 	local main = Constants.PlayerGui.Buttons.Main
 	local drawer = main.Drawer
+	for _, name in {"Raids", "Party", "Journal"} do
+		local button = drawer.Items:FindFirstChild(name)
+		if button then button.Visible = false end
+	end
+	local removed = drawer.Items:FindFirstChild("Players")
+	if removed then removed:Destroy() end
 	main.Menu.Activated:Connect(function()
 		drawer.Visible = not drawer.Visible
 		main.Backpack.Visible = not drawer.Visible
@@ -25,10 +31,8 @@ function Buttons.Init()
 			button.Activated:Connect(function()
 				drawer.Visible = false
 				main.Backpack.Visible = true
-				if target == "Playerlist" then
-					require(script.Parent.PlayerList).Toggle()
-				elseif target == "Home" then
-					local teleporters = workspace:FindFirstChild("ZoneTeleporters")
+				if target == "Home" then
+					local teleporters = workspace:FindFirstChild("ZoneTeleportes") or workspace:FindFirstChild("ZoneTeleporters")
 					local lobby = teleporters and teleporters:FindFirstChild("Lobby")
 					if lobby and lobby:IsA("BasePart") and Constants.Player.Character then
 						Constants.Player.Character:PivotTo(lobby.CFrame + Vector3.new(0, 3, 0))

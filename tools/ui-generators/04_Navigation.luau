@@ -258,14 +258,14 @@ return function(parent)
 	for index, entry in {
 		{ "Inventory", "Backpack", "Inventory" }, { "Skills", "Skills", "SkillSelector" },
 		{ "Zones", "Explore", "ZoneSelector" }, { "Raids", "Boss raids", "RaidsGUI" },
-		{ "Players", "Adventurers", "Playerlist" }, { "Party", "My party", "Partylist" },
+		{ "Party", "My party", "Partylist" },
 		{ "Journal", "Quest journal", "Journal" }, { "Home", "Return to village", "Home" },
 		{ "Admin", "Developer tools", "Main" },
 	} do
 		local button = C.Button(list, entry[1], entry[2])
 		button.LayoutOrder = index
 		button:SetAttribute("OpenScreen", entry[3])
-		if entry[1] == "Admin" then button.Visible = false end
+		if entry[1] == "Admin" or entry[1] == "Raids" or entry[1] == "Party" or entry[1] == "Journal" then button.Visible = false end
 	end
 	-- A small primary shortcut stays visible when the menu is collapsed.
 	local bag = C.Button(main, "Backpack", "Bag", UDim2.fromOffset(0, 56), UDim2.fromOffset(80, 48), T.Mint)

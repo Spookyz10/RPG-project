@@ -62,6 +62,7 @@ function Context.new(mob, cfg, session)
 		end
 	end
 	local function vfx(name, cf, duration, follow, attack)
+  if name == "Melee" then name = mob.Name .. "Melee" end
   Remote.SendClientEvent("CombatVFX", { All = true }, "Attacks", name, cf, mob, duration, follow, attack)
  end
  local function circle(radius, windup, multiplier, knockback, effect)

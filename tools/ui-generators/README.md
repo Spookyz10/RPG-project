@@ -77,3 +77,5 @@ A lista fica no topo direito, ordenada por nivel decrescente com o jogador local
 Os ImageLabels Rank ja existem. Preencha os IDs em `Common/src/Shared/UI/RankIcons.luau` quando criar os icones e atribua Rank ao Player (D, C, B, A, S, SS ou SSS). Nenhum rank e calculado automaticamente por enquanto.
 
 O seletor de zonas agora abre detalhes de mobs, atributos, recompensas e drops antes de entrar. Para atualizar somente essa tela, execute `08_Zones.luau` em Edit e salve. Os templates usados pelo seletor ficam dentro de `StarterGui.ZoneSelector.Templates`; n?o ? necess?rio executar o gerador geral.
+
+ZoneSelector: o layout Adventure atlas usa abas de zonas e criaturas, mostrando uma ficha por vez com viewport e grade de drops. O rodape mostra progresso de nivel ate liberar a zona. Execute apenas `08_Zones.luau` em Edit para atualizar, salve e sincronize Common. Mantem DeviceSafeInsets e Main.Size = {0.6, 0}, {0.85, 0}.

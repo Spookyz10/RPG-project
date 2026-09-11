@@ -277,6 +277,11 @@ return function(parent)
 	local debuffs = C.Frame(screen, "Debuffs", UDim2.new(0.5, -112, 1, -178), UDim2.fromOffset(224, 38))
 	C.Responsive(debuffs, debuffs.Position, debuffs.Size, UDim2.new(1, -256, 1, -370), UDim2.fromOffset(232, 38))
 	C.List(debuffs, true, 6)
+	local tip = C.Frame(screen, "StatusTooltip", UDim2.fromScale(0.02, 0.55), UDim2.fromScale(0.24, 0.13), T.Paper)
+	tip.Visible = false; tip.ZIndex = 30
+	C.Round(tip); C.Stroke(tip)
+	C.Label(tip, "Title", "Effect", UDim2.fromScale(0.04, 0.06), UDim2.fromScale(0.92, 0.25), true)
+	C.Label(tip, "Description", "", UDim2.fromScale(0.04, 0.35), UDim2.fromScale(0.92, 0.59))
 	return screen
 end
 end)()

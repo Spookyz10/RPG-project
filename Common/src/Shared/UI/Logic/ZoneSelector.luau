@@ -39,6 +39,10 @@ function ZoneSelector.Init()
 	Template = templates.ZoneEntry
 	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 	local Config = require(ReplicatedStorage.Shared.MobCombatConfig)
+	local tooltip = require(ReplicatedStorage.Shared.UI.ItemTooltip).new()
+	tooltip.Init(screen)
+	local Items = require(ReplicatedStorage.Shared.ItemsDataByName)
+	local Preview = require(ReplicatedStorage.Shared.UI.MobPreview)
 	local selected = nil
 	local busy = false
 	local entries = {}
@@ -46,27 +50,34 @@ function ZoneSelector.Init()
 	local function refresh()
 		local level = UIConstants.Data.Level()
 		for name, button in entries do
-			button.Status.Text = level >= Zones[name].Level and "View mobs ?" or "Locked ? View mobs"
+			button.Selected.Visible = name == selected
 		end
 		if selected then
 			local unlocked = level >= Zones[selected].Level
-			detail.Enter.Text = unlocked and ("Enter " .. selected) or ("Requires level " .. Zones[selected].Level)
+			detail.Enter.Text = unlocked and ("Enter " .. selected) or ("Level " .. Zones[selected].Level .. " to enter")
 			detail.Enter.Active = unlocked and not busy
 			detail.Enter.AutoButtonColor = unlocked and not busy
+			local required = Zones[selected].Level
+			detail.Journey.Text = unlocked and "Destination discovered - ready to explore" or (tostring(required - level) .. " levels to your next adventure")
+			detail.Progress.Fill.Size = UDim2.fromScale(math.clamp(level / math.max(1, required), 0, 1), 1)
 		end
 	end
 
 	local function selectZone(name)
+		tooltip.Hide()
 		selected = name
 		local info = Zones[name]
-		Container.Visible = false
+		Container.Visible = true
 		detail.Visible = true
 		detail.ZoneName.Text = name
-		detail.LevelRange.Text = "Lv. " .. info.Level .. "?" .. info.MaxLevel .. "  ?  Creatures & rewards"
+		detail.LevelRange.Text = "Lv. " .. info.Level .. " - " .. info.MaxLevel
 		for _, child in detail.Mobs:GetChildren() do
 			if child:GetAttribute("ZoneMobEntry") then child:Destroy() end
 		end
-		detail.Mobs.CanvasPosition = Vector2.zero
+		for _, child in detail.Roster:GetChildren() do
+			if child:IsA("GuiButton") then child:Destroy() end
+		end
+		detail.Roster.CanvasPosition = Vector2.zero
 		local names = table.clone(info.Mobs or {})
 		-- Zones can also inherit their roster from the existing MobsData folders.
 		if #names == 0 then
@@ -88,15 +99,15 @@ function ZoneSelector.Init()
 			count += 1
 			local card = templates.MobEntry:Clone()
 			card.Name = mobName
-			card.Visible = true
+			card.Visible = count == 1
 			card:SetAttribute("ZoneMobEntry", true)
 			card.LayoutOrder = count
 			local level = tostring(mob.Level or 1)
-			if mob.MaxLevel and mob.MaxLevel ~= mob.Level then level ..= "?" .. mob.MaxLevel end
-			card.MobName.Text = mobName .. "  ?  Lv. " .. level .. (mobName == "Dire Bear" and "  ?  BOSS" or "")
+			if mob.MaxLevel and mob.MaxLevel ~= mob.Level then level ..= " - " .. mob.MaxLevel end
+			card.MobName.Text = mobName .. " - Lv. " .. level .. (mobName == "Dire Bear" and " - BOSS" or "")
 			local stats = mob.Data and mob.Data.Stats or {}
 			local combat = Config[mobName] or {}
-			card.Stats.Text = string.format("HP %s   ?   ATK %s   ?   DEF %s\nSpeed %s   ?   Crit %s%%   ?   Respawn %ss",
+			card.Stats.Text = string.format("HP: %s - ATK: %s - DEF: %s\nSpeed: %s - Crit: %s%%\nRespawn: %ss",
 				tostring(combat.Health or stats.Health or 0), tostring(stats.Attack or 0), tostring(stats.Defense or 0),
 				tostring(combat.Speed or stats.Speed or 0), tostring(stats.Critical or 0), tostring(mob.RespawnTime or 5))
 			local rewards = {tostring(mob.XP or 0) .. " XP"}
@@ -104,16 +115,40 @@ function ZoneSelector.Init()
 			for currency in mob.Currencies or {} do table.insert(currencies, currency) end
 			table.sort(currencies)
 			for _, currency in currencies do table.insert(rewards, tostring(mob.Currencies[currency]) .. " " .. currency) end
-			card.Rewards.Text = table.concat(rewards, "  ?  ")
-			local dropNames, lines = {}, {}
+			card.Rewards.Text = table.concat(rewards, " - ")
+			card.Drops:GetPropertyChangedSignal("CanvasPosition"):Connect(tooltip.Hide)
+			local dropNames = {}
 			for item in mob.Drops or {} do table.insert(dropNames, item) end
 			table.sort(dropNames)
-			for _, item in dropNames do
+			card.NoDrops.Visible = #dropNames == 0
+			for order, item in dropNames do
 				local drop = mob.Drops[item]
-				table.insert(lines, item .. "  ?" .. tostring(drop.Amount or 1) .. "  ?  " .. tostring(drop.Chance or 0) .. "%")
+				local info = Items[item]
+				local tile = templates.DropEntry:Clone()
+				tile.Name = item; tile.Visible = true; tile.LayoutOrder = order
+				tile.ItemName.Text = info and info.Data.Name or item
+				tile.Icon.Image = info and info.Data.Icon or ""
+				tile.Chance.Text = tostring(drop.Chance or 0) .. "%"
+				tile.Parent = card.Drops
+				if info then tooltip.Bind(tile, function() return {ID = info.Data.ID, Name = info.Data.Name, Amount = drop.Amount or 1} end) end
 			end
-			card.Drops.Text = #lines > 0 and table.concat(lines, "\n") or "No item drops"
 			card.Parent = detail.Mobs
+			local loaded = false
+			local function inspect()
+				tooltip.Hide()
+				for _, other in detail.Mobs:GetChildren() do
+					if other:GetAttribute("ZoneMobEntry") then other.Visible = other == card end
+				end
+				for _, button in detail.Roster:GetChildren() do
+					if button:IsA("GuiButton") then button.BackgroundColor3 = button.Name == mobName and Color3.fromRGB(35,138,228) or Color3.fromRGB(61,63,76) end
+				end
+				if not loaded then Preview.Show(card.Preview, mobName); loaded = true end
+			end
+			local button = templates.MobButton:Clone()
+			button.Name = mobName; button.Text = mobName; button.Visible = true; button.LayoutOrder = count
+			button.Parent = detail.Roster
+			button.Activated:Connect(inspect)
+			if count == 1 then inspect() end
 		end
 		detail.Mobs.Empty.Visible = count == 0
 		refresh()
@@ -125,16 +160,11 @@ function ZoneSelector.Init()
 		button.Visible = true
 		button.LayoutOrder = info.Order
 		button.AreaName.Text = name
-		button.LevelReq.Text = "Lv. " .. info.Level .. "?" .. info.MaxLevel
+		button.LevelReq.Text = "Lv. " .. info.Level .. " - " .. info.MaxLevel
 		button.Activated:Connect(function() selectZone(name) end)
 		button.Parent = Container
 		entries[name] = button
 	end
-	detail.Back.Activated:Connect(function()
-		detail.Visible = false
-		Container.Visible = true
-		selected = nil
-	end)
 	detail.Enter.Activated:Connect(function()
 		if busy or not selected then return end
 		local name = selected
@@ -154,6 +184,11 @@ function ZoneSelector.Init()
 		refresh()
 	end)
 	UIConstants.Data.Level.Changed(refresh)
+	local first
+	for name, info in Zones do
+		if not first or info.Order < Zones[first].Order then first = name end
+	end
+	if first then selectZone(first) end
 	refresh()
 end
 

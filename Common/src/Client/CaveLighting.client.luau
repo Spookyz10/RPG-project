@@ -19,7 +19,11 @@ while true do
 			manager:Apply("DireBearCave", {ClockTime = 0, Brightness = 1, Ambient = Color3.fromRGB(55, 65, 80), OutdoorAmbient = Color3.fromRGB(35, 42, 55), FogColor = Color3.fromRGB(25, 34, 42), FogStart = 80, FogEnd = 330})
 		else
 			manager:ResetToDefault()
-			manager:Apply("Grasslands", grasslands.getLighting())
+			local destinations = workspace:FindFirstChild("ZoneTeleportes")
+			local exit = destinations and destinations:FindFirstChild("GrasslandsCaveExit")
+			if root and exit and (root.Position - exit.Position).Magnitude < 100 then
+				manager:Apply("Grasslands", grasslands.getLighting())
+			end
 		end
 	end
 	task.wait(0.15)

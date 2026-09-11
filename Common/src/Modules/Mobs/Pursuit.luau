@@ -32,11 +32,12 @@ function Pursuit:Update(target)
 	local clearance = self.Radius + targetRadius + (config.SpacingBuffer or 1)
 	local stopDistance = math.max(config.Range, clearance)
 	local tolerance = config.SpacingTolerance or 0.5
-	-- Back away if the player walks into the mob, rather than attacking from inside them.
+	-- Close targets remain attackable; do not get stuck endlessly backing away.
 	local tooClose = distance < clearance - tolerance
 	self.TooClose = tooClose
 	self.MeleeReach = stopDistance + tolerance
-	local ready = not tooClose and distance <= stopDistance + (self.Holding and tolerance or 0)
+	local ready = distance <= stopDistance + tolerance
+		and math.abs(root.Position.Y - target.Position.Y) <= (config.Size or root.Size).Y / 2 + target.Size.Y / 2
 	self.Holding = ready
 	if ready then
 		self:Stop()

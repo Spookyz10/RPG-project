@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("UI").Bootstrap).Ensure()
+require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("LightingManager")):CaptureDefault()
+require(ReplicatedStorage.Shared.UI.Bootstrap).Ensure()
 
 local TouchManager = require(ReplicatedStorage.Shared.TouchManager)
 local UIModules = require(ReplicatedStorage.Shared.UI.Logic)

@@ -2,6 +2,7 @@
 local RS = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local VFX = {}
+local basicVariants = setmetatable({}, {__mode = "k"})
 local active = {}
 local statuses = {}
 local warned = {}
@@ -113,7 +114,13 @@ function VFX:Skill(name, entity)
  if name == "Ground Break" then cf = self:Ground(cf * CFrame.new(0, 0, -3), entity)
  elseif name == "Blessing" then cf = self:Ground(cf, entity)
  elseif name == "Basic" then offset = CFrame.new(0, 0, -1); cf *= offset end
- self:Play("Skills", name, cf, {Entity = entity, Follow = follow, Offset = offset})
+ local effectName = name
+ if name == "Basic" then
+  local index = (basicVariants[entity] or 0) % 3 + 1
+  basicVariants[entity] = index
+  effectName = "Basic" .. index
+ end
+ self:Play("Skills", effectName, cf, {Entity = entity, Follow = follow, Offset = offset})
 end
 if RunService:IsClient() then
  RunService.Heartbeat:Connect(function()

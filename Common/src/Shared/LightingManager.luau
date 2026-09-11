@@ -3,7 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local LightingManager = {}
 
-local TemplatesFolder = ReplicatedStorage:WaitForChild("Resources"):WaitForChild("LightingTemplates")
+
 
 local TWEENABLE_PROPERTIES = {
 	"Ambient",
@@ -68,7 +68,9 @@ function LightingManager:ApplyProperties(properties: { [string]: any })
 end
 
 function LightingManager:ApplyTemplate(templateName: string)
-	local Template = TemplatesFolder:FindFirstChild(templateName)
+	local resources = ReplicatedStorage:FindFirstChild("Resources")
+	local templates = resources and resources:FindFirstChild("LightingTemplates")
+	local Template = templates and templates:FindFirstChild(templateName)
 	if not Template then
 		return
 	end

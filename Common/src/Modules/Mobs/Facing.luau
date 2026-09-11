@@ -26,7 +26,7 @@ function Facing:Towards(position)
 	self.Align.CFrame = CFrame.lookAt(Vector3.zero, direction)
 	self.Align.Enabled = true
 	local look = self.Root.CFrame.LookVector * Vector3.new(1, 0, 1)
-	return look.Magnitude > 0.01 and look.Unit:Dot(direction) >= math.cos(math.rad(8))
+	return look.Magnitude > 0.01 and look.Unit:Dot(direction) >= math.cos(math.rad(20))
 end
 
 function Facing:Release()

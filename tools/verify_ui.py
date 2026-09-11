@@ -33,27 +33,48 @@ if args.zones_only:
 local selector = loadModule(modules["UI/Logic/ZoneSelector"])
 selector.Init()
 local content = gui.ZoneSelector.Main.Body.Content
-assert(not content.Details.Visible and content.Container.Visible)
+assert(content.Details.Visible and content.Container.Visible)
+assert(gui.ZoneSelector.ScreenInsets == Enum.ScreenInsets.DeviceSafeInsets)
+assert(gui.ZoneSelector.Main.Size.X.Scale == 0.6 and gui.ZoneSelector.Main.Size.Y.Scale == 0.85)
+assert(gui.ZoneSelector.Templates.MobEntry.Stats.TextLimit.MaxTextSize <= 18)
 assert(not gui.ZoneSelector.Templates.ZoneEntry:FindFirstChild("Image"))
 content.Container.Grasslands.Activated:Fire()
-assert(content.Details.Visible and not content.Container.Visible)
+assert(content.Details.Visible and content.Container.Visible)
+content.Details.Roster["Dire Bear"].Activated:Fire()
+assert(content.Details.Mobs["Dire Bear"].Visible and not content.Details.Mobs.Bushling.Visible)
 local bear = content.Details.Mobs["Dire Bear"]
 assert(string.find(bear.MobName.Text, "BOSS"))
 assert(string.find(bear.Stats.Text, "2400") and string.find(bear.Stats.Text, "30s"))
-assert(string.find(bear.Drops.Text, "Dire Claw") and string.find(bear.Drops.Text, "100%%"))
+assert(bear.Preview:IsA("ViewportFrame"))
+local claw = bear.Drops["Dire Claw"]
+assert(claw.Icon.Image ~= "" and claw.Chance.Text == "100%")
+assert(claw.ItemName.Text == "Dire Claw")
+gui.ZoneSelector.Main.Visible = true
+claw.MouseEnter:Fire()
+assert(gui.ZoneSelector.ItemTooltip.Visible, "Drop hover did not open")
+assert(gui.ZoneSelector.ItemTooltip.ItemName.Text == "Dire Claw")
+claw.MouseLeave:Fire()
+assert(not gui.ZoneSelector.ItemTooltip.Visible)
+assert(content.Container.Grasslands.Selected.Visible)
+assert(gui.LootRewards.List.UIListLayout)
+assert(gui.LootRewards.List.Position.X.Scale > 0.9)
 assert(string.find(content.Details.Mobs.Boar.Stats.Text, "120"))
-content.Details.Back.Activated:Fire()
-assert(content.Container.Visible and not content.Details.Visible)
+content.Details.Roster.Bushling.Activated:Fire()
+assert(content.Details.Mobs.Bushling.Visible and not bear.Visible)
 content.Container.Grasslands.Activated:Fire()
 local count = 0
 for _, child in content.Details.Mobs:GetChildren() do if child:GetAttribute("ZoneMobEntry") then count += 1 end end
 assert(count == 4, "Repeated selection duplicated mob cards")
-content.Details.Back.Activated:Fire()
+
 data.Level(1)
 content.Container.Forest.Activated:Fire()
 assert(content.Details.Mobs.Empty.Visible)
 assert(not content.Details.Enter.Active, "Locked zone can be entered")
-print("PASS: zone selection, back navigation, live combat stats, drops, respawn, empty roster, locks and repeated selection")
+assert(content.Details.Progress.Fill.Size.X.Scale < 1)
+assert(string.find(content.Details.Journey.Text, "14 levels"))
+data.Level(15)
+assert(content.Details.Enter.Active and content.Details.Progress.Fill.Size.X.Scale == 1)
+print("PASS: atlas tabs, creature switching, drop hover, combat stats, empty roster, discovery progress, level unlock and repeated selection")
 '''
 runner = "local sources = {}\n" + "\n".join(sources) + "\n" + harness
 with tempfile.TemporaryDirectory(prefix="rpg-ui-check-") as directory:

@@ -6,6 +6,7 @@ local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+require(Shared:WaitForChild("LightingManager")):CaptureDefault()
 local Bootstrap = require(Shared:WaitForChild("UI"):WaitForChild("Bootstrap"))
 local gui = Bootstrap.Ensure()
 gui:SetAttribute("UIBlocking", true)

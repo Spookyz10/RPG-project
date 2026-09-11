@@ -4,6 +4,7 @@ local GuiService = game:GetService("GuiService")
 local RunService = game:GetService("RunService")
 local Items = require(script.Parent.Parent.ItemsData)
 local Theme = require(script.Parent.Theme)
+local function new()
 local Tooltip = {}
 local target
 local root
@@ -53,15 +54,15 @@ function Tooltip.Bind(button, getItem)
 		if not info then return end
 		target = button
 		tip.ItemName.Text = item.Name or info.Data.Name
-		tip.Meta.Text = info.Data.Rarity .. " · " .. (info.Data.SubType or info.Kind) .. " · Lv. " .. (info.Data.Level or 1)
+		tip.Meta.Text = info.Data.Rarity .. " Â· " .. (info.Data.SubType or info.Kind) .. " Â· Lv. " .. (info.Data.Level or 1)
 		tip.Description.Text = info.Data.Description or ""
 		local stats = {}
 		for _, entry in { { "Attack", "ATK" }, { "Defense", "DEF" }, { "Health", "HP" }, { "Speed", "SPD" }, { "Critical", "CRIT" }, { "Critical Power", "CRIT POWER" } } do
 			local value = info.Stats and info.Stats[entry[1]] or 0
 			if value ~= 0 then table.insert(stats, entry[2] .. " +" .. value .. ((entry[1] == "Critical" or entry[1] == "Critical Power") and "%" or "")) end
 		end
-		tip.Stats.Text = #stats > 0 and table.concat(stats, "  ·  ") or (info.Kind == "Consumable" and "Use from your backpack." or "Collect and keep for your adventure.")
-		tip.Footer.Text = "x" .. (item.Amount or 1) .. "  ·  Sell: " .. (info.Data.SellsFor or 0) .. " gold each"
+		tip.Stats.Text = #stats > 0 and table.concat(stats, "  Â·  ") or (info.Kind == "Consumable" and "Use from your backpack." or "Collect and keep for your adventure.")
+		tip.Footer.Text = "x" .. (item.Amount or 1) .. "  Â·  Sell: " .. (info.Data.SellsFor or 0) .. " gold each"
 		tip.RarityBar.BackgroundColor3 = Theme.Rarities[info.Data.Rarity] or Theme.Soft
 		tip.Visible = true
 		place()
@@ -89,8 +90,14 @@ function Tooltip.Init(inventoryScreen)
 	root:GetPropertyChangedSignal("Visible"):Connect(Tooltip.Hide)
 	screen:GetPropertyChangedSignal("Enabled"):Connect(Tooltip.Hide)
 	root.Body:GetPropertyChangedSignal("CanvasPosition"):Connect(Tooltip.Hide)
-	root.Body.Content.Items.Container:GetPropertyChangedSignal("CanvasPosition"):Connect(Tooltip.Hide)
+	for _, child in root.Body:GetDescendants() do
+		if child:IsA("ScrollingFrame") then child:GetPropertyChangedSignal("CanvasPosition"):Connect(Tooltip.Hide) end
+	end
 	screen.Destroying:Connect(function() followed:Disconnect(); inputConnection:Disconnect() end)
 end
 
 return Tooltip
+end
+local default = new()
+default.new = new
+return default
