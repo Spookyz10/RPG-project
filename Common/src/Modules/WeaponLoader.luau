@@ -14,11 +14,33 @@ local LoadedWeapons: { [Player]: Model } = {}
 local ListenedPlayers: { [Player]: boolean } = {}
 
 local function getHand(character: Model): BasePart?
-	return (character:FindFirstChild("RightHand") :: BasePart?) or (character:FindFirstChild("Right Arm") :: BasePart?)
+	return character:FindFirstChild("Right Arm") :: BasePart?
 end
 
-local function getGripOffset(): CFrame
-	return CFrame.identity -- Idle grip rotation: 0, 0, 0.
+-- Orientation uses degrees and the same rotation order as Attachment.Orientation.
+local DefaultGripAttributes = {
+	GripPosition = Vector3.new(0, -1, 0),
+	GripOrientation = Vector3.zero,
+}
+for attribute, defaultValue in DefaultGripAttributes do
+	if script:GetAttribute(attribute) == nil then
+		script:SetAttribute(attribute, defaultValue)
+	end
+end
+
+local function getGripOffset(weapon: Model): CFrame
+	local function getVector(attribute: string): Vector3
+		local Value = weapon:GetAttribute(attribute)
+		if typeof(Value) ~= "Vector3" then
+			Value = script:GetAttribute(attribute)
+		end
+		return if typeof(Value) == "Vector3" then Value else Vector3.zero
+	end
+
+	local Position = getVector("GripPosition")
+	local Orientation = getVector("GripOrientation")
+	return CFrame.new(Position)
+		* CFrame.fromOrientation(math.rad(Orientation.X), math.rad(Orientation.Y), math.rad(Orientation.Z))
 end
 
 local function clearWeapon(player: Player)
@@ -62,16 +84,35 @@ local function attachWeapon(character: Model, weaponName: string): Model?
 	WeaponModel.PrimaryPart = Handle
 	WeaponModel.Parent = character
 
-	local GripAttachment = Handle:FindFirstChild(GRIP_ATTACHMENT_NAME) :: Attachment?
-	local GRIP_OFFSET = getGripOffset()
+	local GripPoint = Handle:FindFirstChild(GRIP_ATTACHMENT_NAME)
+	local GripAttachment = if GripPoint and GripPoint:IsA("Attachment") then GripPoint else nil
+	local GripWeld = Instance.new("Weld")
+	GripWeld.Name = "WeaponGrip"
+	GripWeld.C0 = getGripOffset(WeaponModel)
+	GripWeld.C1 = if GripAttachment then GripAttachment.CFrame else CFrame.identity
+	WeaponModel:PivotTo(Hand.CFrame * GripWeld.C0 * GripWeld.C1:Inverse())
+	GripWeld.Part0 = Hand
+	GripWeld.Part1 = Handle
+	GripWeld.Parent = Handle
 
-	if GripAttachment then
-		WeaponModel:PivotTo(Hand.CFrame * GripAttachment.CFrame:Inverse() * GRIP_OFFSET)
-	else
-		WeaponModel:PivotTo(Hand.CFrame * GRIP_OFFSET)
+	local Connections: { RBXScriptConnection } = {}
+	local function updateGrip()
+		GripWeld.C0 = getGripOffset(WeaponModel)
+		GripWeld.C1 = if GripAttachment then GripAttachment.CFrame else CFrame.identity
 	end
 
-	WeldSystem:Weld(Hand, Handle)
+	for _, attribute in { "GripPosition", "GripOrientation" } do
+		table.insert(Connections, script:GetAttributeChangedSignal(attribute):Connect(updateGrip))
+		table.insert(Connections, WeaponModel:GetAttributeChangedSignal(attribute):Connect(updateGrip))
+	end
+	if GripAttachment then
+		table.insert(Connections, GripAttachment:GetPropertyChangedSignal("CFrame"):Connect(updateGrip))
+	end
+	WeaponModel.Destroying:Connect(function()
+		for _, connection in Connections do
+			connection:Disconnect()
+		end
+	end)
 
 	for _, descendant in WeaponModel:GetDescendants() do
 		if descendant:IsA("BasePart") then
