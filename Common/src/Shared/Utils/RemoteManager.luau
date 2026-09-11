@@ -50,6 +50,7 @@ local Remotes: { [string]: string } = {
 	BuffVFX = "Client",
 	Notification = "Client",
 	LootReward = "Client",
+	AdminResult = "Client",
 	AttackSound = "Client",
 }
 

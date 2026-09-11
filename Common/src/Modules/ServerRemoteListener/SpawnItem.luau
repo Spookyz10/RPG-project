@@ -4,12 +4,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local InventoryManager = require(ServerStorage.Modules.InventoryManager)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 
-local ALLOWED_USER_ID = 531376199
+local Access = require(ReplicatedStorage.Shared.AdminAccess)
 
 local Remote = {}
 
 function Remote:Activate(player: Player, itemName: string)
-	if player.UserId ~= ALLOWED_USER_ID then
+	if not Access[player.UserId] then
 		return
 	end
 
