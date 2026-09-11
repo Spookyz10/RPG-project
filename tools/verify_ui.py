@@ -31,6 +31,8 @@ if args.zones_only:
     harness = harness.replace("local overrides = {", 'local overrides = {\n [modules["Utils/Types"]] = {},')
     harness = harness[:harness.index('local logic = loadModule')] + r'''
 local selector = loadModule(modules["UI/Logic/ZoneSelector"])
+-- Roblox GuiButton.Selected is a boolean and takes precedence over a child name.
+gui.ZoneSelector.Templates.ZoneEntry.Selected = false
 selector.Init()
 local content = gui.ZoneSelector.Main.Body.Content
 assert(content.Details.Visible and content.Container.Visible)
@@ -55,7 +57,7 @@ assert(gui.ZoneSelector.ItemTooltip.Visible, "Drop hover did not open")
 assert(gui.ZoneSelector.ItemTooltip.ItemName.Text == "Dire Claw")
 claw.MouseLeave:Fire()
 assert(not gui.ZoneSelector.ItemTooltip.Visible)
-assert(content.Container.Grasslands.Selected.Visible)
+assert(content.Container.Grasslands:FindFirstChild("Selected").Visible)
 assert(gui.LootRewards.List.UIListLayout)
 assert(gui.LootRewards.List.Position.X.Scale > 0.9)
 assert(string.find(content.Details.Mobs.Boar.Stats.Text, "120"))

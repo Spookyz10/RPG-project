@@ -50,7 +50,10 @@ function ZoneSelector.Init()
 	local function refresh()
 		local level = UIConstants.Data.Level()
 		for name, button in entries do
-			button.Selected.Visible = name == selected
+			local indicator = button:FindFirstChild("Selected")
+			if indicator and indicator:IsA("GuiObject") then
+				indicator.Visible = name == selected
+			end
 		end
 		if selected then
 			local unlocked = level >= Zones[selected].Level
