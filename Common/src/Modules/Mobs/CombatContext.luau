@@ -61,13 +61,19 @@ function Context.new(mob, cfg, session)
 			end
 		end
 	end
-	local function circle(radius, windup, multiplier, knockback)
+	local function vfx(name, cf, duration, follow, attack)
+  Remote.SendClientEvent("CombatVFX", { All = true }, "Attacks", name, cf, mob, duration, follow, attack)
+ end
+ local function circle(radius, windup, multiplier, knockback, effect)
 		local cf = root.CFrame
 		indicator("Circle", cf, Vector3.new(radius * 2, 0.15, radius * 2), windup)
-		if pause(windup) then hit(cf, Vector3.new(radius * 2, 16, radius * 2), radius, multiplier, knockback, false, {}) end
+		if pause(windup) then
+   if effect then vfx(effect, ground(cf)) end
+   hit(cf, Vector3.new(radius * 2, 16, radius * 2), radius, multiplier, knockback, false, {})
+  end
 	end
  return { Mob = mob, Root = root, Config = cfg, Active = active, Pause = pause,
- Ground = ground, Indicator = indicator, Hit = hit, Circle = circle,
+ Ground = ground, Indicator = indicator, Hit = hit, Circle = circle, VFX = vfx,
  RefreshFilter = refreshFilter, RaycastParams = exclude, Alive = alive }
 end
 return Context

@@ -16,7 +16,7 @@ local Item = {
 		Icon = "rbxassetid://99188339640927",
 		Rarity = "Common",
 		Level = 1,
-		Description = "Drink this to gain +1 Health",
+		Description = "Gain +1 Health (up to the stat cap), fully restore your health, and remove all debuffs. Healing and cleansing still work at the stat cap.",
 		ActionName = "Use",
 		ID = "Small Health Potion",
 	},

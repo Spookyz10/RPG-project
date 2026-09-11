@@ -284,11 +284,9 @@ return function(parent)
 	end
 
 	local zone = C.Button(folder, "ZoneTemplate", "", nil, UDim2.fromOffset(230, 160), T.Surface)
-	local zoneImage = C.Image(zone, "Image", UDim2.fromOffset(10, 10), UDim2.fromOffset(64, 64))
-	C.Stroke(zoneImage)
-	local area = C.Label(zone, "AreaName", "Zone", UDim2.fromOffset(84, 10), UDim2.new(1, -94, 0, 48), true)
+	local area = C.Label(zone, "AreaName", "Zone", UDim2.fromOffset(12, 10), UDim2.new(1, -24, 0, 48), true)
 	C.New("UIGradient", "UIGradient", area)
-	C.Label(zone, "LevelReq", "Lv. 1", UDim2.fromOffset(84, 58), UDim2.new(1, -94, 0, 25)).TextSize = 12
+	C.Label(zone, "LevelReq", "Lv. 1", UDim2.fromOffset(12, 58), UDim2.new(1, -24, 0, 25)).TextSize = 12
 	local enter = C.Label(zone, "Status", "Explore →", UDim2.fromOffset(12, 108), UDim2.new(1, -24, 0, 36), true)
 	enter.TextColor3 = T.Green
 	zone.UIStroke.Thickness = 3
@@ -767,8 +765,31 @@ end)()
 builders.Zones = (function()
 
 return function(parent)
-	local screen, _, body = C.Window(parent, "ZoneSelector", "Main", "A world worth exploring", "Choose a destination. New places unlock as you level up.", 460, 460)
-	C.Scroll(body, "Container", UDim2.new(), UDim2.fromScale(1, 1), 230, 160)
+	local screen, _, body = C.Window(parent, "ZoneSelector", "Main", "Explore the world", "Choose a zone to inspect its creatures and rewards.", 460, 460)
+	local list = C.Scroll(body, "Container", UDim2.new(), UDim2.fromScale(1, 1))
+	local detail = C.Frame(body, "Details")
+	detail.Visible = false
+	C.Button(detail, "Back", "? Zones", UDim2.fromScale(0, 0), UDim2.fromScale(0.23, 0.09))
+	C.Label(detail, "ZoneName", "Grasslands", UDim2.fromScale(0.27, 0), UDim2.fromScale(0.73, 0.09), true)
+	C.Label(detail, "LevelRange", "Lv. 1?15", UDim2.fromScale(0, 0.11), UDim2.fromScale(1, 0.07))
+	C.Scroll(detail, "Mobs", UDim2.fromScale(0, 0.2), UDim2.fromScale(1, 0.66))
+	C.Button(detail, "Enter", "Enter zone", UDim2.fromScale(0, 0.89), UDim2.fromScale(1, 0.11))
+	local templates = C.New("Folder", "Templates", screen)
+	local zone = C.Button(templates, "ZoneEntry", "", nil, UDim2.fromScale(0.96, 0.22))
+	zone.Visible = false
+	C.Label(zone, "AreaName", "Zone", UDim2.fromScale(0.04, 0.08), UDim2.fromScale(0.92, 0.35), true)
+	C.Label(zone, "LevelReq", "Lv. 1?15", UDim2.fromScale(0.04, 0.48), UDim2.fromScale(0.48, 0.3))
+	C.Label(zone, "Status", "View mobs ?", UDim2.fromScale(0.53, 0.48), UDim2.fromScale(0.43, 0.3), true)
+	local mob = C.Frame(templates, "MobEntry", nil, UDim2.fromScale(0.96, 1.25), Color3.fromRGB(38, 48, 56))
+	mob.Visible = false
+	C.Round(mob); C.Stroke(mob)
+	C.Label(mob, "MobName", "Bushling ? Lv. 1", UDim2.fromScale(0.04, 0.03), UDim2.fromScale(0.92, 0.09), true)
+	C.Label(mob, "Stats", "Stats", UDim2.fromScale(0.04, 0.14), UDim2.fromScale(0.92, 0.2))
+	C.Label(mob, "Rewards", "Rewards", UDim2.fromScale(0.04, 0.36), UDim2.fromScale(0.92, 0.1))
+	C.Label(mob, "DropsTitle", "ITEM DROPS", UDim2.fromScale(0.04, 0.49), UDim2.fromScale(0.92, 0.07), true)
+	local drops = C.Label(mob, "Drops", "No item drops", UDim2.fromScale(0.04, 0.58), UDim2.fromScale(0.92, 0.38))
+	drops.TextYAlignment = Enum.TextYAlignment.Top
+	C.Label(detail.Mobs, "Empty", "No creatures have been recorded in this zone yet.", UDim2.new(), UDim2.fromScale(0.96, 0.3))
 	return screen
 end
 end)()
@@ -1065,6 +1086,25 @@ return function(parent)
 end
 end)()
 
+builders.LootRewards = (function()
+return function(parent)
+	local screen = C.Screen(parent, "LootRewards", 24)
+	local card = C.New("CanvasGroup", "Card", screen, {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.76), Size = UDim2.fromScale(0.38, 0.15), BackgroundColor3 = Color3.fromRGB(32, 38, 44), Visible = false})
+	C.Round(card); C.Stroke(card)
+	C.New("UIScale", "Pop", card, {Scale = 1})
+	C.New("UISizeConstraint", "Bounds", card, {MaxSize = Vector2.new(480, 130), MinSize = Vector2.new(270, 90)})
+	C.Image(card, "Icon", UDim2.fromScale(0.035, 0.13), UDim2.fromScale(0.18, 0.74))
+	C.Label(card, "Rarity", "RARE DROP", UDim2.fromScale(0.25, 0.08), UDim2.fromScale(0.7, 0.19), true)
+	C.Label(card, "ItemName", "Dire Claw", UDim2.fromScale(0.25, 0.32), UDim2.fromScale(0.7, 0.32), true)
+	C.Label(card, "Amount", "+1 • Added to inventory", UDim2.fromScale(0.25, 0.72), UDim2.fromScale(0.7, 0.18))
+	local shine = C.Frame(card, "Shine", UDim2.fromScale(-0.3, 0), UDim2.fromScale(0.13, 1), Color3.fromRGB(255, 255, 255))
+	shine.BackgroundTransparency = 0.8; shine.Rotation = 18; shine.ZIndex = 4
+	local spark = C.Frame(screen, "Spark", UDim2.new(), UDim2.fromScale(0.006, 0.01), Color3.fromRGB(255, 255, 255))
+	spark.Visible = false; spark.AnchorPoint = Vector2.new(0.5, 0.5)
+	return screen
+end
+end)()
+
 local staging = Instance.new("Folder")
 local generated = {}
 local ok, reason = pcall(function()
@@ -1110,6 +1150,8 @@ local ok, reason = pcall(function()
     table.insert(generated, { Object = builders.Crafting(staging), Target = StarterGui })
 
     table.insert(generated, { Object = builders.Leaderboards(staging), Target = StarterGui })
+
+    table.insert(generated, { Object = builders.LootRewards(staging), Target = StarterGui })
 
 for _, entry in generated do C.SaveScale(entry.Object) end
 end)

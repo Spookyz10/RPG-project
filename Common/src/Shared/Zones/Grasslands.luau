@@ -6,7 +6,7 @@ local Zone: Types.Zone = {
 	MaxLevel = 15,
 	Description = "",
 	Icon = "rbxassetid://4755207177",
-	Mobs = {},
+	Mobs = { "Bushling", "Wolf", "Boar", "Dire Bear" },
 	Order = 1,
 	Theme = Color3.fromRGB(17, 255, 0),
 }

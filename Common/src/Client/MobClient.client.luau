@@ -36,7 +36,7 @@ end
 local function PlayDeathAnimation(mobModel: Model)
 	local Handler = AnimationHandler.GetOrCreate(mobModel)
 	Handler:StopAll(0)
-	MobAnimations:Play(mobModel, "Die", 0.1)
+	-- MobDeath animates the intact body on the server for every mob rig.
 end
 
 local function SetupMovementAnimation(mobModel: Model, Humanoid: Humanoid)
@@ -93,6 +93,15 @@ local function SetupMob(mobModel: Model)
 	local RootPart = mobModel:WaitForChild("HumanoidRootPart")
 
 	if not mobModel.Parent then
+		return
+	end
+	if mobModel.Name == "Dire Bear" or mobModel:GetAttribute("IsBoss") then
+		local movement = SetupMovementAnimation(mobModel, Humanoid)
+		local died = Humanoid.Died:Connect(function()
+			movement:Disconnect()
+			PlayDeathAnimation(mobModel)
+		end)
+		mobModel.Destroying:Connect(function() movement:Disconnect(); died:Disconnect() end)
 		return
 	end
 

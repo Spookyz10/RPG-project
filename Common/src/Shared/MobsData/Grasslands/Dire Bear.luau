@@ -4,7 +4,7 @@ local Mob: Types.MobInfo = {
 	Level = 15,
 	MaxLevel = 15,
 	XP = 1800,
-	RespawnTime = 120,
+	RespawnTime = 30,
 	GlobalDrops = false,
 	Data = { Stats = { Attack = 30, Defense = 6, Critical = 0, Health = 2400, Speed = 12 } },
 	Currencies = { Gold = 250 },

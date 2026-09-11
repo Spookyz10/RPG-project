@@ -1,4 +1,5 @@
 local Players = game:GetService("Players")
+local WINDUP = 2
 return function(ctx)
 	local root, alive = ctx.Root, ctx.Alive
 	local ground, indicator, pause, hit = ctx.Ground, ctx.Indicator, ctx.Pause, ctx.Hit
@@ -9,11 +10,15 @@ return function(ctx)
 		if part and alive(char) and (part.Position - root.Position).Magnitude <= 30 then
 			local cf = ground(CFrame.new(part.Position))
 			table.insert(positions, cf + Vector3.new(0, 3, 0))
-			indicator("Circle", cf, Vector3.new(6, 0.15, 6), 1.2)
+			indicator("Circle", cf, Vector3.new(6, 0.15, 6), WINDUP)
+			ctx.VFX("SpikeWarning", cf, WINDUP)
 		end
 	end
-	if pause(1.2) then
+	if pause(WINDUP) then
 		local seen = {}
-		for _, cf in positions do hit(cf, Vector3.new(6, 8, 6), 3, 1.2, nil, "Poison", seen) end
+		for _, cf in positions do
+   ctx.VFX("Spikes", cf + Vector3.new(0, -3, 0))
+   hit(cf, Vector3.new(6, 8, 6), 3, 1.2, nil, "Poison", seen)
+  end
 	end
 end

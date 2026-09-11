@@ -21,7 +21,7 @@ function Playerlist.Toggle()
 	panelTween = game:GetService("TweenService"):Create(
 		panel,
 		TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-		{ Position = UDim2.fromScale(opened and 1 or 1.251, 0) }
+		{ Position = UDim2.fromScale(opened and 1 or 1.22, 0) }
 	)
 	panelTween:Play()
 	if toggle then

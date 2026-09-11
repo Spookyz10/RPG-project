@@ -27,13 +27,13 @@ local function BackfillID(
 	(PlayerData[container] :: any)[UUID].ID(ItemInfo.Data.ID)
 end
 
-function InventoryManager:AddItem(Player: Player, ItemID: string, Amount: number): (string, string?)
+function InventoryManager:AddItem(Player: Player, ItemID: string, Amount: number): (string, string?, number)
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
 	local ItemInfo = ItemsData[ItemID] :: Types.Item
 	ItemInfo = ItemInfo or require(ReplicatedStorage.Shared.ItemsDataByName)[ItemID]
 
 	if not PlayerData or not ItemInfo then
-		return "Invalid player data or itemInfo", nil
+		return "Invalid player data or itemInfo", nil, 0
 	end
 
 	local ID = ItemInfo.Data.ID
@@ -70,7 +70,7 @@ function InventoryManager:AddItem(Player: Player, ItemID: string, Amount: number
 
 	while Remaining > 0 do
 		if PlayerData.CurrentInventorySpace() >= PlayerData.MaxInventorySpace() then
-			return "Inventory full", LastUUID
+			return "Inventory full", LastUUID, Amount - Remaining
 		end
 
 		local UUID = Functions:GenUUID()
@@ -92,7 +92,7 @@ function InventoryManager:AddItem(Player: Player, ItemID: string, Amount: number
 		Remaining -= ToAdd
 	end
 
-	return "Successfully added item", LastUUID
+	return "Successfully added item", LastUUID, Amount - Remaining
 end
 
 function InventoryManager:RemoveItem(Player: Player, ItemID: string, Amount: number): string
@@ -346,6 +346,25 @@ function InventoryManager:ConsumeItem(player: Player, UUID: string, useAll: bool
 		RemoteManager.SendClientEvent("Notification", { Player = player }, "You don't meet the item's requirements")
 		return "Requirements not met"
 	end
+
+	-- Health potions also restore and cleanse, independently of the permanent stat cap.
+ if ItemInfo.Data.ID == "Small Health Potion" then
+  local character = player.Character
+  local hum = character and character:FindFirstChildOfClass("Humanoid")
+  if not character or not hum or hum.Health <= 0 then return "Character is not alive" end
+  if ItemEntry.Amount < 1 then return "Nothing to use" end
+  local current = PlayerData.ExtraStats.Health()
+  local cap = getCappedInfo.Health
+  local wanted = math.max(1, math.ceil((cap - current) / ItemInfo.Amount))
+  local count = math.min(useAll and wanted or 1, ItemEntry.Amount)
+  PlayerData.ExtraStats.Health(math.min(cap, current + count * ItemInfo.Amount))
+  local StatusEffects = require(script.Parent.StatusEffectManager)
+  StatusEffects:ClearDebuffs(character)
+  require(script.Parent.HealthManager):Refresh(player)
+  require(script.Parent.DamageHandler):heal(character, character, hum.MaxHealth)
+  self:RemoveItemByUUID(player, UUID, count)
+  return "Used item"
+ end
 
 	local Stat = ItemInfo.Stat
 	local Cap = getCappedInfo[Stat]

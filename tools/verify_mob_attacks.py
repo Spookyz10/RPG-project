@@ -37,9 +37,10 @@ end
 local attacks={}
 ATTACK_MODULES
 local function context()
- local log={Hits={},Indicators={},Circles={}}
+ local log={Hits={},Indicators={},Circles={},VFX={}}
  local enabled=true
  local ctx={Mob={},Root={CFrame=cf()},Config={Size=vector(4,6,4)},RaycastParams={},Alive=function() return true end}
+ ctx.VFX=function(...) table.insert(log.VFX,{...}) end
  ctx.Active=function() return enabled end
  ctx.Pause=function(t) now+=t; return enabled end
  ctx.Ground=function(value) return value end
@@ -53,9 +54,11 @@ end
 local ctx,log=context()
 attacks.Melee(ctx,{Status="Poison"}); assert(#log.Hits==1 and log.Hits[1][6]=="Poison")
 ctx,log=context(); attacks.Melee(ctx,{Count=2,Multiplier=1.2}); assert(#log.Hits==2 and log.Hits[1][4]==1.2)
-ctx,log=context(); ctx.Cancel(); attacks.Melee(ctx,{}); assert(#log.Hits==0)
+ctx,log=context(); ctx.Cancel(); attacks.Melee(ctx,{}); assert(#log.Hits==0 and #log.VFX==0)
 players={{Character={FindFirstChild=function() return {Position=vector(1,0,0)} end}},{Character={FindFirstChild=function() return {Position=vector(2,0,0)} end}}}
 ctx,log=context(); ctx.Root.Position=vector(); attacks.Spikes(ctx)
+assert(#log.VFX==4 and log.VFX[1][1]=="SpikeWarning" and log.VFX[3][1]=="Spikes")
+assert(log.Indicators[1][4]==2 and log.VFX[1][3]==2,"Spike warning must give two seconds")
 assert(#log.Indicators==2 and #log.Hits==2 and log.Hits[1][6]=="Poison")
 assert(log.Hits[1][7]==log.Hits[2][7],"Overlapping spikes must share hit deduplication")
 ctx,log=context(); local start=now; attacks.TailSpin(ctx)

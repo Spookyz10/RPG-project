@@ -42,7 +42,7 @@ function Controller:Start(mob, definition)
 			facing:Release()
 			local inMeleeRange = pursuit:Update(target)
 			ctx.MeleeReach = pursuit.MeleeReach
-			local skill = not pursuit.TooClose and distance <= cfg.SkillRange and os.clock() >= nextSkill
+			local skill = #definition.Skills > 0 and not pursuit.TooClose and distance <= cfg.SkillRange and os.clock() >= nextSkill
 			if skill or inMeleeRange then
 				pursuit:Stop()
 				hum.AutoRotate = false
@@ -56,10 +56,10 @@ function Controller:Start(mob, definition)
 					bossIndex = bossIndex % #definition.Skills + 1
 					attack(definition.Skills[bossIndex])
 					nextSkill = os.clock() + cfg.SkillCooldown
-					nextBasic = os.clock() + 0.8
+					nextBasic = math.min(nextBasic, os.clock() + 0.15)
 				elseif os.clock() >= nextBasic then
-					attack(definition.Basic)
 					nextBasic = os.clock() + cfg.BasicCooldown
+					attack(definition.Basic)
 				end
 			end
 			ctx.Pause(0.1)

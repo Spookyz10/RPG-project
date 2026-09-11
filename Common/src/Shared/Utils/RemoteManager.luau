@@ -42,12 +42,14 @@ local Remotes: { [string]: string } = {
 	PartyInvite = "Client",
 	PartyUpdate = "Client",
 	SkillVFX = "Client",
+	CombatVFX = "Client",
 	SkillAnimation = "Client",
 	Damage = "Client",
 	SkillCooldown = "Client",
 	Indicator = "Client",
 	BuffVFX = "Client",
 	Notification = "Client",
+	LootReward = "Client",
 	AttackSound = "Client",
 }
 

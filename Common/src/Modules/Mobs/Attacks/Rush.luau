@@ -5,6 +5,7 @@ return function(ctx)
 	local cf = root.CFrame
 	indicator("Square", cf * CFrame.new(0, 0, -18), Vector3.new(7, 0.15, 36), 1.1)
 	if pause(1.1) then
+		ctx.VFX("Rush", root.CFrame, 0.95, true, "Rush")
 		local seen, traveled = {}, 0
 		while active() and traveled < 32 do
 			local dt = RunService.Heartbeat:Wait()

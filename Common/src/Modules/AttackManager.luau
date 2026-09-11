@@ -89,6 +89,7 @@ function AttackManager:Swing(Player: Player)
 	Handler:Play(Style.Prefix .. SwingComboIndex[Player], 0.1)
 
 	RemoteManager.SendClientEvent("AttackSound", { All = true }, Character)
+	RemoteManager.SendClientEvent("SkillVFX", { All = true }, "Basic", Character)
 
 	Hitbox:Create({
 		Size = Vector3.new(5, 5, 5),

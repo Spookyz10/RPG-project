@@ -5,6 +5,7 @@ return function(ctx)
 	local cf = root.CFrame
 	indicator("Circle", cf, Vector3.new(20, 0.15, 20), 0.8)
 	if pause(0.8) then
+		ctx.VFX("TailSpin", root.CFrame, 2, true, "TailSpin")
 		local seen, started = {}, os.clock()
 		while active() and os.clock() - started < 2 do
 			root.CFrame = cf * CFrame.Angles(0, (os.clock() - started) * math.pi * 4, 0)

@@ -24,7 +24,7 @@ local function getEmptySlot(mobName: string): BasePart?
 			continue
 		end
 
-		if ID.Value == "" and spawnPart.Name == mobName then
+		if ID.Value == "" and spawnPart.Name == mobName and (spawnPart:GetAttribute("RespawnAt") or 0) <= workspace:GetServerTimeNow() then
 			return spawnPart
 		end
 	end
@@ -32,11 +32,17 @@ local function getEmptySlot(mobName: string): BasePart?
 	return nil
 end
 
-local function Reward(player: Player, MobInfo: Types.MobInfo, MobName: string)
+local function Reward(player: Player, MobInfo: Types.MobInfo, MobName: string, dropPosition: Vector3)
 	local results = RewardManager:RollTable(MobInfo.Drops, player)
+	local received = {}
 
 	for item, amount in results do
-		InventoryManager:AddItem(player, item, amount)
+		local _, _, added = InventoryManager:AddItem(player, item, amount)
+		if added and added > 0 then received[item] = added end
+	end
+
+	if next(received) then
+		require(ReplicatedStorage.Shared.Utils.RemoteManager).SendClientEvent("LootReward", { Player = player }, received, dropPosition)
 	end
 
 	for currency, amount in MobInfo.Currencies do
@@ -48,7 +54,7 @@ local function Reward(player: Player, MobInfo: Types.MobInfo, MobName: string)
 	QuestManager:OnMobKilled(player, MobName)
 end
 
-local DEATH_ANIMATION_DELAY = 0.6
+local DEATH_ANIMATION_DELAY = 1.35
 
 local function SetServerNetworkOwnership(mobModel: Model)
 	local RootPart = mobModel.PrimaryPart or mobModel:FindFirstChild("HumanoidRootPart")
@@ -93,7 +99,11 @@ function MobHandler:RemoveMob(mobModel: Model)
 end
 
 function MobHandler:OnMobDied(mobModel: Model)
-	local MobName = mobModel.Name
+	if mobModel:GetAttribute("DeathStarted") then return end
+ mobModel:SetAttribute("DeathStarted", true)
+ BehaviorManager:Cancel(mobModel)
+ require(script.Parent.MobDeath):Play(mobModel)
+ local MobName = mobModel.Name
 	local MobsData = require(ReplicatedStorage.Shared.MobsData)
 	local MobInfo = MobsData[MobName] :: Types.MobInfo
 	if not MobInfo then
@@ -102,23 +112,30 @@ function MobHandler:OnMobDied(mobModel: Model)
 	end
 
 	local HitList = mobModel:FindFirstChild("HitList")
+	local dropPosition = mobModel:GetPivot().Position
+	local spawnReference = mobModel:FindFirstChild("SpawnOrigin")
+	local origin = spawnReference and spawnReference.Value
+	if origin and mobModel:GetAttribute("IsBoss") then
+		require(script.Parent.BossRespawn).Start(origin, MobInfo.RespawnTime or 30)
+	end
 
 	self:RemoveMob(mobModel)
 
 	if MobInfo.GlobalDrops then
 		for _, player in Players:GetPlayers() do
-			Reward(player, MobInfo, MobName)
+			Reward(player, MobInfo, MobName, dropPosition)
 		end
 	elseif HitList then
 		for _, entry in HitList:GetChildren() do
 			local player = Players:GetPlayerByUserId(tonumber(entry.Name))
 			if player then
-				Reward(player, MobInfo, MobName)
+				Reward(player, MobInfo, MobName, dropPosition)
 			end
 		end
 	end
 
-	task.delay(MobInfo.RespawnTime or 5, function()
+	local remaining = origin and origin:GetAttribute("RespawnAt")
+	task.delay(remaining and math.max(0, remaining - workspace:GetServerTimeNow()) or MobInfo.RespawnTime or 5, function()
 		MobHandler:AddMob(MobName)
 	end)
 end
@@ -152,6 +169,7 @@ function MobHandler:AddMob(mobName: string | { string }): Model?
 	for _, part in MobModel:GetDescendants() do
 		if part:IsA("BasePart") then part.Anchored = false end
 	end
+	humanoid.BreakJointsOnDeath = false
 	humanoid.PlatformStand = false
 	humanoid.Sit = false
 	humanoid.AutoRotate = true
@@ -175,6 +193,13 @@ function MobHandler:AddMob(mobName: string | { string }): Model?
 			end
 		end
 		MobModel.Parent = workspace:FindFirstChild("Mobs")
+		MobModel:SetAttribute("IsBoss", mobName == "Dire Bear")
+		MobModel:SetAttribute("Level", MobInfo.Level)
+		humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+		local spawnReference = Instance.new("ObjectValue")
+		spawnReference.Name = "SpawnOrigin"
+		spawnReference.Value = Origin
+		spawnReference.Parent = MobModel
 		MobModel:PivotTo(Origin.CFrame)
 		CollisionGroups:Apply(MobModel)
 		SetServerNetworkOwnership(MobModel)
@@ -224,9 +249,13 @@ function MobHandler:StartBehavior(mobModel: Model)
 end
 
 function MobHandler:InitializeSpawns()
+	if not workspace:FindFirstChild("MobSpawns") then return end
+	if not workspace:FindFirstChild("Mobs") then
+		local folder = Instance.new("Folder"); folder.Name = "Mobs"; folder.Parent = workspace
+	end
 	for _, mobPart: BasePart in workspace:FindFirstChild("MobSpawns"):GetDescendants() do
 		if mobPart:IsA("BasePart") then
-			local value = Instance.new("StringValue")
+			local value = mobPart:FindFirstChild("ID") or Instance.new("StringValue")
 			value.Name = "ID"
 			value.Parent = mobPart
 			value.Value = ""

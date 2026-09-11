@@ -5,7 +5,9 @@ local Indicators = {}
 
 local IndicatorList: { [string]: BasePart } = {}
 
-for _, indicator: BasePart in ReplicatedStorage.Resources.Indicators:GetDescendants() do
+local resources = ReplicatedStorage:FindFirstChild("Resources")
+local templates = resources and resources:FindFirstChild("Indicators")
+for _, indicator: BasePart in (templates and templates:GetDescendants() or {}) do
 	if indicator:IsA("BasePart") then
 		IndicatorList[string.lower(indicator.Name)] = indicator
 	end
@@ -21,8 +23,16 @@ function Indicators:CreateIndicator(
 	task.spawn(function()
 		local Template = IndicatorList[string.lower(indicatorName)] :: BasePart
 		if not Template then
-			return
-		end
+   local name = string.lower(indicatorName)
+   if name ~= "circle" and name ~= "square" then return end
+   local fallback = Instance.new("Part")
+   fallback.Name = indicatorName
+   fallback.Shape = name == "circle" and Enum.PartType.Cylinder or Enum.PartType.Block
+   fallback.Anchored = true
+   fallback.CanCollide = false; fallback.CanTouch = false; fallback.CanQuery = false
+   Template = fallback
+   IndicatorList[name] = fallback
+  end
 
 		local Indicator = Template:Clone()
 		Indicator.Anchored = true

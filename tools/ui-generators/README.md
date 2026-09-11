@@ -75,3 +75,5 @@ Rode separadamente `02_Loading.luau`, `10_Players.luau` e `19_PlayerCard.luau` n
 A lista fica no topo direito, ordenada por nivel decrescente com o jogador local sempre primeiro e azul. Outros jogadores no limite de nivel ficam dourados, e os demais brancos. Tab alterna a lista. Ajuste no Studio sua posicao em relacao ao menu que voce personalizou. O card mostra avatar, equipamento, stats, ouro, kills, deaths, tempo total e tempo da sessao.
 
 Os ImageLabels Rank ja existem. Preencha os IDs em `Common/src/Shared/UI/RankIcons.luau` quando criar os icones e atribua Rank ao Player (D, C, B, A, S, SS ou SSS). Nenhum rank e calculado automaticamente por enquanto.
+
+O seletor de zonas agora abre detalhes de mobs, atributos, recompensas e drops antes de entrar. Para atualizar somente essa tela, execute `08_Zones.luau` em Edit e salve. Os templates usados pelo seletor ficam dentro de `StarterGui.ZoneSelector.Templates`; n?o ? necess?rio executar o gerador geral.

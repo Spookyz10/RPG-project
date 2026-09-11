@@ -39,11 +39,9 @@ return function(parent)
 	end
 
 	local zone = C.Button(folder, "ZoneTemplate", "", nil, UDim2.fromOffset(230, 160), T.Surface)
-	local zoneImage = C.Image(zone, "Image", UDim2.fromOffset(10, 10), UDim2.fromOffset(64, 64))
-	C.Stroke(zoneImage)
-	local area = C.Label(zone, "AreaName", "Zone", UDim2.fromOffset(84, 10), UDim2.new(1, -94, 0, 48), true)
+	local area = C.Label(zone, "AreaName", "Zone", UDim2.fromOffset(12, 10), UDim2.new(1, -24, 0, 48), true)
 	C.New("UIGradient", "UIGradient", area)
-	C.Label(zone, "LevelReq", "Lv. 1", UDim2.fromOffset(84, 58), UDim2.new(1, -94, 0, 25)).TextSize = 12
+	C.Label(zone, "LevelReq", "Lv. 1", UDim2.fromOffset(12, 58), UDim2.new(1, -24, 0, 25)).TextSize = 12
 	local enter = C.Label(zone, "Status", "Explore →", UDim2.fromOffset(12, 108), UDim2.new(1, -24, 0, 36), true)
 	enter.TextColor3 = T.Green
 	zone.UIStroke.Thickness = 3

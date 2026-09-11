@@ -86,6 +86,16 @@ function Manager:GetEffectsByTag(target, tag)
 	return result
 end
 
+function Manager:ClearDebuffs(target)
+ for id, group in table.clone(Entities[target] or {}) do
+  local debuff = Definitions[id] and Definitions[id].Category == "Debuff"
+  for _, entry in group.Entries do
+   if entry.Category == "Debuff" then debuff = true; break end
+  end
+  if debuff then self:Remove(target, id) end
+ end
+end
+
 function Manager:ClearEntity(target)
 	for id in table.clone(Entities[target] or {}) do self:Remove(target, id) end
 end

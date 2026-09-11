@@ -18,7 +18,7 @@ local function getHand(character: Model): BasePart?
 end
 
 local function getGripOffset(): CFrame
-	return CFrame.Angles(math.rad(190), math.rad(-180), math.rad(0))
+	return CFrame.identity -- Idle grip rotation: 0, 0, 0.
 end
 
 local function clearWeapon(player: Player)

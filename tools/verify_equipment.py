@@ -160,6 +160,21 @@ status:Apply(poisoned,"Poison"); poisoned.Humanoid.Health=0; status:Step(now)
 assert(not status:HasEffect(poisoned,"Poison") and not poisoned.Poisoned)
 print("PASS: unified statuses, periodic damage, refresh, priority fallback, death and modifier cleanup")
 
+-- Cleansing removes all debuff groups, including suppressed entries, but preserves buffs.
+caster.Humanoid.Health=500
+status:Apply(caster,"Poison",{Duration=10})
+status:Apply(caster,"Poison",{Duration=20,Priority=2})
+status:Apply(caster,"Venom",{Duration=6})
+status:Apply(caster,"Lure Jab",{Duration=5})
+status:Apply(caster,"Fury",{Stacks=1})
+status:Apply(caster,"Safeguard",{Duration=5})
+status:ClearDebuffs(caster)
+assert(not status:HasEffect(caster,"Poison") and not status:HasEffect(caster,"Venom") and not status:HasEffect(caster,"Lure Jab"))
+assert(status:HasEffect(caster,"Fury") and status:HasEffect(caster,"Safeguard"))
+assert(damage:heal(caster,caster,caster.Humanoid.MaxHealth)==500)
+assert(caster.Humanoid.Health==caster.Humanoid.MaxHealth)
+print("PASS: full healing and debuff cleanse preserve beneficial statuses")
+
 -- Crafting: use callable data cells and the actual remote handler.
 local function cell(initial)
     local value=initial
