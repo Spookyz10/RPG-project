@@ -1,6 +1,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local Debris = game:GetService("Debris")
 
+local Bootstrap = require(ReplicatedStorage.Shared.UI.Bootstrap)
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
 local Abbreviation = require(ReplicatedStorage.Shared.Utils.Abbreviation)
 
@@ -71,6 +73,60 @@ local function playHealthLoss(main: Frame, previousPercentage: number, percentag
 	pulse(main, 1.045, 0.1)
 end
 
+local function playLevelUpVFX(hud: ScreenGui)
+	local source = Bootstrap.GetTemplates():FindFirstChild("LevelUpFeedback")
+	if not source or not source:IsA("CanvasGroup") then return end
+	local effect = source:Clone()
+	local pop = effect:FindFirstChild("Pop") :: UIScale?
+	local ribbon = effect:FindFirstChild("Ribbon") :: Frame?
+	local glow = effect:FindFirstChild("Glow") :: Frame?
+
+	effect.Name = "ActiveLevelUp"
+	effect.GroupTransparency = 1
+	effect.Visible = true
+	effect.Parent = hud
+	if pop then
+		local targetScale = pop.Scale
+		pop.Scale = pop:GetAttribute("StartScale") or targetScale
+		TweenService:Create(pop, TweenInfo.new(0.42, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = targetScale }):Play()
+	end
+	if ribbon then
+		local targetPosition = ribbon.Position
+		ribbon.Position = targetPosition + UDim2.fromScale(0, 0.14)
+		TweenService:Create(ribbon, TweenInfo.new(0.36, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Position = targetPosition }):Play()
+	end
+	if glow then
+		glow.Size = glow:GetAttribute("StartSize") or glow.Size
+		glow.BackgroundTransparency = 0.28
+		TweenService:Create(glow, TweenInfo.new(0.72, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+			Size = glow:GetAttribute("EndSize") or glow.Size,
+			BackgroundTransparency = 1,
+		}):Play()
+	end
+	for _, child in effect:GetChildren() do
+		if child:IsA("Frame") and child.Name:match("^Ray") then
+			child.Size = UDim2.fromScale(0.08, child.Size.Y.Scale)
+			TweenService:Create(child, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+				Size = child:GetAttribute("EndSize") or child.Size,
+				BackgroundTransparency = 1,
+			}):Play()
+		elseif child:IsA("Frame") and child.Name:match("^Spark") then
+			child.Position = UDim2.fromScale(0.5, 0.5)
+			TweenService:Create(child, TweenInfo.new(0.65, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+				Position = child:GetAttribute("EndPosition") or child.Position,
+				Size = child:GetAttribute("EndSize") or child.Size,
+				BackgroundTransparency = 1,
+			}):Play()
+		end
+	end
+	TweenService:Create(effect, TweenInfo.new(0.16, Enum.EasingStyle.Quad), { GroupTransparency = 0 }):Play()
+	task.delay(1.45, function()
+		if not effect.Parent then return end
+		TweenService:Create(effect, TweenInfo.new(0.3, Enum.EasingStyle.Quad), { GroupTransparency = 1 }):Play()
+	end)
+	Debris:AddItem(effect, 1.8)
+end
+
 function UI.UpdateBar(value: number, maxValue: number, bar: string, isInitial: boolean?)
 	local Bar = UIConstants.PlayerGui:WaitForChild("HUD").Main:FindFirstChild(bar)
 	if not Bar then return end
@@ -124,7 +180,8 @@ function UI.UpdateBar(value: number, maxValue: number, bar: string, isInitial: b
 end
 
 function UI.PlayLevelUp()
-	local hud = UIConstants.PlayerGui:WaitForChild("HUD").Main
+	local hudScreen = UIConstants.PlayerGui:WaitForChild("HUD") :: ScreenGui
+	local hud = hudScreen.Main
 	local level = hud:FindFirstChild("Level")
 	if level and level:IsA("TextLabel") then
 		local originalColor = level.TextColor3
@@ -141,6 +198,7 @@ function UI.PlayLevelUp()
 	if main and main:IsA("Frame") then
 		playXPGain(main)
 	end
+	playLevelUpVFX(hudScreen)
 end
 
 return UI

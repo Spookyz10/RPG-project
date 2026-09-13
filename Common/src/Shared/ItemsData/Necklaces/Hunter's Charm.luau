@@ -4,7 +4,7 @@ local Item = {
  Kind = "Equipment" :: "Equipment",
  Stats = {["Attack"] = 4, ["Defense"] = 0, ["Health"] = 0, ["Speed"] = 0, ["Critical"] = 5, ["Critical Power"] = 0},
  Passive = "VenomHunter",
- Data = { ID = "Hunter's Charm", Name = "Hunter's Charm", ItemType = "Equipment", SubType = "Necklace", Level = 8, Rarity = "Rare", Stackable = false, SellsFor = 40, Icon = "rbxassetid://123995209972282", ActionName = "Equip", Description = "Venom Hunter: deal 20% more damage to enemies marked by Venom." },
+ Data = { ID = "Hunter's Charm", Name = "Hunter's Charm", ItemType = "Equipment", SubType = "Necklace", Level = 8, Rarity = "Rare", Stackable = false, SellsFor = 40, Icon = "rbxassetid://123995209972282", ActionName = "Equip", Description = "Hunter: deal 20% more damage to enemies above 70% health." },
 }
 function Item:Elligable(data: Types.PlayerDataValue): boolean return data and data.Level() >= self.Data.Level end
 function Item:Action(uuid: string) Remote.SendServerEvent("EquipItem", uuid) end

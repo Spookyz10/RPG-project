@@ -1,8 +1,7 @@
-local StatusEffects = require(script.Parent.Parent.StatusEffectManager)
-
 return {
 	BeforeAttack = function(context)
-		if StatusEffects:HasEffect(context.Victim, "Venom") then
+		local humanoid = context.Victim:FindFirstChildOfClass("Humanoid")
+		if humanoid and humanoid.MaxHealth > 0 and humanoid.Health >= humanoid.MaxHealth * 0.7 then
 			context.Attack *= 1.2
 			context.TriggeredPassives.VenomHunter = true
 		end

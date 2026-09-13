@@ -51,6 +51,7 @@ O Inventory foi reconstruído a partir do dump atual do Studio. Inventory e Play
 | `26_DeathScreen.luau` | `StarterGui.DeathScreen` |
 | `27_DumpCurrentUI.luau` | captura segura; não altera a UI |
 | `29_FeedbackTemplates.luau` | somente `FeedbackTemplates` |
+| `30_LevelUpFeedback.luau` | somente o template `LevelUpFeedback` |
 
 ## Manutenção
 

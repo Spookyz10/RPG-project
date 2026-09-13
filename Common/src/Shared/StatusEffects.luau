@@ -43,7 +43,7 @@ return {
 		Duration = 6,
 		Category = "Debuff",
 		Icon = "rbxassetid://6145145342",
-		Description = "Marked by venom and vulnerable to venom equipment effects.",
+		Description = "Marked by venom. The player who applied it deals increased damage.",
 		Tags = { "Mark" },
 	},
 	Fury = {

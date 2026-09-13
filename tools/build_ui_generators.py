@@ -161,3 +161,4 @@ print(targetName .. " upgraded. Only this template changed; the prior version is
 (OUTPUT / "21_MobOverhead.luau").write_text(incremental_template("MobOverhead", "MobOverhead", False), encoding="utf-8")
 (OUTPUT / "23_ToastTemplate.luau").write_text(incremental_template("ToastTemplate", "ToastTemplate", True), encoding="utf-8")
 (OUTPUT / "29_FeedbackTemplates.luau").write_text(incremental_template("FeedbackTemplates", "FeedbackTemplates", True), encoding="utf-8")
+(OUTPUT / "30_LevelUpFeedback.luau").write_text(incremental_template("LevelUpFeedback", "LevelUpFeedback", True), encoding="utf-8")
