@@ -288,6 +288,10 @@ local function OpenGeneralFrame(UUID: string, ItemData: Types.ItemData, ItemInfo
 
 	Inner.ItemName.Text = ItemData.Name
 	Inner.ItemLevel.Text = "Level Requirement: " .. Abbreviation:Number(ItemInfo.Data.Level) .. "+"
+	local ItemDesc = Inner:FindFirstChild("ItemDesc") :: TextLabel?
+	if ItemDesc then
+		ItemDesc.Text = ItemInfo.Data.Description or ""
+	end
 
 	local MeetsLevel = UIConstants.Data.Level() >= ItemInfo.Data.Level
 	Inner.ItemLevel.TextColor3 = MeetsLevel and Theme.Green or Theme.Red
@@ -599,6 +603,28 @@ local function HandleEntryClick(UUID: string)
 	OnItemClicked(UUID)
 end
 
+local function HandleQuickAction(UUID: string)
+	if SellMode or StorageOpen then
+		return
+	end
+
+	local ItemData = UIConstants.Data.Inventory[UUID]()
+	if not ItemData then
+		return
+	end
+
+	local ItemInfo = ItemsData[ItemData.ID] :: Types.Item
+	if not ItemInfo then
+		return
+	end
+
+	if ItemInfo.Kind == "Consumable" and ItemInfo.Data.SubType == "Potion" then
+		RemoteManager.SendServerEvent("UseItem", UUID, true)
+	elseif ItemInfo.Kind == "Equipment" then
+		RemoteManager.SendServerEvent("EquipItem", UUID)
+	end
+end
+
 local function CreateEntry(UUID: string, ItemData: Types.ItemData)
 	if Entries[UUID] or not Template then
 		return
@@ -618,6 +644,9 @@ local function CreateEntry(UUID: string, ItemData: Types.ItemData)
 
 	Button.Activated:Connect(function()
 		HandleEntryClick(UUID)
+	end)
+	Button.MouseButton2Click:Connect(function()
+		HandleQuickAction(UUID)
 	end)
 
 	Entries[UUID] = Button

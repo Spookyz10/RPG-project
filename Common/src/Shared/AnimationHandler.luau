@@ -227,11 +227,18 @@ function AnimationHandler:PlayWeaponIdle(weaponType: string?): AnimationTrack?
 		self:Stop(self.CurrentWeaponIdle, 0.2)
 	end
 
-	self.CurrentWeaponIdle = weaponType
-
 	if not weaponType then
+		self.CurrentWeaponIdle = nil
 		return nil
 	end
+
+	local animation = AnimationsFolder:FindFirstChild(weaponType, true)
+	if not animation or not animation:IsA("Animation") then
+		self.CurrentWeaponIdle = nil
+		return nil
+	end
+
+	self.CurrentWeaponIdle = weaponType
 
 	if not self:WaitUntilReady() then return nil end
 	if PreloadStatus then PreloadStatus:WaitUntilReady() end

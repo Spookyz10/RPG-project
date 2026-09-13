@@ -157,7 +157,7 @@ function Instance.new(class)
 			end
 			if self._properties[key] ~= nil then return self._properties[key] end
 			if key == "Parent" then return nil end
-			if key == "MouseEnter" or key == "MouseLeave" or key == "SelectionGained" or key == "SelectionLost" or key == "CharacterAppearanceLoaded" or key == "Activated" or key == "InputBegan" or key == "InputEnded" or key == "Destroying" or key == "DescendantAdded" or key == "ChildAdded" or key == "ChildRemoved" or key == "CharacterRemoving" or key == "CharacterAdded" or key == "Changed" or key == "PlayerAdded" or key == "PlayerRemoving" then
+			if key == "MouseEnter" or key == "MouseLeave" or key == "MouseButton2Click" or key == "SelectionGained" or key == "SelectionLost" or key == "CharacterAppearanceLoaded" or key == "Activated" or key == "InputBegan" or key == "InputEnded" or key == "Destroying" or key == "DescendantAdded" or key == "ChildAdded" or key == "ChildRemoved" or key == "CharacterRemoving" or key == "CharacterAdded" or key == "Changed" or key == "PlayerAdded" or key == "PlayerRemoving" then
 				self._signals[key] = self._signals[key] or signal(); return self._signals[key]
 			end
 			local child = self:FindFirstChild(key)
@@ -296,9 +296,10 @@ local state = {
 	Inventory = {
 		sword = { ID = "Wooden Sword", Name = "Wooden Sword", Amount = 1 },
 		potions = { ID = "Small Health Potion", Name = "Small Health Potion", Amount = 8 },
+		pendant = { ID = "Direheart Pendant", Name = "Direheart Pendant", Amount = 1 },
 	},
 	Storage = { stored = { ID = "Small Health Potion", Name = "Small Health Potion", Amount = 3 } },
-	CurrentInventorySpace = 2, MaxInventorySpace = 100, CurrentStorageSpace = 1, MaxStorageSpace = 100,
+	CurrentInventorySpace = 3, MaxInventorySpace = 100, CurrentStorageSpace = 1, MaxStorageSpace = 100,
 	Currencies = { Gold = 500, ["Raid Coins"] = 0, Tokens = 0, ["Rune Crystals"] = 0 },
 	ExtraStats = { Attack = 5, Defense = 1, Health = 4, Speed = 0, Critical = 2 },
 	RaidAutoDelete = {}, RaidRecords = {}, RaidRuns = {}, Quests = {}, CompletedQuests = {},
@@ -417,6 +418,7 @@ assert(abbreviation:Number(-12500) == "-12.5K")
 assert(abbreviation:Number(math.huge) == "INF")
 local function last(name) local call = calls[#calls]; assert(call and call[1] == name, "Expected remote " .. name); return call end
 local function click(button) assert(button:IsA("GuiButton"), "Not a button"); button.Activated:Fire() end
+local function rightClick(button) assert(button:IsA("GuiButton"), "Not a button"); button.MouseButton2Click:Fire() end
 
 local recipeRow = gui.Crafting.Main.Body.Content.Container["Fang Dagger"]
 assert(recipeRow and recipeRow.Craft:GetAttribute("CanCraft") == false)
@@ -458,6 +460,15 @@ assert(math.abs(gui.Inventory.ItemTooltip.AbsolutePosition.Y - 176) < 0.01, "Too
 assert(gui.Inventory.ItemTooltip.ItemName.Text == "Wooden Sword")
 inv.Container.sword.MouseLeave:Fire()
 assert(not gui.Inventory.ItemTooltip.Visible, "Item tooltip did not close")
+rightClick(inv.Container.sword)
+assert(last("EquipItem")[2] == "sword", "Right-click did not equip the item")
+rightClick(inv.Container.potions)
+local quickPotion = last("UseItem")
+assert(quickPotion[2] == "potions" and quickPotion[3] == true, "Right-click did not use all potions")
+click(inv.Container.pendant)
+assert(gui.Inventory.Main.GeneralFrame.Visible, "Equipment action frame did not open")
+assert(string.find(gui.Inventory.Main.GeneralFrame.Inner.ItemDesc.Text, "Berserker"), "Passive description was not shown")
+click(gui.Inventory.Main.GeneralFrame.Inner.Cancel)
 click(inv.Container.sword)
 assert(gui.Inventory.Main.ActionFrame.Visible)
 click(gui.Inventory.Main.ActionFrame.Inner.Action)

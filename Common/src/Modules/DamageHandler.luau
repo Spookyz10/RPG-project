@@ -103,6 +103,7 @@ function DamageHandler:dealDamage(caster: Model, victim: Model, multi: number?):
 	end
 
 	local VictimHumanoid = victim:FindFirstChildOfClass("Humanoid")
+	Context.PreviousHealth = VictimHumanoid.Health
 	VictimHumanoid.Health -= Damage
 	if Damage > 0 then
 		EventBus:Fire("HitApplied", Context)

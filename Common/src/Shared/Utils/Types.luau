@@ -275,6 +275,7 @@ export type DamageContext = {
 	CasterPlayer: Player?,
 	VictimPlayer: Player?,
 	Damage: number,
+	PreviousHealth: number?,
 	IsCrit: boolean,
 	Multiplier: number?,
 	Tags: { string },
