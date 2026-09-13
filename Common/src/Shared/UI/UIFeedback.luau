@@ -70,7 +70,7 @@ function Feedback.Skill(button: GuiObject, skillName: string?)
 	effect.Name = "SkillFeedback"
 	title.Text = skillName and skillName ~= "" and string.upper(skillName) or "SKILL READY"
 	local icon = button:FindFirstChild("Icon")
-	if icon and icon:IsA("ImageLabel") then
+	if icon and icon:IsA("ImageLabel") and icon.Image ~= "" then
 		echo.Image = icon.Image
 		echo.ImageColor3 = icon.ImageColor3
 		echo.ImageRectOffset = icon.ImageRectOffset

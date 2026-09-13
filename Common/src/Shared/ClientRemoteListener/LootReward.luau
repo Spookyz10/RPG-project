@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 local Debris = game:GetService("Debris")
 local Items = require(RS.Shared.ItemsDataByName)
 local Theme = require(RS.Shared.UI.Theme)
+local UIFunctions = require(RS.Shared.UI.UIFunctions)
 local WorldLoot = require(RS.Shared.WorldLoot)
 local Abbreviation = require(RS.Shared.Utils.Abbreviation)
 local Remote = {}
@@ -23,7 +24,7 @@ local function present(gui, name, amount, order)
 	card.LayoutOrder = order
 	card.Rarity.Text = string.upper(rarity) .. " DROP"
 	card.Rarity.TextColor3 = color; card.UIStroke.Color = color
-	card.Icon.Image = data.Icon or ""
+	UIFunctions:SetIcon(card.Icon, data.Icon)
 	card.ItemName.Text = data.Name or name
 	card.Amount.Text = "+" .. Abbreviation:Number(amount) .. " - Added to inventory"
 	card.GroupTransparency = 1; card.Pop.Scale = 0.65; card.Visible = true; card.Parent = gui.List

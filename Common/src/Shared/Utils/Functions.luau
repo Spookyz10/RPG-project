@@ -129,11 +129,10 @@ function Functions:GetTotalStats(entity: Model, Data: Types.PlayerData): Types.S
 end
 
 function Functions:GetXPNeeded(level: number): number
-	if level >= 1300 then
-		return 1000 * (level + 1) * 2 * (level + 1) * 2 - 1000 * (level + 1)
-	end
-
-	return 25 * math.floor((100 + (25 / 6) * level * (level + 1) - (25 / 3) * math.max(0, 2 - level)) / 25 + 0.5)
+	-- The current campaign ends in Grasslands at level 15. With the current mob
+	-- rewards this targets roughly 9 Bushlings, 12 Wolves, and 12 Boars before
+	-- the level 12 Dire Bear quest, leaving levels 13-15 for boss repetitions.
+	return 150 + math.max(0, level - 1) * 75
 end
 
 function Functions:GetNearestPlayer(part: BasePart, range: number): Player?

@@ -4,7 +4,7 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local getCappedInfo = require(ReplicatedStorage.Shared.getCappedInfo)
 local Item = {
 	Kind = "Consumable" :: "Consumable",
-	Amount = 1,
+	Amount = 5,
 	Stat = "Health" :: "Health",
 	Data = {
 		SellsFor = 10,
@@ -16,7 +16,7 @@ local Item = {
 		Icon = "rbxassetid://99188339640927",
 		Rarity = "Common",
 		Level = 1,
-		Description = "Gain +1 Health (up to the stat cap), fully restore your health, and remove all debuffs. Healing and cleansing still work at the stat cap.",
+		Description = "Gain +5 Health (up to the stat cap), fully restore your health, and remove all debuffs. Healing and cleansing still work at the stat cap.",
 		ActionName = "Use",
 		ID = "Small Health Potion",
 	},

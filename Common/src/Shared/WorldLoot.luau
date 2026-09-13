@@ -3,6 +3,7 @@ local RS = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Items = require(RS.Shared.ItemsDataByName)
 local Theme = require(RS.Shared.UI.Theme)
+local UIFunctions = require(RS.Shared.UI.UIFunctions)
 local Loot = {}
 local active = {}
 local function remove(index)
@@ -44,7 +45,21 @@ function Loot.Play(items, origin)
 		billboard.Size = UDim2.fromScale(2.4, 2.4); billboard.StudsOffsetWorldSpace = Vector3.new(0, 1.4, 0)
 		billboard.AlwaysOnTop = false; billboard.MaxDistance = 100; billboard.Parent = part
 		local icon = Instance.new("ImageLabel")
-		icon.Size = UDim2.fromScale(1, 1); icon.BackgroundTransparency = 1; icon.Image = data.Icon or ""; icon.Parent = billboard
+		icon.Size = UDim2.fromScale(1, 1); icon.BackgroundTransparency = 1; icon.Parent = billboard
+		local hasIcon = UIFunctions:SetIcon(icon, data.Icon)
+		if not hasIcon then
+			local fallback = Instance.new("TextLabel")
+			fallback.Name = "ItemName"
+			fallback.Size = UDim2.fromScale(1, 1)
+			fallback.BackgroundTransparency = 1
+			fallback.Font = Enum.Font.GothamBold
+			fallback.Text = data.Name or name
+			fallback.TextColor3 = Color3.new(1, 1, 1)
+			fallback.TextScaled = true
+			fallback.TextStrokeTransparency = 0
+			fallback.TextWrapped = true
+			fallback.Parent = billboard
+		end
 		local a = Instance.new("Attachment"); a.Position = Vector3.new(-0.15, 0, 0); a.Parent = part
 		local b = Instance.new("Attachment"); b.Position = Vector3.new(0.15, 0, 0); b.Parent = part
 		local trail = Instance.new("Trail")

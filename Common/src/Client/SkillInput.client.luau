@@ -3,6 +3,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
+local UIFunctions = require(ReplicatedStorage.Shared.UI.UIFunctions)
 local Skills = require(ReplicatedStorage.Shared.Skills)
 
 local SlotKeybinds = {
@@ -46,7 +47,7 @@ local function UpdateIcon(slot: string, skillName: string)
 	end
 
 	local SkillInfo = skillName ~= "" and Skills[skillName]
-	Icon.Image = SkillInfo and SkillInfo.Icon or ""
+	UIFunctions:SetIcon(Icon, SkillInfo and SkillInfo.Icon)
 	Button.SkillName.Text = SkillInfo and skillName or "Choose skill"
 end
 

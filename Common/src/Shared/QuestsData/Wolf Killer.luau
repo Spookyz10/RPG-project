@@ -5,8 +5,8 @@ local Quest: Types.QuestInfo = {
 	Name = script.Name,
 	Description = "The village needs help keeping the wolf population down. Kill 5 Wolves.",
 	Repeatable = true,
-	Cooldown = 10,
-	RequiredLevel = 1,
+	Cooldown = 60,
+	RequiredLevel = 4,
 	RequiredQuest = nil,
 	SkipIfOverleveled = false,
 	MaxLevel = 15,
@@ -14,8 +14,8 @@ local Quest: Types.QuestInfo = {
 		{ Type = "KillMob", Target = "Wolf", Amount = 5 },
 	},
 	Rewards = {
-		Currencies = { Gold = 40, VillagePoints = 20 },
-		XP = 50,
+		Currencies = { Gold = 100 },
+		XP = 300,
 	},
 }
 

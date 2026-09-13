@@ -144,7 +144,7 @@ local function UpdateEntry(Button: TextButton, ItemData: Types.ItemData)
 	local Amount = Button:FindFirstChild("Amount") :: TextLabel?
 
 	if Icon then
-		Icon.Image = ItemInfo.Data.Icon
+		UIFunctions:SetIcon(Icon, ItemInfo.Data.Icon)
 	end
 
 	if Amount then
@@ -758,25 +758,30 @@ local function UpdateEquippedSlot(slot: string, UUID: string)
 	if not Icon then
 		return
 	end
+	local Label = SlotFrame:FindFirstChild("Label") :: TextLabel?
 
 	if UUID == "" then
-		Icon.Image = ""
+		UIFunctions:SetIcon(Icon, nil)
+		if Label then Label.Text = slot end
 		return
 	end
 
 	local ItemEntry = UIConstants.Data.Inventory[UUID]()
 	if not ItemEntry then
-		Icon.Image = ""
+		UIFunctions:SetIcon(Icon, nil)
+		if Label then Label.Text = slot end
 		return
 	end
 
 	local ItemInfo = ItemsData[ItemEntry.ID] :: Types.Item
 	if not ItemInfo then
-		Icon.Image = ""
+		UIFunctions:SetIcon(Icon, nil)
+		if Label then Label.Text = slot end
 		return
 	end
 
-	Icon.Image = ItemInfo.Data.Icon
+	local hasIcon = UIFunctions:SetIcon(Icon, ItemInfo.Data.Icon)
+	if Label then Label.Text = hasIcon and slot or ItemInfo.Data.Name end
 end
 
 local function SetupEquippedUnequip()
@@ -819,25 +824,30 @@ local function UpdateVanitySlot(slot: string, UUID: string)
 	if not Icon then
 		return
 	end
+	local Label = SlotFrame:FindFirstChild("Label") :: TextLabel?
 
 	if UUID == "" then
-		Icon.Image = ""
+		UIFunctions:SetIcon(Icon, nil)
+		if Label then Label.Text = slot end
 		return
 	end
 
 	local ItemEntry = UIConstants.Data.Inventory[UUID]()
 	if not ItemEntry then
-		Icon.Image = ""
+		UIFunctions:SetIcon(Icon, nil)
+		if Label then Label.Text = slot end
 		return
 	end
 
 	local ItemInfo = ItemsData[ItemEntry.ID] :: Types.Item
 	if not ItemInfo then
-		Icon.Image = ""
+		UIFunctions:SetIcon(Icon, nil)
+		if Label then Label.Text = slot end
 		return
 	end
 
-	Icon.Image = ItemInfo.Data.Icon
+	local hasIcon = UIFunctions:SetIcon(Icon, ItemInfo.Data.Icon)
+	if Label then Label.Text = hasIcon and slot or ItemInfo.Data.Name end
 end
 
 local function SetupVanityUnequip()

@@ -1,5 +1,6 @@
 local Abbreviation = require(script.Parent.Parent.Utils.Abbreviation)
 local Constants = require(script.Parent.UIConstants)
+local UIFunctions = require(script.Parent.UIFunctions)
 local Remotes = require(script.Parent.Parent.Utils.RemoteManager)
 local StatDisplay = require(script.Parent.StatDisplay)
 local Theme = require(script.Parent.Theme)
@@ -144,7 +145,8 @@ function PlayerCardController:_reset(player: Player, publicLevel: number)
 	end
 	for _, slot in self.Gear:GetChildren() do
 		if slot:IsA("Frame") and slot:FindFirstChild("Icon") then
-			slot.Icon.Image = ""
+			UIFunctions:SetIcon(slot.Icon, nil)
+			if slot:FindFirstChild("Slot") then slot.Slot.Text = string.upper(slot.Name) end
 			slot.UIStroke.Color = Theme.Line
 		end
 	end
@@ -168,7 +170,10 @@ function PlayerCardController:_populate(player: Player, info)
 		if slot:IsA("Frame") and slot:FindFirstChild("Icon") then
 			local item = (info.Equipment or {})[slot.Name]
 			self.Equipment[slot.Name] = item
-			slot.Icon.Image = item and item.Icon or ""
+			local hasIcon = UIFunctions:SetIcon(slot.Icon, item and item.Icon)
+			if slot:FindFirstChild("Slot") then
+				slot.Slot.Text = item and not hasIcon and item.Name or string.upper(slot.Name)
+			end
 			slot.UIStroke.Color = item and (Theme.Rarities[item.Rarity] or Theme.Muted) or Theme.Line
 		end
 	end

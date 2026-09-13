@@ -3,10 +3,9 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Skill: Types.SkillDefinition = {
 	Name = script.Name,
-	Cooldown = 10,
+	Cooldown = 14,
 	Multiplier = 1,
-	LevelRequirement = 12,
-	Icon = "rbxassetid://4863970462",
+	LevelRequirement = 8,
 	Description = "Create a bubble that negates 70% of incoming damage for 5 seconds.",
 	SkillType = "Support",
 }

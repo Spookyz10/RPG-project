@@ -4,7 +4,7 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local getCappedInfo = require(ReplicatedStorage.Shared.getCappedInfo)
 local Item = {
 	Kind = "Consumable" :: "Consumable",
-	Amount = 0.1,
+	Amount = 1,
 	Stat = "Critical" :: "Critical",
 	Data = {
 		SellsFor = 10,
@@ -16,7 +16,7 @@ local Item = {
 		Icon = "rbxassetid://3269592184",
 		Rarity = "Common",
 		Level = 1,
-		Description = "Drink this to gain +0.1% Critical",
+		Description = "Drink this to gain +1% Critical",
 		ActionName = "Use",
 		ID = "Small Critical Potion",
 	},

@@ -20,10 +20,14 @@ local function pulse(object: GuiObject, scale: number, duration: number)
 		effect.Name = "FeedbackScale"
 		effect.Parent = object
 	end
-	TweenService:Create(effect, TweenInfo.new(duration, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = scale }):Play()
+	TweenService
+		:Create(effect, TweenInfo.new(duration, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = scale })
+		:Play()
 	task.delay(duration, function()
 		if effect and effect.Parent then
-			TweenService:Create(effect, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+			TweenService
+				:Create(effect, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Scale = 1 })
+				:Play()
 		end
 	end)
 end
@@ -100,14 +104,22 @@ local function playLevelUpShine(main: Frame)
 		stroke.Parent = main
 	end
 	stroke.Transparency = 0.05
-	TweenService:Create(shine, TweenInfo.new(0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { BackgroundTransparency = 1 }):Play()
-	TweenService:Create(stroke, TweenInfo.new(0.65, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Transparency = 1 }):Play()
+	TweenService:Create(
+		shine,
+		TweenInfo.new(0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+		{ BackgroundTransparency = 1 }
+	):Play()
+	TweenService
+		:Create(stroke, TweenInfo.new(0.65, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Transparency = 1 })
+		:Play()
 	pulse(main, 1.035, 0.16)
 end
 
 local function playLevelUpFeedback(hud: ScreenGui)
 	local source = Bootstrap.GetTemplates():FindFirstChild("LevelUpFeedback")
-	if not source or not source:IsA("CanvasGroup") then return end
+	if not source or not source:IsA("CanvasGroup") then
+		return
+	end
 	local effect = source:Clone()
 	local pop = effect:FindFirstChild("Pop") :: UIScale?
 	local ribbon = effect:FindFirstChild("Ribbon") :: Frame?
@@ -120,12 +132,18 @@ local function playLevelUpFeedback(hud: ScreenGui)
 	if pop then
 		local targetScale = pop.Scale
 		pop.Scale = pop:GetAttribute("StartScale") or targetScale
-		TweenService:Create(pop, TweenInfo.new(0.42, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = targetScale }):Play()
+		TweenService
+			:Create(pop, TweenInfo.new(0.42, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = targetScale })
+			:Play()
 	end
 	if ribbon then
 		local targetPosition = ribbon.Position
 		ribbon.Position = targetPosition + UDim2.fromScale(0, 0.14)
-		TweenService:Create(ribbon, TweenInfo.new(0.36, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Position = targetPosition }):Play()
+		TweenService:Create(
+			ribbon,
+			TweenInfo.new(0.36, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+			{ Position = targetPosition }
+		):Play()
 	end
 	if glow then
 		glow.Size = glow:GetAttribute("StartSize") or glow.Size
@@ -153,7 +171,9 @@ local function playLevelUpFeedback(hud: ScreenGui)
 	end
 	TweenService:Create(effect, TweenInfo.new(0.16, Enum.EasingStyle.Quad), { GroupTransparency = 0 }):Play()
 	task.delay(1.45, function()
-		if not effect.Parent then return end
+		if not effect.Parent then
+			return
+		end
 		TweenService:Create(effect, TweenInfo.new(0.3, Enum.EasingStyle.Quad), { GroupTransparency = 1 }):Play()
 	end)
 	Debris:AddItem(effect, 1.8)
@@ -161,29 +181,51 @@ end
 
 function UI.UpdateBar(value: number, maxValue: number, bar: string, isInitial: boolean?)
 	local Bar = UIConstants.PlayerGui:WaitForChild("HUD").Main:FindFirstChild(bar)
-	if not Bar then return end
+	if not Bar then
+		return
+	end
 	local MainContainer = Bar:FindFirstChild("Main")
-	if not MainContainer or not MainContainer:IsA("Frame") then return end
+	if not MainContainer or not MainContainer:IsA("Frame") then
+		return
+	end
 	local Fill = MainContainer:FindFirstChild("Bar")
-	if not Fill or not Fill:IsA("Frame") then return end
+	if not Fill or not Fill:IsA("Frame") then
+		return
+	end
 
-	MainContainer:FindFirstChild("Amount").Text = bar .. "  " .. Abbreviation:Number(math.max(0, value), 0) .. " / " .. Abbreviation:Number(math.max(0, maxValue), 0)
+	MainContainer:FindFirstChild("Amount").Text = bar
+		.. "  "
+		.. Abbreviation:Number(math.max(0, value), 0)
+		.. " / "
+		.. Abbreviation:Number(math.max(0, maxValue), 0)
 	if bar == "HP" then
 		OriginalHPColor = OriginalHPColor or MainContainer.Bar.BackgroundColor3
 		local character = game:GetService("Players").LocalPlayer.Character
 		local selected
 		for _, effect in StatusEffects do
-			if character and effect.Attribute and effect.HealthBar and character:GetAttribute(effect.Attribute) and value > 0 then
-				if not selected or (effect.HealthBar.Priority or 0) > (selected.Priority or 0) then selected = effect.HealthBar end
+			if
+				character
+				and effect.Attribute
+				and effect.HealthBar
+				and character:GetAttribute(effect.Attribute)
+				and value > 0
+			then
+				if not selected or (effect.HealthBar.Priority or 0) > (selected.Priority or 0) then
+					selected = effect.HealthBar
+				end
 			end
 		end
-		MainContainer.Bar.BackgroundColor3 = selected and Color3.fromRGB(table.unpack(selected.Color)) or OriginalHPColor
-		if selected then MainContainer.Amount.Text ..= "  [" .. selected.Label .. "]" end
+		MainContainer.Bar.BackgroundColor3 = selected and Color3.fromRGB(table.unpack(selected.Color))
+			or OriginalHPColor
+		if selected then
+			MainContainer.Amount.Text ..= "  [" .. selected.Label .. "]"
+		end
 	end
 
 	local Percentage = maxValue > 0 and math.clamp(value / maxValue, 0, 1) or 0
 	local previousValue = PreviousValues[bar]
-	local previousPercentage = previousValue and maxValue > 0 and math.clamp(previousValue / maxValue, 0, 1) or Percentage
+	local previousPercentage = previousValue and maxValue > 0 and math.clamp(previousValue / maxValue, 0, 1)
+		or Percentage
 	PreviousValues[bar] = value
 
 	local Existing = ActiveTweens[bar]
@@ -220,7 +262,8 @@ function UI.PlayLevelUp(hud: Frame?)
 		pulse(level, 1.22, 0.18)
 		task.delay(0.5, function()
 			if level.Parent then
-				TweenService:Create(level, TweenInfo.new(0.25, Enum.EasingStyle.Quad), { TextColor3 = originalColor }):Play()
+				TweenService:Create(level, TweenInfo.new(0.25, Enum.EasingStyle.Quad), { TextColor3 = originalColor })
+					:Play()
 			end
 		end)
 	end
@@ -230,7 +273,7 @@ function UI.PlayLevelUp(hud: Frame?)
 		playXPGain(main)
 	end
 	playLevelUpShine(hud)
-	playLevelUpFeedback(hud.Parent :: ScreenGui)
+	playLevelUpFeedback(UIConstants.PlayerGui:WaitForChild("Main") :: ScreenGui)
 end
 
 return UI

@@ -62,7 +62,7 @@ function QuestManager:BuildProgress(QuestInfo: Types.QuestInfo): Types.QuestProg
 	}
 end
 
-function QuestManager:GrantRewards(player: Player, rewards: Types.QuestReward?)
+function QuestManager:GrantRewards(player: Player, rewards: Types.QuestReward?, questInfo: Types.QuestInfo?)
 	if not rewards then
 		return
 	end
@@ -74,7 +74,7 @@ function QuestManager:GrantRewards(player: Player, rewards: Types.QuestReward?)
 	end
 
 	if rewards.XP then
-		RewardManager:AddXP(player, rewards.XP, { ["QuestInfo"] = rewards })
+		RewardManager:AddXP(player, rewards.XP, { QuestInfo = questInfo })
 	end
 
 	if rewards.Items then
@@ -100,7 +100,7 @@ function QuestManager:ForceCompleteQuest(player: Player, PlayerData: Types.Playe
 		LastCompletedAt = os.time(),
 	})
 
-	self:GrantRewards(player, QuestInfo.Rewards)
+	self:GrantRewards(player, QuestInfo.Rewards, QuestInfo)
 end
 
 function QuestManager:CheckCompletion(player: Player, PlayerData: Types.PlayerData, questName: string)

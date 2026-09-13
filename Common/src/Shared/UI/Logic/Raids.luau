@@ -53,18 +53,24 @@ local function UpdateLoot(RaidInfo: Types.RaidInfo, difficulty: string)
 		end
 
 		local Entry = LootTemplate:Clone()
-		Entry.Image = ItemInfo.Data.Icon
-		Entry.ImageLabel.ImageColor3 = UIFunctions.RarityColors[ItemInfo.Data.Rarity] or Color3.fromRGB(255, 255, 255)
-		Entry.ImageTransparency = 0
+		local hasIcon = UIFunctions:SetIcon(Entry, ItemInfo.Data.Icon)
+		local rarityColor = UIFunctions.RarityColors[ItemInfo.Data.Rarity] or Color3.fromRGB(255, 255, 255)
+		Entry.ImageLabel.ImageColor3 = rarityColor
 		Entry.rate.Text = Abbreviation:Percent(chance)
-		Entry.toggled.Visible = ToggledItems[itemName] == true
+		local function refreshToggleLabel()
+			local toggled = ToggledItems[itemName] == true
+			Entry.toggled.Text = toggled and "DELETE" or ItemInfo.Data.Name
+			Entry.toggled.TextColor3 = toggled and Color3.fromRGB(255, 111, 118) or rarityColor
+			Entry.toggled.Visible = toggled or not hasIcon
+		end
+		refreshToggleLabel()
 		Entry.Visible = true
 		Entry.Parent = RewardsScroll
 
 		Entry.Activated:Connect(function()
 			RemoteManager.SendServerEvent("ItemToggle", itemName)
 			ToggledItems[itemName] = not ToggledItems[itemName]
-			Entry.toggled.Visible = ToggledItems[itemName] == true
+			refreshToggleLabel()
 		end)
 	end
 end

@@ -17,10 +17,10 @@ function Events:GetEventMultipliers()
 	if IsWeekend() then
 		return {
 			Currencies = {
-				Gold = 2,
+				Gold = 1.25,
 			},
-			XP = 2,
-			Luck = 1.2,
+			XP = 1.25,
+			Luck = 1.1,
 		}
 	else
 		return EventMultipliers

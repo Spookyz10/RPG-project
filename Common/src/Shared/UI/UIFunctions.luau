@@ -13,6 +13,13 @@ local RarityColors = Theme.Rarities
 
 UIFunctions.RarityColors = RarityColors
 
+function UIFunctions:SetIcon(image: ImageLabel | ImageButton, icon: string?): boolean
+	local hasIcon = typeof(icon) == "string" and icon ~= ""
+	image.Image = hasIcon and icon or ""
+	image.ImageTransparency = hasIcon and 0 or 1
+	return hasIcon
+end
+
 local function renderDialogueMarkup(text: string, shakeSize: number?): string
 	return string.gsub(text, "<shake>(.-)</shake>", function(content)
 		if shakeSize then

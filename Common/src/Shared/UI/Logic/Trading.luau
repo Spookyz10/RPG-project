@@ -105,7 +105,7 @@ local function refreshSelection(side: string)
 		button.Name = key
 		button.LayoutOrder = index
 		button.Visible = true
-		button.Icon.Image = item.Icon or ""
+		UIFunctions:SetIcon(button.Icon, item.Icon)
 		button.ItemName.Text = item.Name
 		button.Amount.Text = "x" .. Abbreviation:Number(item.Amount)
 		button.Source.Text = item.Container == "Storage" and "STORAGE" or "BACKPACK"
@@ -149,7 +149,7 @@ populateSide = function(side: string)
 		button.Name = item.UUID
 		button.LayoutOrder = index
 		button.Visible = true
-		button.Icon.Image = item.Icon or ""
+		UIFunctions:SetIcon(button.Icon, item.Icon)
 		button.ItemName.Text = item.Name
 		local selected = Selected[side][selectionKey(item)]
 		button.Amount.Text = selected and ("x" .. Abbreviation:Number(selected.Amount) .. " SELECTED")

@@ -1,6 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
+local UIFunctions = require(ReplicatedStorage.Shared.UI.UIFunctions)
 local Zones = require(ReplicatedStorage.Shared.Zones)
 local LightingManager = require(ReplicatedStorage.Shared.LightingManager)
 local MusicManager = require(ReplicatedStorage.Shared.MusicManager)
@@ -157,7 +158,7 @@ function ZoneSelector.Init()
 				tile.Visible = true
 				tile.LayoutOrder = order
 				tile.ItemName.Text = info and info.Data.Name or item
-				tile.Icon.Image = info and info.Data.Icon or ""
+				UIFunctions:SetIcon(tile.Icon, info and info.Data.Icon)
 				tile.Chance.Text = Abbreviation:Percent(drop.Chance or 0)
 				tile.Parent = card.Drops
 				if info then

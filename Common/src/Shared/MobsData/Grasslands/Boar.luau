@@ -1,14 +1,17 @@
 local Types = require(game:GetService("ReplicatedStorage").Shared.Utils.Types)
 
 local Mob: Types.MobInfo = {
-	Level = 5, MaxLevel = 15, XP = 110, RespawnTime = 10, GlobalDrops = false,
-	Data = { Stats = { Attack = 12, Defense = 3, Critical = 0, Health = 120, Speed = 15 } },
-	Currencies = { Gold = 14 },
+	Level = 8, MaxLevel = 15, XP = 280, RespawnTime = 9, GlobalDrops = false,
+	Data = { Stats = { Attack = 14, Defense = 3, Critical = 0, Health = 190, Speed = 15 } },
+	Currencies = { Gold = 28 },
 	Drops = {
-["Boar Tusk"] = { Chance = 65, Amount = 1 },
-["Ironhide Band"] = { Chance = 7, Amount = 1 },
-["Tuskguard Mantle"] = { Chance = 5, Amount = 1 },
- Wilderbone = { Chance = 40, Amount = 1 } },
+		["Boar Tusk"] = { Chance = 70, Amount = 1 },
+		Wilderbone = { Chance = 70, Amount = 1 },
+		["Small Defense Potion"] = { Chance = 10, Amount = 1 },
+		["Small Health Potion"] = { Chance = 10, Amount = 1 },
+		["Ironhide Band"] = { Chance = 10, Amount = 1 },
+		["Tuskguard Mantle"] = { Chance = 8, Amount = 1 },
+	},
 }
 
 return Mob

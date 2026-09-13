@@ -1,5 +1,6 @@
 local UI = script.Parent.Parent
 local Constants = require(UI.UIConstants)
+local UIFunctions = require(UI.UIFunctions)
 local Skills = require(UI.Parent.Skills)
 local RemoteManager = require(UI.Parent.Utils.RemoteManager)
 local Bootstrap = require(UI.Bootstrap)
@@ -7,7 +8,7 @@ local T = require(UI.Theme)
 local Toast = require(UI.Toast)
 local Abbreviation = require(UI.Parent.Utils.Abbreviation)
 local Selector = {}
-local slotLevels = { Q = 1, E = 20, R = 120 }
+local slotLevels = { Q = 1, E = 5, R = 10 }
 
 function Selector.Init()
 	local body = Constants.PlayerGui.SkillSelector.Frame.Body.Content
@@ -27,7 +28,7 @@ function Selector.Init()
 		entry.Name = name
 		entry.LayoutOrder = skill.LevelRequirement
 		entry.Visible = true
-		entry.Icon.Image = skill.Icon
+		UIFunctions:SetIcon(entry.Icon, skill.Icon)
 		entry.SkillName.Text = name
 		entry.Desc.Text = skill.Description
 		entry.Parent = skill.SkillType == "Support" and holder.Support or holder.Attack

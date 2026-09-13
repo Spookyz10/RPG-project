@@ -5,10 +5,10 @@ local TutorialCutscene = {}
 local Playing = false
 
 local Pages = {
-	"Welcome to Rise Beyond! Explore colorful zones, defeat monsters, and collect equipment for your next adventure.",
+	"Welcome to Rise Beyond! Explore the Grasslands, defeat monsters, and collect equipment for your journey to the Dire Bear.",
 	"Your backpack keeps your equipment, potions, and materials together. Tap an item to see what it does.",
 	"Open Skills to choose your abilities. Each card shows its level requirement and available slots.",
-	"Explore lets you choose a zone. Stronger places unlock as you level up.",
+	"Explore takes you to the Grasslands. Stronger creatures wait farther from the entrance.",
 	"Boss raids are better together. Open Adventurers to inspect other players and invite them to your party.",
 	"Talk to villagers for quests. Tap their Talk prompt, or press F on a keyboard. Your quest journal tracks the objectives.",
 }

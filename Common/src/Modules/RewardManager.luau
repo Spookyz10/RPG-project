@@ -7,6 +7,7 @@ local getCappedInfo = require(ReplicatedStorage.Shared.getCappedInfo)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 
 local RewardManager = {}
+local OVERLEVEL_GOLD_REWARD = 100
 
 function RewardManager:RollTable(itemsTable: Types.ItemTable, Player: Player): { [string]: { Amount: number } }?
 	local PlayerData = Data.Service:waitForData(Player)
@@ -35,8 +36,9 @@ function RewardManager:AddCurrency(player: Player, currency: string, amount: num
 	end
 
 	local Multipliers = Events:GetEventMultipliers()
-	if Multipliers[currency] then
-		amount *= Multipliers[currency]
+	local CurrencyMultipliers = Multipliers.Currencies
+	if CurrencyMultipliers and CurrencyMultipliers[currency] then
+		amount = math.floor(amount * CurrencyMultipliers[currency] + 0.5)
 	end
 
 	local Currencies = PlayerData.Currencies()
@@ -72,7 +74,7 @@ function RewardManager:AddXP(player: Player, amount: number, params: XPParams?)
 	end
 
 	if questData then
-		if questData.MaxLevel and questData.MaxLevel > PlayerData.Level() then
+		if questData.MaxLevel and PlayerData.Level() > questData.MaxLevel then
 			return
 		end
 	end
@@ -100,6 +102,9 @@ function RewardManager:AddXP(player: Player, amount: number, params: XPParams?)
 		if IsMaxLevel then
 			PlayerData.Honor(function(currentHonor)
 				return currentHonor + 1
+			end)
+			PlayerData.Currencies.Gold(function(currentGold)
+				return currentGold + OVERLEVEL_GOLD_REWARD
 			end)
 		else
 			PlayerData.Level(function(currentLevel)

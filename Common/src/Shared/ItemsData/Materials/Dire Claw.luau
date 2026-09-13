@@ -11,7 +11,7 @@ local Item: Types.Material = {
 		Level = 1,
 		Rarity = "Rare",
 		Icon = "rbxassetid://140518279089737",
-		SellsFor = 15,
+		SellsFor = 30,
 		Description = "Rare crafting material from the Dire Bear.",
 	},
 }

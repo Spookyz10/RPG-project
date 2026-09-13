@@ -12,8 +12,8 @@ local Quest: Types.QuestInfo = {
 		{ Type = "KillMob", Target = "Bushling", Amount = 3 },
 	},
 	Rewards = {
-		Currencies = { Gold = 25 },
-		XP = 20,
+		Currencies = { Gold = 30 },
+		XP = 100,
 		Items = {
 			["Small Attack Potion"] = 2,
 		},

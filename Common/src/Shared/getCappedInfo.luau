@@ -1,8 +1,8 @@
 return {
-	Level = 30,
-	Health = 10,
-	Attack = 10,
+	Level = 15,
+	Health = 50,
+	Attack = 8,
 	Speed = 3,
-	Defense = 5,
-	Critical = 5,
+	Defense = 6,
+	Critical = 10,
 }

@@ -5,15 +5,15 @@ local Quest: Types.QuestInfo = {
 	Name = script.Name,
 	Description = "Craft a Fang Dagger at the blacksmith using materials from the wild.",
 	Repeatable = false,
-	RequiredLevel = 1,
+	RequiredLevel = 8,
 	RequiredQuest = "Tutorial2",
 	SkipIfOverleveled = false,
 	Objectives = {
 		{ Type = "CraftItem", Target = "Fang Dagger", Amount = 1 },
 	},
 	Rewards = {
-		Currencies = { Gold = 75 },
-		XP = 60,
+		Currencies = { Gold = 100 },
+		XP = 300,
 	},
 }
 

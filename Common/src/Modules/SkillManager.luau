@@ -7,8 +7,8 @@ local VALID_SLOTS = { Q = true, E = true, R = true }
 
 local SLOT_LEVEL_REQUIREMENT = {
 	Q = 1,
-	E = 20,
-	R = 120,
+	E = 5,
+	R = 10,
 }
 
 local SkillManager = {}

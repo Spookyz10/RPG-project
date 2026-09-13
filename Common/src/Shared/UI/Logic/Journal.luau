@@ -11,12 +11,16 @@ function Journal.Init()
 	local container = Constants.PlayerGui.Journal.Main.Body.Content.Container
 	local function refresh()
 		for _, child in container:GetChildren() do
-			if child:IsA("GuiObject") then child:Destroy() end
+			if child:IsA("GuiObject") then
+				child:Destroy()
+			end
 		end
 		local count = 0
 		for name, progress in Constants.Data.Quests() do
 			local info = Quests[name]
-			if not info then continue end
+			if not info then
+				continue
+			end
 			count += 1
 			local card = Templates.QuestTemplate:Clone()
 			card.Name = name
@@ -27,7 +31,11 @@ function Journal.Init()
 				local amount = (progress.Objectives or {})[index] or 0
 				local label = card.ObjectiveTemplate:Clone()
 				label.Name = "Objective" .. index
-				label.Text = objective.Target .. "  " .. Abbreviation:Number(math.min(amount, objective.Amount)) .. " / " .. Abbreviation:Number(objective.Amount)
+				label.Text = objective.Target
+					.. "  "
+					.. Abbreviation:Number(math.min(amount, objective.Amount))
+					.. " / "
+					.. Abbreviation:Number(objective.Amount)
 				label.Visible = true
 				label.Parent = card
 			end
@@ -37,7 +45,12 @@ function Journal.Init()
 				if not confirm then
 					confirm = true
 					abandon.Text = "Tap again to abandon"
-					task.delay(3, function() confirm = false; if abandon.Parent then abandon.Text = "Abandon quest" end end)
+					task.delay(3, function()
+						confirm = false
+						if abandon.Parent then
+							abandon.Text = "Abandon quest"
+						end
+					end)
 					return
 				end
 				Remotes.SendServerEvent("AbandonQuest", name)
@@ -45,7 +58,8 @@ function Journal.Init()
 		end
 		if count == 0 then
 			local empty = Templates.EmptyTemplate:Clone()
-			empty.Text = "A new story starts with a conversation.\nTalk to a villager to pick up a quest."
+			empty.Text =
+				"A new story starts with a conversation.\nTalk to NPCs and check if they have any tasks for you."
 			empty.Parent = container
 		end
 	end

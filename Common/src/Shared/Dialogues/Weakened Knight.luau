@@ -7,6 +7,9 @@ local Dialogue: Types.Dialogue = {
 		if PlayerData.Quests()["Weakened Knight"] then
 			return "InProgress"
 		end
+		if PlayerData.Level() < 12 then
+			return "Unready"
+		end
 		if PlayerData.CompletedQuests()["Weakened Knight"] then
 			return "Repeat"
 		end
@@ -14,6 +17,19 @@ local Dialogue: Types.Dialogue = {
 	end,
 
 	Nodes = {
+		Unready = {
+			Text = "The cave behind me is no place for an inexperienced fighter. Hunt Bushlings near the entrance, then Wolves and Boars farther into the Grasslands. Return when you reach level 12.",
+			Options = {
+				{ Text = "What should I prepare?", Next = "Preparation" },
+				{ Text = "I will return stronger", Next = "Leave" },
+			},
+		},
+
+		Preparation = {
+			Text = "Bring a better weapon and something to keep you alive. The blacksmith can turn ivy, fangs, tusks, and bones into equipment. Learn to read attack indicators before entering the cave.",
+			Next = "Unready",
+		},
+
 		Start = {
 			Text = "Stop for a moment. The cave behind me is not safe, and I would rather not watch another traveler walk in without knowing why.",
 			Options = {

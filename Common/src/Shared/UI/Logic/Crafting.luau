@@ -1,5 +1,6 @@
 local RS = game:GetService("ReplicatedStorage")
 local Constants = require(script.Parent.Parent.UIConstants)
+local UIFunctions = require(script.Parent.Parent.UIFunctions)
 local Recipes = require(RS.Shared.CraftingRecipes)
 local Items = require(RS.Shared.ItemsData)
 local Functions = require(RS.Shared.Utils.Functions)
@@ -44,7 +45,7 @@ function Crafting.Init()
 		local row = recipeTemplate:Clone()
 		row.Name, row.LayoutOrder, row.Visible = id, index, true
 		if usesRecipeCards then
-			row.Result.ResultIcon.Image = info.Data.Icon or ""
+			UIFunctions:SetIcon(row.Result.ResultIcon, info.Data.Icon)
 			row.Result.ResultName.Text = info.Data.Name
 			row.Title.Text = info.Data.Name
 			row.Level.Text = "LV. " .. Abbreviation:Number(Recipes[id].Level)
@@ -65,7 +66,7 @@ function Crafting.Init()
 				ingredient.Name = material
 				ingredient.LayoutOrder = ingredientIndex
 				ingredient.Visible = true
-				ingredient.Icon.Image = materialInfo and materialInfo.Data.Icon or ""
+				UIFunctions:SetIcon(ingredient.Icon, materialInfo and materialInfo.Data.Icon)
 				ingredient.ItemName.Text = materialInfo and materialInfo.Data.Name or material
 				ingredient.Parent = row.Ingredients
 				ingredientRows[id][material] = ingredient
