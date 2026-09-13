@@ -13,7 +13,6 @@ local MobAnimations = {}
 local function getRandomAnimation(categoryName: string): Animation?
 	local MobsFolder = AnimationsFolder:FindFirstChild("Mobs")
 	if not MobsFolder then
-		warn("[MobAnimations] Resources.Animations.Mobs não existe")
 		return nil
 	end
 

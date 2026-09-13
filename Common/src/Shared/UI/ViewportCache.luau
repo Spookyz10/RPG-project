@@ -27,6 +27,26 @@ local function rigTypeFor(player: Player): Enum.HumanoidRigType
 	return humanoid and humanoid.RigType or Enum.HumanoidRigType.R6
 end
 
+function ViewportCache.EnsureViewport(viewport: ViewportFrame, cameraName: string, fieldOfView: number?): (WorldModel, Camera)
+	local world = viewport:FindFirstChild("World")
+	if not world or not world:IsA("WorldModel") then
+		if world then world:Destroy() end
+		world = Instance.new("WorldModel")
+		world.Name = "World"
+		world.Parent = viewport
+	end
+	local camera = viewport:FindFirstChild(cameraName)
+	if not camera or not camera:IsA("Camera") then
+		if camera then camera:Destroy() end
+		camera = Instance.new("Camera")
+		camera.Name = cameraName
+		camera.Parent = viewport
+	end
+	if fieldOfView then camera.FieldOfView = fieldOfView end
+	viewport.CurrentCamera = camera
+	return world, camera
+end
+
 function ViewportCache.GetPlayerModel(player: Player): Model?
 	local rigType = rigTypeFor(player)
 	local key = tostring(player.UserId) .. ":" .. rigType.Name
@@ -94,21 +114,14 @@ local function findWeapon(name: string): Model?
 	return nil
 end
 
-function ViewportCache.AttachWeapon(character: Model, weaponName: string?): Model?
-	local existing = character:FindFirstChild("Sword")
-	if existing then
-		existing:Destroy()
-	end
-	if not weaponName or weaponName == "" then
-		return nil
-	end
-	local hand = character:FindFirstChild("RightHand") or character:FindFirstChild("Right Arm")
-	local template = findWeapon(weaponName)
-	if not hand or not hand:IsA("BasePart") or not template then
-		return nil
-	end
+local function getHand(character: Model, side: "Right" | "Left"): BasePart?
+	local hand = character:FindFirstChild(side .. "Hand") or character:FindFirstChild(side .. " Arm")
+	return hand and hand:IsA("BasePart") and hand or nil
+end
+
+local function attachWeapon(character: Model, template: Model, hand: BasePart, modelName: string): Model?
 	local weapon = template:Clone()
-	weapon.Name = "Sword"
+	weapon.Name = modelName
 	local handle = weapon:FindFirstChild("Handle", true)
 	if not handle or not handle:IsA("BasePart") then
 		weapon:Destroy()
@@ -141,6 +154,31 @@ function ViewportCache.AttachWeapon(character: Model, weaponName: string?): Mode
 		end
 	end
 	return weapon
+end
+
+function ViewportCache.AttachWeapon(character: Model, weaponName: string?, weaponType: string?): Model?
+	for _, modelName in { "Sword", "OffhandSword" } do
+		local existing = character:FindFirstChild(modelName)
+		if existing then
+			existing:Destroy()
+		end
+	end
+	if not weaponName or weaponName == "" then
+		return nil
+	end
+	local template = findWeapon(weaponName)
+	local rightHand = getHand(character, "Right")
+	if not template or not rightHand then
+		return nil
+	end
+	local rightWeapon = attachWeapon(character, template, rightHand, "Sword")
+	if weaponType == "Dual" then
+		local leftHand = getHand(character, "Left")
+		if leftHand then
+			attachWeapon(character, template, leftHand, "OffhandSword")
+		end
+	end
+	return rightWeapon
 end
 
 function ViewportCache.PlayIdle(character: Model, weaponType: string?): AnimationTrack?

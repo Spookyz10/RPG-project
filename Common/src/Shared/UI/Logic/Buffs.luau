@@ -67,7 +67,8 @@ function BuffsUI:Start(effectId: string, duration: number?, stacks: number?)
 	local definition = StatusDefinitions[effectId] or {}
 	local entry = template:Clone()
 	entry.Name = effectId
-	(entry :: any).Image = definition.Icon or ""
+	local imageEntry = entry :: any
+	imageEntry.Image = definition.Icon or ""
 	entry.Visible = true
 	entry.Parent = definition.Category == "Debuff" and debuffContainer or container
 	activeEntries[effectId] = entry

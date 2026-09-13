@@ -1,6 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Data = require(ReplicatedStorage.Shared.Data).server
+local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local WeldSystem = require(ReplicatedStorage.Shared.Utils.WeldSystem)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
@@ -10,11 +11,12 @@ local WeaponsFolder = ReplicatedStorage.Resources.Weapons
 
 local GRIP_ATTACHMENT_NAME = "GripPoint"
 
-local LoadedWeapons: { [Player]: Model } = {}
+local LoadedWeapons: { [Player]: { Model } } = {}
 local ListenedPlayers: { [Player]: boolean } = {}
 
-local function getHand(character: Model): BasePart?
-	return character:FindFirstChild("Right Arm") :: BasePart?
+local function getHand(character: Model, side: "Right" | "Left"): BasePart?
+	local hand = character:FindFirstChild(side .. "Hand") or character:FindFirstChild(side .. " Arm")
+	return hand and hand:IsA("BasePart") and hand or nil
 end
 
 local DefaultGripAttributes = {
@@ -45,7 +47,9 @@ end
 local function clearWeapon(player: Player)
 	local Existing = LoadedWeapons[player]
 	if Existing then
-		Existing:Destroy()
+		for _, weapon in Existing do
+			weapon:Destroy()
+		end
 	end
 	LoadedWeapons[player] = nil
 end
@@ -60,8 +64,8 @@ local function findWeaponTemplate(weaponName: string): Model?
 	return nil
 end
 
-local function attachWeapon(character: Model, weaponName: string): Model?
-	local Hand = getHand(character)
+local function attachWeapon(character: Model, weaponName: string, side: "Right" | "Left", modelName: string): Model?
+	local Hand = getHand(character, side)
 	if not Hand then
 		return nil
 	end
@@ -72,7 +76,7 @@ local function attachWeapon(character: Model, weaponName: string): Model?
 	end
 
 	local WeaponModel = Template:Clone()
-	WeaponModel.Name = "Sword"
+	WeaponModel.Name = modelName
 
 	local Handle = WeaponModel:FindFirstChild("Handle") :: BasePart?
 	if not Handle then
@@ -143,17 +147,27 @@ local function refresh(player: Player, PlayerData: Types.PlayerData)
 	local VanityUUID = PlayerData.Vanity.Weapon()
 	local DisplayUUID = (VanityUUID and VanityUUID ~= "") and VanityUUID or WeaponUUID
 
-	local ItemEntry = PlayerData.Inventory[DisplayUUID]()
-	if not ItemEntry then
-		ItemEntry = PlayerData.Inventory[WeaponUUID]()
-		if not ItemEntry then
-			return
+	local EquippedEntry = PlayerData.Inventory[WeaponUUID]()
+	if not EquippedEntry then
+		return
+	end
+	local ItemEntry = PlayerData.Inventory[DisplayUUID]() or EquippedEntry
+	local EquippedInfo = ItemsData[EquippedEntry.ID] :: Types.Equipment?
+	local WeaponType = EquippedInfo and EquippedInfo.WeaponType
+
+	local weapons = {}
+	local WeaponModel = attachWeapon(Character, ItemEntry.Name, "Right", "Sword")
+	if WeaponModel then
+		table.insert(weapons, WeaponModel)
+	end
+	if WeaponType == "Dual" then
+		local OffhandModel = attachWeapon(Character, ItemEntry.Name, "Left", "OffhandSword")
+		if OffhandModel then
+			table.insert(weapons, OffhandModel)
 		end
 	end
-
-	local WeaponModel = attachWeapon(Character, ItemEntry.Name)
-	if WeaponModel then
-		LoadedWeapons[player] = WeaponModel
+	if #weapons > 0 then
+		LoadedWeapons[player] = weapons
 	end
 end
 

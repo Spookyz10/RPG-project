@@ -9,11 +9,11 @@ local Player = Players.LocalPlayer
 local Humanoid = nil :: Humanoid?
 local HumanoidConnections: { RBXScriptConnection } = {}
 
-local function UpdateHP()
+local function UpdateHP(isInitial: boolean?)
 	if not Humanoid then
 		return
 	end
-	Logic["Bars"].UpdateBar(Humanoid.Health, Humanoid.MaxHealth, "HP")
+	Logic["Bars"].UpdateBar(Humanoid.Health, Humanoid.MaxHealth, "HP", isInitial)
 end
 
 local function DisconnectHumanoidSignals()
@@ -29,7 +29,9 @@ local function BindHumanoid(character: Model)
 	DisconnectHumanoidSignals()
 	Humanoid = newHumanoid
 
-	table.insert(HumanoidConnections, Humanoid.HealthChanged:Connect(UpdateHP))
+	table.insert(HumanoidConnections, Humanoid.HealthChanged:Connect(function()
+		UpdateHP()
+	end))
 	for _, effect in require(ReplicatedStorage.Shared.StatusEffects) do
 		if effect.Attribute and effect.HealthBar then
 			table.insert(HumanoidConnections, character:GetAttributeChangedSignal(effect.Attribute):Connect(UpdateHP))
@@ -37,7 +39,7 @@ local function BindHumanoid(character: Model)
 	end
 	table.insert(HumanoidConnections, Humanoid:GetPropertyChangedSignal("MaxHealth"):Connect(UpdateHP))
 
-	UpdateHP()
+	UpdateHP(true)
 end
 
 Data.XP.Changed(function(NewXp)
@@ -50,13 +52,16 @@ end
 
 Player.CharacterAdded:Connect(BindHumanoid)
 
-Logic["Bars"].UpdateBar(Data.XP(), Functions:GetXPNeeded(Data.Level()), "XP")
+Logic["Bars"].UpdateBar(Data.XP(), Functions:GetXPNeeded(Data.Level()), "XP", true)
 
-local function UpdateLevel()
+local function UpdateLevel(newLevel, previousLevel)
 	local HUD = Player.PlayerGui.HUD.Main
 	HUD.PlayerName.Text = Player.DisplayName
 	HUD.Level.Text = "Lv. " .. Abbreviation:Number(Data.Level())
 	Logic.Bars.UpdateBar(Data.XP(), Functions:GetXPNeeded(Data.Level()), "XP")
+	if typeof(newLevel) == "number" and typeof(previousLevel) == "number" and newLevel > previousLevel then
+		Logic.Bars.PlayLevelUp()
+	end
 end
 
 Data.Level.Changed(UpdateLevel)

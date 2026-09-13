@@ -5,7 +5,7 @@ local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 
 local Passives = {}
 local states = setmetatable({}, { __mode = "k" })
-local listeners = setmetatable({}, { __mode = "k" })
+local listeners: { [Player]: { (() -> ()) | RBXScriptConnection } } = setmetatable({}, { __mode = "k" })
 
 function Passives:Clear(character: Model)
 	local state = states[character]
@@ -98,7 +98,13 @@ end
 function Passives.OnPlayerRemoved(player: Player)
 	local connections = listeners[player]
 	if connections then
-		for _, connection in connections do connection:Disconnect() end
+		for _, connection in connections do
+			if typeof(connection) == "function" then
+				connection()
+			else
+				connection:Disconnect()
+			end
+		end
 	end
 	listeners[player] = nil
 	if player.Character then Passives:Clear(player.Character) end

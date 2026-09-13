@@ -21,7 +21,7 @@ local function new()
 		if follower then follower:Hide(target) end
 	end
 
-	function Tooltip.Bind(button: GuiButton, getItem)
+	function Tooltip.Bind(button: GuiObject, getItem)
 		local function show()
 			if not follower or follower:IsTouch() or not root.Visible then return end
 			local item = getItem()
@@ -62,7 +62,9 @@ local function new()
 		button.MouseLeave:Connect(function() Tooltip.Hide(button) end)
 		button.SelectionGained:Connect(show)
 		button.SelectionLost:Connect(function() Tooltip.Hide(button) end)
-		button.Activated:Connect(function() Tooltip.Hide() end)
+		if button:IsA("GuiButton") then
+			button.Activated:Connect(function() Tooltip.Hide() end)
+		end
 		button.Destroying:Connect(function() Tooltip.Hide(button) end)
 	end
 

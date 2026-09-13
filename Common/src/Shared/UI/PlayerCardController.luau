@@ -3,6 +3,7 @@ local Constants = require(script.Parent.UIConstants)
 local Remotes = require(script.Parent.Parent.Utils.RemoteManager)
 local StatDisplay = require(script.Parent.StatDisplay)
 local Theme = require(script.Parent.Theme)
+local ItemTooltip = require(script.Parent.ItemTooltip)
 local ViewportCache = require(script.Parent.ViewportCache)
 local Windows = require(script.Parent.WindowManager)
 
@@ -26,7 +27,7 @@ function PlayerCardController.new(card: GuiObject)
 	self.Record = self.Details.Record.Grid
 	self.Stats = self.Details.StatsPanel.Rows
 	self.Actions = self.Body.Actions
-	self.Camera = self.AvatarViewport:WaitForChild("Camera")
+	self.World, self.Camera = ViewportCache.EnsureViewport(self.AvatarViewport, "Camera", 32)
 	self.Request = 0
 	self.Viewed = nil
 	self.Avatar = nil
@@ -36,8 +37,24 @@ function PlayerCardController.new(card: GuiObject)
 	self.PlayTime = 0
 	self.SessionTime = 0
 	self.TimeReceived = 0
+	self.Equipment = {}
 	self.Connections = {}
-	self.AvatarViewport.CurrentCamera = self.Camera
+	local screen = card:FindFirstAncestorWhichIsA("ScreenGui")
+	local inventory = Constants.PlayerGui:FindFirstChild("Inventory")
+	local tooltipTemplate = inventory and inventory:FindFirstChild("ItemTooltip")
+	if screen and tooltipTemplate and tooltipTemplate:IsA("GuiObject") then
+		self.GearTooltipTemplate = tooltipTemplate:Clone()
+		self.GearTooltipTemplate.Parent = screen
+		self.GearTooltip = ItemTooltip.new()
+		self.GearTooltip.Init(screen)
+		for _, slot in self.Gear:GetChildren() do
+			if slot:IsA("GuiObject") and slot:FindFirstChild("Icon") then
+				self.GearTooltip.Bind(slot, function()
+					return self.Equipment[slot.Name]
+				end)
+			end
+		end
+	end
 	table.insert(self.Connections, self.AvatarViewport:GetPropertyChangedSignal("AbsoluteSize"):Connect(function() self:_fit() end))
 	table.insert(self.Connections, card:GetPropertyChangedSignal("Visible"):Connect(function()
 		if not card.Visible then self:_stop() end
@@ -99,6 +116,7 @@ end
 
 function PlayerCardController:_reset(player: Player, publicLevel: number)
 	self:_clearAvatar()
+	table.clear(self.Equipment)
 	self.Profile.PlayerName.Text = player.DisplayName .. "  @" .. player.Name
 	self.Profile.LevelBadge.Level.Text = "LEVEL " .. Abbreviation:Number(publicLevel)
 	self.Actions.Status.Text = "Loading profile..."
@@ -142,6 +160,7 @@ function PlayerCardController:_populate(player: Player, info)
 	for _, slot in self.Gear:GetChildren() do
 		if slot:IsA("Frame") and slot:FindFirstChild("Icon") then
 			local item = (info.Equipment or {})[slot.Name]
+			self.Equipment[slot.Name] = item
 			slot.Icon.Image = item and item.Icon or ""
 			slot.UIStroke.Color = item and (Theme.Rarities[item.Rarity] or Theme.Muted) or Theme.Line
 		end
@@ -180,11 +199,11 @@ function PlayerCardController:Open(player: Player, publicLevel: number)
 		return
 	end
 	self.Avatar = avatar
-	self.Avatar.Parent = self.AvatarViewport.World
+	self.Avatar.Parent = self.World
 	self.AvatarBounds, self.AvatarSize = self.Avatar:GetBoundingBox()
 	local weapon = info.PreviewWeapon or (info.Equipment or {}).Weapon
 	if weapon then
-		ViewportCache.AttachWeapon(self.Avatar, weapon.Name)
+		ViewportCache.AttachWeapon(self.Avatar, weapon.Name, weapon.WeaponType)
 	end
 	self.Idle = ViewportCache.PlayIdle(self.Avatar, weapon and weapon.WeaponType)
 	self:_fit()
@@ -201,6 +220,9 @@ end
 
 function PlayerCardController:Destroy()
 	self:_stop()
+	if self.GearTooltipTemplate then
+		self.GearTooltipTemplate:Destroy()
+	end
 	for _, connection in self.Connections do
 		connection:Disconnect()
 	end

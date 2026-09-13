@@ -14,6 +14,7 @@ local function itemSummary(PlayerData: Types.PlayerData, UUID: string?)
 	local ItemInfo = ItemsData[ItemEntry.ID]
 	if not ItemInfo then return nil end
 	return {
+		ID = ItemEntry.ID,
 		Name = ItemEntry.Name,
 		Icon = ItemInfo.Data.Icon,
 		SubType = ItemInfo.Data.SubType,

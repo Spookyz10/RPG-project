@@ -11,19 +11,7 @@ function Preview.Show(viewport: ViewportFrame, name: string)
 		previous:Disconnect()
 		connections[viewport] = nil
 	end
-	local world = viewport:FindFirstChild("World") :: WorldModel?
-	if not world then
-		world = Instance.new("WorldModel")
-		world.Name = "World"
-		world.Parent = viewport
-	end
-	local camera = viewport:FindFirstChild("Camera") :: Camera?
-	if not camera then
-		camera = Instance.new("Camera")
-		camera.Name = "Camera"
-		camera.FieldOfView = 35
-		camera.Parent = viewport
-	end
+	local world, camera = ViewportCache.EnsureViewport(viewport, "Camera", 35)
 	world:ClearAllChildren()
 	local folder = ReplicatedStorage:FindFirstChild("Mobs")
 	local source = folder and folder:FindFirstChild(name, true)
@@ -40,8 +28,6 @@ function Preview.Show(viewport: ViewportFrame, name: string)
 	model.Parent = world
 	model:PivotTo(CFrame.identity)
 	local bounds, size = model:GetBoundingBox()
-	viewport.CurrentCamera = camera
-
 	local function frame()
 		ViewportCache.Fit(viewport, model, camera, 1.08, bounds, size, Vector3.new(0.55, 0.25, -1))
 	end

@@ -5,9 +5,16 @@ local UIConstants = require(script.Parent.UIConstants)
 
 local Feedback = {}
 local activeBanners: { CanvasGroup } = {}
-local passiveTimes: { [string]: number } = {}
+local bannersByKey: { [string]: CanvasGroup } = {}
 local MAX_BANNERS = 4
-local PASSIVE_INTERVAL = 0.4
+
+Feedback.Messages = {
+	Buff = "BUFF ACTIVE",
+	Debuff = "NEGATIVE EFFECT APPLIED",
+	Passive = "PASSIVE TRIGGERED",
+	Fury = "CHARGE CONSUMED",
+	FuryChargeGained = "CHARGE GAINED",
+}
 
 local function displayName(id: string): string
 	return string.upper((id:gsub("(%l)(%u)", "%1 %2")))
@@ -83,74 +90,89 @@ local function compactBanners()
 	end
 end
 
-local function targetPosition(card: CanvasGroup, index: number): UDim2
-	local spacing = card:GetAttribute("StackSpacing") or 0.095
-	local origin = card:GetAttribute("BasePosition") or card.Position
-	return UDim2.new(origin.X.Scale, origin.X.Offset, origin.Y.Scale - (index - 1) * spacing, origin.Y.Offset)
+local function removeBanner(card: CanvasGroup, key: string)
+	local index = table.find(activeBanners, card)
+	if index then table.remove(activeBanners, index) end
+	if bannersByKey[key] == card then bannersByKey[key] = nil end
+end
+
+local function scheduleBannerExit(card: CanvasGroup, key: string, token: number)
+	task.delay(1.15, function()
+		if not card.Parent or card:GetAttribute("LifetimeToken") ~= token then return end
+		TweenService:Create(card, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+			GroupTransparency = 1,
+		}):Play()
+		local border = card:FindFirstChildOfClass("UIStroke")
+		if border then TweenService:Create(border, TweenInfo.new(0.3), { Transparency = 1 }):Play() end
+		removeBanner(card, key)
+		task.delay(0.32, function()
+			if card.Parent and card:GetAttribute("LifetimeToken") == token then card:Destroy() end
+		end)
+	end)
 end
 
 local function banner(templateName: string, title: string, detail: string)
 	local library = templates()
 	local source = library and library:FindFirstChild(templateName)
 	local attack = UIConstants.PlayerGui:FindFirstChild("Attack")
-	if not source or not source:IsA("CanvasGroup") or not attack then return end
+	local feedback = attack and attack:FindFirstChild("Feedback")
+	if not source or not source:IsA("CanvasGroup") or not feedback then return end
+	local key = templateName .. "\0" .. title .. "\0" .. detail
+	local existing = bannersByKey[key]
+	if existing and existing.Parent then
+		local count = (existing:GetAttribute("FeedbackCount") or 1) + 1
+		existing:SetAttribute("FeedbackCount", count)
+		local existingTitle = existing:WaitForChild("Title") :: TextLabel
+		existingTitle.Text = title .. "  x" .. count
+		local token = (existing:GetAttribute("LifetimeToken") or 0) + 1
+		existing:SetAttribute("LifetimeToken", token)
+		local pop = existing:WaitForChild("Pop") :: UIScale
+		TweenService:Create(pop, TweenInfo.new(0.14, Enum.EasingStyle.Back), { Scale = 1.12 }):Play()
+		task.delay(0.14, function()
+			if pop.Parent then
+				TweenService:Create(pop, TweenInfo.new(0.18, Enum.EasingStyle.Quad), { Scale = 1 }):Play()
+			end
+		end)
+		scheduleBannerExit(existing, key, token)
+		return
+	end
 	compactBanners()
 	if #activeBanners >= MAX_BANNERS then
-		activeBanners[1]:Destroy()
-		table.remove(activeBanners, 1)
+		local oldest = activeBanners[1]
+		local oldestKey = oldest:GetAttribute("FeedbackKey")
+		removeBanner(oldest, typeof(oldestKey) == "string" and oldestKey or "")
+		oldest:Destroy()
 	end
 	local card = source:Clone()
 	local titleLabel = card:WaitForChild("Title") :: TextLabel
 	local detailLabel = card:WaitForChild("Detail") :: TextLabel
 	local pop = card:WaitForChild("Pop") :: UIScale
-	local slot = #activeBanners + 1
-	local target = targetPosition(card, slot)
 	card.Name = templateName .. "Feedback"
+	card:SetAttribute("FeedbackKey", key)
+	card:SetAttribute("FeedbackCount", 1)
+	card:SetAttribute("LifetimeToken", 1)
 	titleLabel.Text = title
 	detailLabel.Text = detail
-	card.GroupTransparency = 0
+	card.GroupTransparency = 1
 	local targetScale = pop.Scale
 	pop.Scale = pop:GetAttribute("StartScale") or targetScale
-	card.Position = target + (card:GetAttribute("EntryOffset") or UDim2.new())
 	card.Visible = true
-	card.Parent = attack
+	card.Parent = feedback
 	table.insert(activeBanners, card)
-	Debris:AddItem(card, 1.8)
+	bannersByKey[key] = card
 	TweenService:Create(pop, TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = targetScale }):Play()
-	TweenService:Create(card, TweenInfo.new(0.32, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Position = target }):Play()
-	task.delay(1.15, function()
-		if not card.Parent then return end
-		local exit = card:GetAttribute("ExitOffset") or UDim2.new()
-		TweenService:Create(card, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
-			Position = target + exit,
-			GroupTransparency = 1,
-		}):Play()
-		local border = card:FindFirstChildOfClass("UIStroke")
-		if border then TweenService:Create(border, TweenInfo.new(0.3), { Transparency = 1 }):Play() end
-		local index = table.find(activeBanners, card)
-		if index then table.remove(activeBanners, index) end
-		for nextIndex, other in activeBanners do
-			if other.Parent then
-				TweenService:Create(other, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
-					Position = targetPosition(other, nextIndex),
-				}):Play()
-			end
-		end
-	end)
+	TweenService:Create(card, TweenInfo.new(0.18, Enum.EasingStyle.Quad), { GroupTransparency = 0 }):Play()
+	scheduleBannerExit(card, key, 1)
 end
 
-function Feedback.Status(effectId: string, category: string?)
+function Feedback.Status(effectId: string, category: string?, message: string?)
 	local negative = category == "Debuff"
-	banner(negative and "Debuff" or "Buff", displayName(effectId), negative and "NEGATIVE EFFECT APPLIED" or "BUFF ACTIVE")
+	local templateName = negative and "Debuff" or "Buff"
+	banner(templateName, displayName(effectId), message or Feedback.Messages[templateName])
 end
 
-function Feedback.Passive(passiveId: string)
-	local now = os.clock()
-	if now - (passiveTimes[passiveId] or -math.huge) < PASSIVE_INTERVAL then
-		return
-	end
-	passiveTimes[passiveId] = now
-	banner("Passive", displayName(passiveId), passiveId == "Fury" and "CHARGE CONSUMED" or "PASSIVE TRIGGERED")
+function Feedback.Passive(passiveId: string, message: string?)
+	banner("Passive", displayName(passiveId), message or Feedback.Messages[passiveId] or Feedback.Messages.Passive)
 end
 
 return Feedback

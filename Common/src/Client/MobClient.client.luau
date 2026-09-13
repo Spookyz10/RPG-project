@@ -1,9 +1,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
+
 local TweenService = game:GetService("TweenService")
 
 local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
-local MobAnimations = require(ReplicatedStorage.Shared.MobAnimations)
 local MobsData = require(ReplicatedStorage.Shared.MobsData)
 local Abbreviation = require(ReplicatedStorage.Shared.Utils.Abbreviation)
 
@@ -22,69 +21,31 @@ local function UpdateHP(Overhead: BillboardGui, Humanoid: Humanoid)
 
 	local previous = PreviousHealth[Overhead]
 	PreviousHealth[Overhead] = Humanoid.Health
-	if HealthTweens[Overhead] then HealthTweens[Overhead]:Cancel(); HealthTweens[Overhead] = nil end
+	if HealthTweens[Overhead] then
+		HealthTweens[Overhead]:Cancel()
+		HealthTweens[Overhead] = nil
+	end
 	local goal = UDim2.fromScale(Percent, 1)
 	if previous ~= nil and Humanoid.Health < previous then
-		local tween = TweenService:Create(Bar, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = goal })
+		local tween = TweenService:Create(
+			Bar,
+			TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{ Size = goal }
+		)
 		HealthTweens[Overhead] = tween
 		tween:Play()
 	else
 		Bar.Size = goal
 	end
-	Health.Text = "HP  " .. Abbreviation:Number(math.max(Humanoid.Health, 0), 0) .. " / " .. Abbreviation:Number(math.max(Humanoid.MaxHealth, 0), 0)
+	Health.Text = "HP  "
+		.. Abbreviation:Number(math.max(Humanoid.Health, 0), 0)
+		.. " / "
+		.. Abbreviation:Number(math.max(Humanoid.MaxHealth, 0), 0)
 end
 
 local function PlayDeathAnimation(mobModel: Model)
 	local Handler = AnimationHandler.GetOrCreate(mobModel)
 	Handler:StopAll(0)
-end
-
-local function SetupMovementAnimation(mobModel: Model, Humanoid: Humanoid)
-	local RootPart = mobModel.PrimaryPart or (mobModel:FindFirstChild("HumanoidRootPart") :: BasePart?)
-
-	local CurrentAnimName: string? = nil
-	local CurrentTrack: AnimationTrack? = nil
-	local Alive = true
-
-	local function SetAnim(animName: string)
-		if CurrentAnimName == animName and CurrentTrack then
-			return
-		end
-
-		local NewTrack = MobAnimations:Play(mobModel, animName, 0.15)
-		if not NewTrack then
-			return
-		end
-
-		if CurrentTrack and CurrentTrack.IsPlaying and CurrentTrack ~= NewTrack then
-			CurrentTrack:Stop(0.15)
-		end
-
-		CurrentTrack = NewTrack
-		CurrentAnimName = animName
-	end
-
-	SetAnim("Idle")
-
-	local Connection = RunService.Heartbeat:Connect(function()
-		if not Alive or not RootPart or not RootPart.Parent then
-			return
-		end
-
-		if Humanoid.Health <= 0 then
-			return
-		end
-
-		local Speed = RootPart.AssemblyLinearVelocity.Magnitude
-		SetAnim(Speed > 1 and "Walk" or "Idle")
-	end)
-
-	return {
-		Disconnect = function()
-			Alive = false
-			Connection:Disconnect()
-		end,
-	}
 end
 
 local function SetupMob(mobModel: Model)
@@ -96,12 +57,12 @@ local function SetupMob(mobModel: Model)
 		return
 	end
 	if mobModel.Name == "Dire Bear" or mobModel:GetAttribute("IsBoss") then
-		local movement = SetupMovementAnimation(mobModel, Humanoid)
 		local died = Humanoid.Died:Connect(function()
-			movement:Disconnect()
 			PlayDeathAnimation(mobModel)
 		end)
-		mobModel.Destroying:Connect(function() movement:Disconnect(); died:Disconnect() end)
+		mobModel.Destroying:Connect(function()
+			died:Disconnect()
+		end)
 		return
 	end
 
@@ -114,7 +75,8 @@ local function SetupMob(mobModel: Model)
 		local badge = Overhead.Info:FindFirstChild("LevelBadge")
 		if badge then
 			local info = MobsData[mobModel.Name]
-			badge.Level.Text = "Lv. " .. Abbreviation:Number(mobModel:GetAttribute("Level") or (info and info.Level) or 1)
+			badge.Level.Text = "Lv. "
+				.. Abbreviation:Number(mobModel:GetAttribute("Level") or (info and info.Level) or 1)
 		end
 	end
 	UpdateLevel()
@@ -133,24 +95,24 @@ local function SetupMob(mobModel: Model)
 		UpdateHP(Overhead, Humanoid)
 	end)
 
-	local RunningConnection = SetupMovementAnimation(mobModel, Humanoid)
-
 	local DiedConnection = Humanoid.Died:Connect(function()
 		Overhead.Enabled = false
-		RunningConnection:Disconnect()
+
 		PlayDeathAnimation(mobModel)
 	end)
 
 	ActiveOverheads[mobModel] = Overhead
 
 	mobModel.Destroying:Connect(function()
-		if HealthTweens[Overhead] then HealthTweens[Overhead]:Cancel(); HealthTweens[Overhead] = nil end
+		if HealthTweens[Overhead] then
+			HealthTweens[Overhead]:Cancel()
+			HealthTweens[Overhead] = nil
+		end
 		PreviousHealth[Overhead] = nil
 		HealthConnection:Disconnect()
 		LevelConnection:Disconnect()
 		MaxHealthConnection:Disconnect()
 		DiedConnection:Disconnect()
-		RunningConnection:Disconnect()
 		ActiveOverheads[mobModel] = nil
 	end)
 end

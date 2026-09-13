@@ -10,9 +10,7 @@ function Preview.Bind(root, data)
 	local player = Players.LocalPlayer
 	local hero = root.Body.Content.Hero
 	local viewport = hero.CharacterPreview
-	local camera = viewport:WaitForChild("PreviewCamera") :: Camera
-	local world = viewport:WaitForChild("World")
-	viewport.CurrentCamera = camera
+	local world, camera = ViewportCache.EnsureViewport(viewport, "PreviewCamera", 32)
 	local model: Model?
 	local idle: AnimationTrack?
 	local weaponKey = ""
@@ -22,7 +20,18 @@ function Preview.Bind(root, data)
 	local loading = false
 	local queued = false
 	local destroyed = false
-	local connections = {}
+	local connections: { (() -> ()) | RBXScriptConnection } = {}
+
+	local function disconnectAll()
+		for _, connection in connections do
+			if typeof(connection) == "function" then
+				connection()
+			else
+				connection:Disconnect()
+			end
+		end
+		table.clear(connections)
+	end
 
 	local function fit()
 		if model and bodyBounds and bodySize then
@@ -49,13 +58,14 @@ function Preview.Bind(root, data)
 		local entry = equipped and data.Inventory[equipped]()
 		local vanity = data.Vanity.Weapon()
 		local appearance = entry and ((vanity and vanity ~= "" and data.Inventory[vanity]()) or entry)
-		local name = appearance and appearance.Name or ""
-		if weaponKey ~= name then
-			weaponKey = name
-			ViewportCache.AttachWeapon(model, name)
-		end
 		local info = entry and Items[entry.ID]
 		local weaponType = info and info.WeaponType or ""
+		local name = appearance and appearance.Name or ""
+		local key = name .. ":" .. weaponType
+		if weaponKey ~= key then
+			weaponKey = key
+			ViewportCache.AttachWeapon(model, name, weaponType)
+		end
 		if idleKey ~= weaponType then
 			idleKey = weaponType
 			if idle then
@@ -147,9 +157,7 @@ function Preview.Bind(root, data)
 	schedule()
 	root.Destroying:Connect(function()
 		destroyed = true
-		for _, connection in connections do
-			connection:Disconnect()
-		end
+		disconnectAll()
 		if idle then
 			idle:Stop()
 			idle:Destroy()

@@ -8,6 +8,7 @@ local UIFeedback = require(ReplicatedStorage.Shared.UI.UIFeedback)
 
 local Remote = {}
 local worldEffects = {}
+local localStacks: { [string]: number } = {}
 
 for _, effectId in CombatVFX.StatusNames do
 	worldEffects[effectId] = true
@@ -37,11 +38,17 @@ function Remote:Activate(effectId: string, entity: Model, action: string, durati
 	local buffs = Logic.Buffs
 	if action == "Start" or action == "Update" then
 		buffs:Start(effectId, duration, stacks)
-		if action == "Start" then
+		local previousStacks = localStacks[effectId] or 0
+		local currentStacks = typeof(stacks) == "number" and stacks or previousStacks
+		if effectId == "Fury" and currentStacks > previousStacks then
+			UIFeedback.Status(effectId, (StatusDefinitions[effectId] or {}).Category, UIFeedback.Messages.FuryChargeGained)
+		elseif action == "Start" then
 			UIFeedback.Status(effectId, (StatusDefinitions[effectId] or {}).Category)
 		end
+		localStacks[effectId] = currentStacks
 	elseif action == "End" then
 		buffs:Stop(effectId)
+		localStacks[effectId] = nil
 	end
 end
 
