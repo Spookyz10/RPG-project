@@ -1,4 +1,3 @@
--- Client presentation only. Templates are saved by tools/vfx-generators/00_VFXLab.luau.
 local RS = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local VFX = {}
@@ -7,7 +6,7 @@ local active = {}
 local statuses = {}
 local warned = {}
 local MAX_BURSTS = 80
-local STATUS_NAMES = {Poison = "Poison", Venom = "Venom", Fury = "Fury", LureJab = "Lure Jab", Safeguard = "Safeguard"}
+local STATUS_NAMES = {Poison = "Poison", Venom = "Venom", LureJab = "Lure Jab", Safeguard = "Safeguard"}
 VFX.StatusNames = STATUS_NAMES
 
 local function rootOf(entity)

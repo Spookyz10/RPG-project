@@ -5,6 +5,7 @@ local UIFunctions = require(ReplicatedStorage.Shared.UI.UIFunctions)
 local Raids = require(ReplicatedStorage.Shared.Raids)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
+local Abbreviation = require(ReplicatedStorage.Shared.Utils.Abbreviation)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local RaidsUI = {}
@@ -55,7 +56,7 @@ local function UpdateLoot(RaidInfo: Types.RaidInfo, difficulty: string)
 		Entry.Image = ItemInfo.Data.Icon
 		Entry.ImageLabel.ImageColor3 = UIFunctions.RarityColors[ItemInfo.Data.Rarity] or Color3.fromRGB(255, 255, 255)
 		Entry.ImageTransparency = 0
-		Entry.rate.Text = string.format("%.1f", chance) .. "%"
+		Entry.rate.Text = Abbreviation:Percent(chance)
 		Entry.toggled.Visible = ToggledItems[itemName] == true
 		Entry.Visible = true
 		Entry.Parent = RewardsScroll
@@ -91,7 +92,7 @@ local function RefreshDisplay(raidName: string, RaidInfo: Types.RaidInfo)
 	Clicked.Info.Time.Time.Text = FormatTime(Records and Records[Difficulty])
 
 	local Runs = UIConstants.Data.RaidRuns()[raidName]
-	Clicked.Info.Runs.Runs.Text = tostring(Runs or 0)
+	Clicked.Info.Runs.Runs.Text = Abbreviation:Number(Runs or 0)
 
 	Clicked.Picture.Image = "rbxassetid://" .. RaidInfo.Image
 	Clicked.Raid.Text = raidName
@@ -149,7 +150,7 @@ local function LoadRaids(category: string)
 
 		local Entry = RaidTemplate:Clone()
 		Entry.Stand.Raid.Text = raidName
-		Entry.Stand.Req.Text = "Lv Req: " .. RaidInfo.RequiredLevel
+		Entry.Stand.Req.Text = "Lv Req: " .. Abbreviation:Number(RaidInfo.RequiredLevel)
 		Entry.Image = "rbxassetid://" .. RaidInfo.Image
 		Entry.UIStroke.Transparency = 1
 		Entry.LayoutOrder = RaidInfo.RequiredLevel

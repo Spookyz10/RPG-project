@@ -4,6 +4,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local ComboManager = require(ServerStorage.Modules.ComboManager)
 local CooldownSystem = require(ServerStorage.Modules.CooldownSystem)
 local DailyReward = require(ServerStorage.Modules.DailyReward)
+local EquipmentPassives = require(ServerStorage.Modules.EquipmentPassives)
 
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local CollisionGroups = require(ReplicatedStorage.Shared.CollisionGroups)
@@ -39,7 +40,7 @@ local function LoadPlayer(Player: Player)
 	HealthManager:Listen(Player)
 	StatsReplicator:Listen(Player)
 	SpeedManager:Listen(Player)
-	require(ServerStorage.Modules.EquipmentPassives):Listen(Player, PlayerData)
+	EquipmentPassives:Listen(Player, PlayerData)
 	Player:LoadCharacterAsync()
 	DailyReward.ResetDailyStreak(Player)
 
@@ -58,14 +59,17 @@ local function SetupCharacter(Player: Player, Character: Model)
 
 
 	Humanoid.Died:Connect(function()
+		require(ServerStorage.Modules.MobDeath):Play(Character)
 		if PlayerData then
 			PlayerData.Deaths(function(current)
 				return current + 1
 			end)
 		end
 
+		local token = (Player:GetAttribute("RespawnToken") or 0) + 1
+		Player:SetAttribute("RespawnToken", token)
 		task.wait(RESPAWN_TIME)
-		if Player and Player.Parent then
+		if Player and Player.Parent and Player:GetAttribute("RespawnToken") == token then
 			Player:LoadCharacterAsync()
 		end
 	end)
@@ -83,6 +87,7 @@ end)
 Players.PlayerRemoving:Connect(function(Player)
 	ComboManager:ClearPlayer(Player)
 	CooldownSystem.OnPlayerRemoved(Player)
+	EquipmentPassives.OnPlayerRemoved(Player)
 	HealthManager.OnPlayerRemoved(Player)
 	SpeedManager.OnPlayerRemoved(Player)
 	StatsReplicator.OnPlayerRemoved(Player)

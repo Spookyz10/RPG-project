@@ -1,4 +1,9 @@
-return { BeforeAttack = function(ctx)
- local hum = ctx.Victim:FindFirstChildOfClass("Humanoid")
- if hum and hum.Health <= hum.MaxHealth * 0.3 then ctx.Attack *= 1.25 end
-end }
+return {
+	BeforeAttack = function(context)
+		local humanoid = context.Victim:FindFirstChildOfClass("Humanoid")
+		if humanoid and humanoid.Health <= humanoid.MaxHealth * 0.3 then
+			context.Attack *= 1.25
+			context.TriggeredPassives.Executioner = true
+		end
+	end,
+}

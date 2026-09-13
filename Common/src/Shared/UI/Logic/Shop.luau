@@ -7,6 +7,7 @@ local Items = require(UI.Parent.ItemsData)
 local Windows = require(UI.WindowManager)
 local Toast = require(UI.Toast)
 local Remotes = require(UI.Parent.Utils.RemoteManager)
+local Abbreviation = require(UI.Parent.Utils.Abbreviation)
 local Shop = {}
 
 function Shop.Open(shopName)
@@ -26,11 +27,9 @@ function Shop.Open(shopName)
 		card:FindFirstChild("Name").Text = itemName
 		card.Parent = container
 		local cost = {}
-		for currency, amount in offer.Cost do table.insert(cost, tostring(amount) .. " " .. currency) end
+		for currency, amount in offer.Cost do table.insert(cost, Abbreviation:Number(amount) .. " " .. currency) end
 		table.sort(cost)
 		card.Price.Text = table.concat(cost, " · ")
-		-- The current skill shop lists skills that do not exist and has no unlock service.
-		-- Keep these visible as unavailable instead of sending a purchase that could charge players.
 		local available = offer.itemType ~= "Skill" and Items[itemName] ~= nil
 		local buy = card.Buy
 		buy.Text = available and "BUY ONE" or "Not available yet"

@@ -6,6 +6,22 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Remote = {}
 
+local function itemSummary(PlayerData: Types.PlayerData, UUID: string?)
+	if not UUID or UUID == "" then return nil end
+	local ItemCell = PlayerData.Inventory[UUID]
+	local ItemEntry = ItemCell and (ItemCell :: any)()
+	if not ItemEntry then return nil end
+	local ItemInfo = ItemsData[ItemEntry.ID]
+	if not ItemInfo then return nil end
+	return {
+		Name = ItemEntry.Name,
+		Icon = ItemInfo.Data.Icon,
+		SubType = ItemInfo.Data.SubType,
+		Rarity = ItemInfo.Data.Rarity,
+		WeaponType = ItemInfo.WeaponType,
+	}
+end
+
 function Remote:Invoke(_Player: Player, TargetPlayer: Player)
 	if typeof(TargetPlayer) ~= "Instance" or not TargetPlayer:IsA("Player") or TargetPlayer.Parent ~= game:GetService("Players") then
 		return nil
@@ -16,30 +32,22 @@ function Remote:Invoke(_Player: Player, TargetPlayer: Player)
 		return nil
 	end
 
-	local Stats = Functions:GetTotalStats(TargetPlayer.Character, PlayerData())
+	local Character = TargetPlayer.Character
+	local Stats = Character and Functions:GetTotalStats(Character, PlayerData()) or {
+		Attack = 0,
+		Defense = 0,
+		Critical = 0,
+		["Critical Power"] = 0,
+		Speed = 0,
+		Health = 0,
+	}
 
 	local Equipment = {}
 	for Slot, UUID in PlayerData.Equipment() do
-		if UUID == "" then
-			continue
-		end
-
-		local ItemEntry = PlayerData.Inventory[UUID]()
-		if not ItemEntry then
-			continue
-		end
-
-		local ItemInfo = ItemsData[ItemEntry.ID]
-		if not ItemInfo then
-			continue
-		end
-
-		Equipment[Slot] = {
-			Icon = ItemInfo.Data.Icon,
-			SubType = ItemInfo.Data.SubType,
-			Rarity = ItemInfo.Data.Rarity,
-		}
+		Equipment[Slot] = itemSummary(PlayerData, UUID)
 	end
+	local Weapon = Equipment.Weapon
+	local VanityWeapon = itemSummary(PlayerData, PlayerData.Vanity.Weapon())
 
 	return {
 		Name = TargetPlayer.Name,
@@ -53,6 +61,10 @@ function Remote:Invoke(_Player: Player, TargetPlayer: Player)
 		PlayTime = PlayerData.PlayTime(),
 		SessionTime = math.max(0, workspace:GetServerTimeNow() - (TargetPlayer:GetAttribute("SessionStartedAt") or workspace:GetServerTimeNow())),
 		Equipment = Equipment,
+		PreviewWeapon = Weapon and {
+			Name = VanityWeapon and VanityWeapon.Name or Weapon.Name,
+			WeaponType = Weapon.WeaponType,
+		} or nil,
 	}
 end
 

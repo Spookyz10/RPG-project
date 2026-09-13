@@ -321,7 +321,7 @@ function InventoryManager:VanityUnequip(player: Player, slot: string)
 	PlayerData.Vanity[slot]("")
 end
 
-function InventoryManager:ConsumeItem(player: Player, UUID: string, useAll: boolean?): string
+function InventoryManager:ConsumeItem(player: Player, UUID: string, useAll: boolean?, silentIfCapped: boolean?): string
 	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
 	if not PlayerData then
 		return "Invalid player data"
@@ -347,7 +347,6 @@ function InventoryManager:ConsumeItem(player: Player, UUID: string, useAll: bool
 		return "Requirements not met"
 	end
 
-	-- Health potions also restore and cleanse, independently of the permanent stat cap.
  if ItemInfo.Data.ID == "Small Health Potion" then
   local character = player.Character
   local hum = character and character:FindFirstChildOfClass("Humanoid")
@@ -371,7 +370,9 @@ function InventoryManager:ConsumeItem(player: Player, UUID: string, useAll: bool
 	local Current = PlayerData.ExtraStats[Stat]()
 
 	if Current >= Cap then
-		RemoteManager.SendClientEvent("Notification", { Player = player }, "You're already at max " .. Stat)
+		if not silentIfCapped then
+			RemoteManager.SendClientEvent("Notification", { Player = player }, "You're already at max " .. Stat)
+		end
 		return "Already at cap"
 	end
 
@@ -409,7 +410,7 @@ function InventoryManager:DrinkAllPotions(player: Player)
 			continue
 		end
 
-		InventoryManager:ConsumeItem(player, UUID, true)
+		InventoryManager:ConsumeItem(player, UUID, true, true)
 	end
 end
 

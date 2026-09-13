@@ -5,6 +5,7 @@ local RemoteManager = require(UI.Parent.Utils.RemoteManager)
 local Bootstrap = require(UI.Bootstrap)
 local T = require(UI.Theme)
 local Toast = require(UI.Toast)
+local Abbreviation = require(UI.Parent.Utils.Abbreviation)
 local Selector = {}
 local slotLevels = { Q = 1, E = 20, R = 120 }
 
@@ -31,20 +32,20 @@ function Selector.Init()
 		entry.Desc.Text = skill.Description
 		entry.Parent = skill.SkillType == "Support" and holder.Support or holder.Attack
 		local function refresh()
-			entry.Req.Text = "Level " .. skill.LevelRequirement .. " · Cooldown " .. skill.Cooldown .. "s"
+			entry.Req.Text = "Level " .. Abbreviation:Number(skill.LevelRequirement) .. " · Cooldown " .. Abbreviation:Number(skill.Cooldown) .. "s"
 			entry.Req.TextColor3 = Constants.Data.Level() >= skill.LevelRequirement and T.Green or T.Red
 			for index, key in { "Q", "E", "R" } do
 				local button = entry["Slot" .. index]
 				local required = math.max(skill.LevelRequirement, slotLevels[key])
 				local equipped = Constants.Data.Skills()[key] == name
-				button.Text = Constants.Data.Level() < required and (key .. " · Lv. " .. required) or (equipped and key .. " · Equipped" or "Equip " .. key)
+				button.Text = Constants.Data.Level() < required and (key .. " · Lv. " .. Abbreviation:Number(required)) or (equipped and key .. " · Equipped" or "Equip " .. key)
 				button.BackgroundColor3 = equipped and T.Mint or T.Soft
 			end
 		end
 		for index, key in { "Q", "E", "R" } do
 			entry["Slot" .. index].Activated:Connect(function()
 				local required = math.max(skill.LevelRequirement, slotLevels[key])
-				if Constants.Data.Level() < required then Toast.Show("Reach level " .. required .. " to use this slot."); return end
+				if Constants.Data.Level() < required then Toast.Show("Reach level " .. Abbreviation:Number(required) .. " to use this slot."); return end
 				RemoteManager.SendServerEvent("EquipSkill", name, key)
 			end)
 		end

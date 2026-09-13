@@ -1,9 +1,3 @@
--- STUDIO COMMAND BAR / EDIT MODE ONLY. Paste this entire file while Play is stopped.
--- Saves templates in ReplicatedStorage.Resources.CombatVFX and a preview lab in Workspace.
--- Runtime scripts clone these saved templates; run this generator once before Play.
--- Select a Part/Model to place the lab nearby. Otherwise uses the camera focus.
--- ParticleEmitters start disabled. EmitCount/EmitDelay are plugin hints only.
--- Beams start disabled: toggle Enabled to preview them (Beams have no Emit method).
 local RunService = game:GetService("RunService")
 assert(not RunService:IsRunning(), "Stop Play before generating the VFX lab.")
 local Selection = game:GetService("Selection")
@@ -17,7 +11,6 @@ local TEXTURES = {
 	Spark = "rbxasset://textures/particles/sparkles_main.dds",
 	Streak = "rbxasset://textures/particles/fire_sparks_main.dds",
 	Chip = "rbxasset://textures/particles/SquareParticle.png",
-	-- White ring from the official ParticleEmitter documentation.
 	Ring = "rbxassetid://1266170131",
 }
 local green = Color3.fromRGB(143, 225, 56)
@@ -114,7 +107,6 @@ local function beam(holder, name, a, b, color, width, curve, duration)
 	effect.Name = name
 	effect.Attachment0, effect.Attachment1 = a, b
 	effect.Enabled = false
-	-- Untextured ribbons avoid seams at the four curved ring segments.
 	effect.Color = ColorSequence.new(color)
 	effect.Transparency = NumberSequence.new(0.2)
 	effect.Width0, effect.Width1 = width, width
@@ -289,7 +281,6 @@ local function cleanTemplate(source, group, name, duration)
 end
 local windColor = Color3.fromRGB(211, 242, 249)
 local function slash(holder, radius, color)
- -- A tapered crescent rather than individual glowing wedges.
  local previous
  for i = 0, 16 do
   local t = i / 16
@@ -304,7 +295,6 @@ local function slash(holder, radius, color)
  end
 end
 local function funnel(holder, bottom, top, height, duration)
- -- Two open helices: narrow at the floor, broad at the shoulders/top.
  for strand = 1, 2 do
   local previous
   for i = 0, 36 do
@@ -410,7 +400,6 @@ local function buildResources()
 end
 local ok, err = pcall(buildResources)
 if not ok then lab:Destroy(); resourcesVFX:Destroy(); error(err) end
--- Show exact copies of the saved templates in the editable preview gallery.
 lab:ClearAllChildren()
 local displayIndex = 0
 for _, groupName in {"Statuses", "Attacks", "Skills", "Impacts"} do
@@ -429,8 +418,6 @@ for _, existing in {old, oldLab} do
   lab:Destroy(); resourcesVFX:Destroy(); error("An unrelated object already uses the generated asset name: " .. existing:GetFullName())
  end
 end
--- Command Bar is not a plugin recording context. Undo is best-effort;
--- explicit backups below preserve previous assets independently of history.
 local backups = ServerStorage:FindFirstChild("RPGVFXBackups")
 if not backups then backups = Instance.new("Folder"); backups.Name = "RPGVFXBackups"; backups.Parent = ServerStorage end
 local batch = Instance.new("Folder"); batch.Name = os.date("%Y-%m-%d_%H-%M-%S"); batch.Parent = backups

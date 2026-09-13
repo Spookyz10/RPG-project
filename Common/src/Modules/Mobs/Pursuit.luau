@@ -1,10 +1,8 @@
--- Keep locomotion/spacing separate from attack selection.
 local Pursuit = {}
 Pursuit.__index = Pursuit
 
 function Pursuit.new(mob, config)
 	local root = mob:FindFirstChild("HumanoidRootPart")
-	-- Use the locomotion body, not decorative meshes or legacy oversized hitboxes.
 	local size = root.Size
 	return setmetatable({
 		Root = root,
@@ -32,7 +30,6 @@ function Pursuit:Update(target)
 	local clearance = self.Radius + targetRadius + (config.SpacingBuffer or 1)
 	local stopDistance = math.max(config.Range, clearance)
 	local tolerance = config.SpacingTolerance or 0.5
-	-- Close targets remain attackable; do not get stuck endlessly backing away.
 	local tooClose = distance < clearance - tolerance
 	self.TooClose = tooClose
 	self.MeleeReach = stopDistance + tolerance

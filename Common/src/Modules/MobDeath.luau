@@ -1,4 +1,3 @@
--- Rig-independent death pose: intact body recoils, tips and dissolves into sparks.
 local TweenService = game:GetService("TweenService")
 local Debris = game:GetService("Debris")
 local Death = {}
@@ -60,7 +59,6 @@ function Death:Play(mob: Model)
   sparks.Size = NumberSequence.new(0.25, 0)
   sparks.Transparency = NumberSequence.new(0, 1)
   sparks.Parent = anchor
-  -- Enabled replicates reliably to every client; the short burst is then stopped.
   sparks.Rate = 100; sparks.Enabled = true
   task.delay(0.15, function() if sparks.Parent then sparks.Enabled = false end end)
   Debris:AddItem(anchor, 1.2)

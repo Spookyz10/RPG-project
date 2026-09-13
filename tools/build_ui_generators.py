@@ -1,4 +1,3 @@
-"""Bundle standalone, Edit-only Studio Command Bar scripts. No Rojo generator modules."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -11,6 +10,7 @@ ENTRIES = [
     ("Raids", "RaidsGUI"), ("Players", "Playerlist"), ("Party", "Partylist"),
     ("Dialogue", "Dialogue"), ("Shop", "Shop"), ("Journal", "Journal"),
     ("Notifications", "Notifications"), ("Tutorial", "Tutorial"), ("StylePreview", "UIStylePreview"),
+    ("ZoneTransition", "ZoneTransition"), ("DeathScreen", "DeathScreen"),
     ("Admin", "Main"), ("PlayerCard", "PlayerCard"),
     ("Crafting", "Crafting"),
     ("Leaderboards", "Leaderboards"),
@@ -22,7 +22,13 @@ def inline(path):
     text = path.read_text(encoding="utf-8-sig")
     if path.name == "Templates.luau":
         text = text.replace("require(script.Parent.MobOverhead)(folder)", "(function()\n" + inline(SOURCE / "MobOverhead.luau") + "\nend)()(folder)")
-    # Only the builders' two local dependencies are folded in; no dynamic code evaluation.
+        text = text.replace("require(script.Parent.ToastTemplate)(folder)", "(function()\n" + inline(SOURCE / "ToastTemplate.luau") + "\nend)()(folder)")
+        text = text.replace(
+            "require(script.Parent.FeedbackTemplates)(folder)",
+            "local buildFeedbackTemplates = (function()\n"
+            + inline(SOURCE / "FeedbackTemplates.luau")
+            + "\nend)()\nbuildFeedbackTemplates(folder)",
+        )
     return "\n".join(line for line in text.splitlines() if line not in {
         "local C = require(script.Parent.Parent.Components)",
         "local T = require(script.Parent.Parent.Theme)",
@@ -30,11 +36,7 @@ def inline(path):
     })
 
 
-HEADER = '''-- STUDIO COMMAND BAR / EDIT MODE ONLY.
--- Standalone: paste this entire file; no plugin or generator module is required.
--- Existing UI is moved into ServerStorage.RPGUIBackups before replacement.
--- Runtime scripts bind the saved UI and never regenerate it.
-assert(not game:GetService("RunService"):IsRunning(), "Stop Play before generating the UI.")
+HEADER = '''assert(not game:GetService("RunService"):IsRunning(), "Stop Play before generating the UI.")
 local StarterGui = game:GetService("StarterGui")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
@@ -95,7 +97,6 @@ local selected
         end
     end
 end
--- Loading/tutorial are enabled by their client controllers, not while editing.
 for _, name in { "LoadingScreen", "Tutorial", "UIStylePreview" } do
     local screen = StarterGui:FindFirstChild(name)
     if screen then screen.Enabled = preferred == name end
@@ -109,23 +110,54 @@ print("RPG UI saved as editable instances. Save the place before Play. Backups: 
 
 OUTPUT.mkdir(parents=True, exist_ok=True)
 for index, entry in enumerate(ENTRIES, 1):
-    (OUTPUT / f"{24 if entry[0] == 'LootRewards' else 22 if entry[0] == 'Leaderboards' else index:02d}_{entry[0]}.luau").write_text(bundle([entry]), encoding="utf-8")
+    number = {
+        "Templates": 1, "Loading": 2, "HUD": 3, "Navigation": 4,
+        "Combat": 5, "Inventory": 6, "Skills": 7, "Zones": 8,
+        "Raids": 9, "Players": 10, "Party": 11, "Dialogue": 12,
+        "Shop": 13, "Journal": 14, "Notifications": 15, "Tutorial": 16,
+        "StylePreview": 17, "Admin": 18, "PlayerCard": 19, "Crafting": 20,
+        "Leaderboards": 22, "LootRewards": 24, "ZoneTransition": 25,
+        "DeathScreen": 26,
+    }[entry[0]]
+    (OUTPUT / f"{number:02d}_{entry[0]}.luau").write_text(bundle([entry]), encoding="utf-8")
 (OUTPUT / "00_All.luau").write_text(bundle(ENTRIES), encoding="utf-8")
 print(f"Bundled {len(ENTRIES)} standalone Edit generators + 00_All.luau.")
 
-# Dedicated overhead generator replaces only the template, preserving other UI assets.
-overhead = HEADER + "local build = (function()\n" + inline(SOURCE / "MobOverhead.luau") + "\nend)()\n" + r'''local templates = ReplicatedStorage:FindFirstChild("RPGUITemplates")
-if not templates then templates = Instance.new("Folder"); templates.Name = "RPGUITemplates"; templates.Parent = ReplicatedStorage end
+def incremental_template(source_name, target_name, include_ui):
+    output = HEADER
+    if include_ui:
+        output += "local T = (function()\n" + inline(ROOT / "Common/src/Shared/UI/Theme.luau") + "\nend)()\n"
+        output += "local C = (function()\n" + inline(SOURCE / "Components.luau") + "\nend)()\n"
+    output += "local build = (function()\n" + inline(SOURCE / (source_name + ".luau")) + "\nend)()\n"
+    output += '''local templates = ReplicatedStorage:FindFirstChild("RPGUITemplates")
+if not templates then
+    templates = Instance.new("Folder")
+    templates.Name = "RPGUITemplates"
+    templates.Parent = ReplicatedStorage
+end
+
 local replacement = build(nil)
-local old = templates:FindFirstChild("MobOverhead")
+local targetName = "''' + target_name + '''"
+local old = templates:FindFirstChild(targetName)
 if old then
- local backups = ServerStorage:FindFirstChild("RPGUIBackups")
- if not backups then backups = Instance.new("Folder"); backups.Name = "RPGUIBackups"; backups.Parent = ServerStorage end
- local backup = Instance.new("Folder"); backup.Name = "MobOverhead_" .. os.date("%Y-%m-%d_%H-%M-%S"); backup.Parent = backups
- old.Parent = backup
+    local backups = ServerStorage:FindFirstChild("RPGUIBackups")
+    if not backups then
+        backups = Instance.new("Folder")
+        backups.Name = "RPGUIBackups"
+        backups.Parent = ServerStorage
+    end
+    local backup = Instance.new("Folder")
+    backup.Name = targetName .. "_" .. os.date("%Y-%m-%d_%H-%M-%S")
+    backup.Parent = backups
+    old.Parent = backup
 end
 replacement.Parent = templates
-Selection:Set({replacement})
-print("MobOverhead saved. Scale-only layout. Save the place, then Play.")
+Selection:Set({ replacement })
+print(targetName .. " upgraded. Only this template changed; the prior version is in ServerStorage.RPGUIBackups.")
 '''
-(OUTPUT / "21_MobOverhead.luau").write_text(overhead, encoding="utf-8")
+    return output
+
+
+(OUTPUT / "21_MobOverhead.luau").write_text(incremental_template("MobOverhead", "MobOverhead", False), encoding="utf-8")
+(OUTPUT / "23_ToastTemplate.luau").write_text(incremental_template("ToastTemplate", "ToastTemplate", True), encoding="utf-8")
+(OUTPUT / "29_FeedbackTemplates.luau").write_text(incremental_template("FeedbackTemplates", "FeedbackTemplates", True), encoding="utf-8")

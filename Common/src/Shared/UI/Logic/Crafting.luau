@@ -4,6 +4,7 @@ local Recipes = require(RS.Shared.CraftingRecipes)
 local Items = require(RS.Shared.ItemsData)
 local Functions = require(RS.Shared.Utils.Functions)
 local Remote = require(RS.Shared.Utils.RemoteManager)
+local Abbreviation = require(RS.Shared.Utils.Abbreviation)
 local Crafting = {}
 
 function Crafting.Init()
@@ -18,7 +19,7 @@ function Crafting.Init()
 		local info = Items[id]
 		local row = screen.RecipeTemplate:Clone()
 		row.Name, row.LayoutOrder, row.Visible = id, index, true
-		row.Title.Text = info.Data.Name .. "  |  Lv. " .. Recipes[id].Level
+		row.Title.Text = info.Data.Name .. "  |  Lv. " .. Abbreviation:Number(Recipes[id].Level)
 		row.Description.Text = info.Data.Description or ""
 		row.Parent = screen.Main.Body.Content.Container
 		rows[id] = row
@@ -39,10 +40,10 @@ function Crafting.Init()
 		for id, row in rows do
 			local recipe = Recipes[id]
 			local enough = data.Level() >= recipe.Level and (data.Currencies().Gold or 0) >= recipe.Gold
-			local costs = { tostring(recipe.Gold) .. " Gold" }
+			local costs = { Abbreviation:Number(recipe.Gold) .. " Gold" }
 			for material, amount in recipe.Ingredients do
 				local owned = counts[material] or 0
-				table.insert(costs, material .. " " .. owned .. "/" .. amount)
+				table.insert(costs, material .. " " .. Abbreviation:Number(owned) .. "/" .. Abbreviation:Number(amount))
 				if owned < amount then enough = false end
 			end
 			table.sort(costs)

@@ -5,6 +5,7 @@ local Debris = game:GetService("Debris")
 local Items = require(RS.Shared.ItemsDataByName)
 local Theme = require(RS.Shared.UI.Theme)
 local WorldLoot = require(RS.Shared.WorldLoot)
+local Abbreviation = require(RS.Shared.Utils.Abbreviation)
 local Remote = {}
 local sequence = 0
 local ranks = {Common = 1, Uncommon = 2, Rare = 3, Legendary = 4, Godly = 5, Ascendant = 6}
@@ -24,7 +25,7 @@ local function present(gui, name, amount, order)
 	card.Rarity.TextColor3 = color; card.UIStroke.Color = color
 	card.Icon.Image = data.Icon or ""
 	card.ItemName.Text = data.Name or name
-	card.Amount.Text = "+" .. amount .. " - Added to inventory"
+	card.Amount.Text = "+" .. Abbreviation:Number(amount) .. " - Added to inventory"
 	card.GroupTransparency = 1; card.Pop.Scale = 0.65; card.Visible = true; card.Parent = gui.List
 	Debris:AddItem(card, 5)
 	local strokes = {}

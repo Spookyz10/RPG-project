@@ -108,13 +108,8 @@ return function(parent)
 	objective.TextColor3 = T.Green
 	objective.Visible = false
 	C.Button(quest, "Abandon", "ABANDON QUEST", UDim2.new(0, 12, 1, -60), UDim2.new(1, -24, 0, 48), T.Rose)
-	local toast = C.Label(folder, "ToastTemplate", "", nil, UDim2.new(1, 0, 0, 58), true)
-	toast.BackgroundTransparency = 0
-	toast.BackgroundColor3 = T.Surface
-	toast.TextXAlignment = Enum.TextXAlignment.Center
-	toast.TextSize = 14
-	C.Round(toast)
-	C.Stroke(toast)
+	local toast = require(script.Parent.ToastTemplate)(folder)
+	require(script.Parent.FeedbackTemplates)(folder)
 	C.Label(folder, "EmptyTemplate", "", nil, UDim2.new(1, -8, 0, 120)).TextColor3 = T.Muted
 	C.Button(folder, "DialogueChoiceTemplate", "Continue", nil, UDim2.new(1, -8, 0, 52), T.Sky)
 	C.Button(folder, "AdminItemTemplate", "Item", nil, UDim2.new(1, -8, 0, 48), T.Soft)

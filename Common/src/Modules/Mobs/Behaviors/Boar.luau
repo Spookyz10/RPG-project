@@ -4,7 +4,7 @@ local Attacks = Root.Attacks
 local Definition = {
  Config = require(game:GetService("ReplicatedStorage").Shared.MobCombatConfig)["Boar"],
  Basic = { Name = "Basic", Execute = require(Attacks.Melee) },
- Skills = { { Name = "Rush", Execute = require(Attacks.Rush) } },
+ Skills = { { Name = "Rush", Execute = require(Attacks.Rush), Cooldown = 10, Range = 30 } },
 }
 function Definition:Start(mob) Controller:Start(mob, self) end
 return Definition

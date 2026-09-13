@@ -1,7 +1,3 @@
--- STUDIO COMMAND BAR / EDIT MODE ONLY.
--- Standalone: paste this entire file; no plugin or generator module is required.
--- Existing UI is moved into ServerStorage.RPGUIBackups before replacement.
--- Runtime scripts bind the saved UI and never regenerate it.
 assert(not game:GetService("RunService"):IsRunning(), "Stop Play before generating the UI.")
 local StarterGui = game:GetService("StarterGui")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -10,8 +6,6 @@ local Selection = game:GetService("Selection")
 local History = game:GetService("ChangeHistoryService")
 
 local T = (function()
--- Graphite cartoon style, following Info/UITheme.txt.
--- Semantic aliases retain compatibility with the existing screen logic.
 local Theme = {
 	Paper = Color3.fromRGB(32, 33, 41),
 	Surface = Color3.fromRGB(44, 46, 57),
@@ -188,8 +182,6 @@ function C.Card(parent, name, height)
 	return card
 end
 
--- Convert the design measurements once, in Edit mode. Saved instances and
--- responsive attributes use Scale, independently of the Studio viewport.
 function C.SaveScale(root)
 	local function scale(value, reference)
 		return UDim2.fromScale(value.X.Scale + value.X.Offset / math.max(1, reference.X), value.Y.Scale + value.Y.Offset / math.max(1, reference.Y))
@@ -249,34 +241,40 @@ builders.Players = (function()
 return function(parent)
 	local screen = C.Screen(parent, "Playerlist", 14)
 	screen.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
-	local list = C.Round(C.Frame(screen, "List", UDim2.fromScale(1, 0), UDim2.fromScale(0.22, 0.4), T.Paper))
+	local list = C.Round(C.Frame(screen, "List", UDim2.fromScale(1, 0.03), UDim2.fromScale(0.255, 0.5), T.Paper))
 	list.AnchorPoint = Vector2.new(1, 0)
 	list:SetAttribute("SideTab", true)
-	C.New("UISizeConstraint", "Bounds", list, { MinSize = Vector2.new(220, 200), MaxSize = Vector2.new(320, 360) })
+	list:SetAttribute("ExpandedPosition", UDim2.fromScale(1, 0.03))
+	list:SetAttribute("CollapsedPosition", UDim2.fromScale(1.22, 0.03))
+	C.New("UISizeConstraint", "Bounds", list, { MinSize = Vector2.new(260, 250), MaxSize = Vector2.new(390, 460) })
 	C.Stroke(list)
 	C.Frame(list, "Accent", UDim2.fromScale(0.05, 0), UDim2.fromScale(0.9, 0.012), T.Sky)
 	local toggle = C.Button(list, "Toggle", "", UDim2.fromScale(-0.12, 0.02), UDim2.fromScale(0.12, 0.18), T.Sky)
 	local arrow = C.Label(toggle, "Arrow", ">", UDim2.fromScale(0.15, 0.2), UDim2.fromScale(0.7, 0.6), true)
 	arrow.TextXAlignment = Enum.TextXAlignment.Center
+	arrow:SetAttribute("ExpandedRotation", 0)
+	arrow:SetAttribute("CollapsedRotation", 180)
 	C.New("UISizeConstraint", "TouchBounds", toggle, { MinSize = Vector2.new(32, 44) })
-	local title = C.Label(list, "Title", "ADVENTURERS", UDim2.fromScale(0.06, 0.035), UDim2.fromScale(0.88, 0.09), true)
+	local title = C.Label(list, "Title", "ADVENTURERS", UDim2.fromScale(0.06, 0.03), UDim2.fromScale(0.88, 0.09), true)
 	title.TextXAlignment = Enum.TextXAlignment.Center
-	local heading = C.Round(C.Frame(list, "Columns", UDim2.fromScale(0.04, 0.15), UDim2.fromScale(0.92, 0.09), T.Soft), 6)
+	C.Label(list, "Subtitle", "Inspect gear, records and party status", UDim2.fromScale(0.07, 0.11), UDim2.fromScale(0.86, 0.05)).TextColor3 = T.Muted
+	local heading = C.Round(C.Frame(list, "Columns", UDim2.fromScale(0.04, 0.18), UDim2.fromScale(0.92, 0.08), T.Soft), 6)
 	C.Label(heading, "Adventurer", "Adventurer", UDim2.fromScale(0.15, 0.1), UDim2.fromScale(0.57, 0.8), true)
 	local levelHeading = C.Label(heading, "Level", "Lvl", UDim2.fromScale(0.75, 0.1), UDim2.fromScale(0.22, 0.8), true)
 	levelHeading.TextColor3 = T.Gold
 	levelHeading.TextXAlignment = Enum.TextXAlignment.Center
-	local container = C.Scroll(list, "Container", UDim2.fromScale(0.035, 0.26), UDim2.fromScale(0.94, 0.71))
+	local container = C.Scroll(list, "Container", UDim2.fromScale(0.035, 0.29), UDim2.fromScale(0.94, 0.67))
 	container.UIListLayout.Padding = UDim.new(0.035, 0)
-	local row = C.New("TextButton", "EntryTemplate", list, { Text = "", Visible = false, Size = UDim2.fromScale(0.96, 0.2), BackgroundColor3 = T.Surface, AutoButtonColor = true })
-	C.Round(row, 6)
+	local row = C.New("TextButton", "EntryTemplate", list, { Text = "", Visible = false, Size = UDim2.fromScale(0.96, 0.23), BackgroundColor3 = T.Surface, AutoButtonColor = true })
+	C.Round(row, 9)
 	C.Stroke(row)
 	C.Gradient(row)
-	C.Image(row, "Rank", UDim2.fromScale(0.025, 0.22), UDim2.fromScale(0.11, 0.56))
-	local name = C.Label(row, "PlayerName", "Adventurer", UDim2.fromScale(0.15, 0.16), UDim2.fromScale(0.56, 0.68), true)
+	C.Image(row, "Rank", UDim2.fromScale(0.035, 0.2), UDim2.fromScale(0.12, 0.6))
+	local name = C.Label(row, "PlayerName", "Adventurer", UDim2.fromScale(0.18, 0.12), UDim2.fromScale(0.53, 0.5), true)
 	name.TextWrapped = false
 	name.TextTruncate = Enum.TextTruncate.AtEnd
-	C.Frame(row, "Divider", UDim2.fromScale(0.735, 0.2), UDim2.fromScale(0.006, 0.6), T.Soft)
+	C.Label(row, "Hint", "View profile", UDim2.fromScale(0.18, 0.6), UDim2.fromScale(0.5, 0.25)).TextColor3 = T.Muted
+	C.Frame(row, "Divider", UDim2.fromScale(0.735, 0.17), UDim2.fromScale(0.006, 0.66), T.Soft)
 	local level = C.Label(row, "Level", "1", UDim2.fromScale(0.76, 0.18), UDim2.fromScale(0.21, 0.64), true)
 	level.TextColor3 = T.Gold
 	level.TextXAlignment = Enum.TextXAlignment.Center
@@ -328,7 +326,6 @@ for _, entry in generated do
         end
     end
 end
--- Loading/tutorial are enabled by their client controllers, not while editing.
 for _, name in { "LoadingScreen", "Tutorial", "UIStylePreview" } do
     local screen = StarterGui:FindFirstChild(name)
     if screen then screen.Enabled = preferred == name end

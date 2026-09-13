@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
+local Abbreviation = require(ReplicatedStorage.Shared.Utils.Abbreviation)
 
 local PartyUI = {}
 
@@ -44,7 +45,7 @@ function PartyUI.OnUpdate(members: { [string]: boolean }, leaderName: string)
 		Entry.Visible = true
 		Entry.Parent = Frame
 
-		Entry.User.Text = memberName .. "(" .. GetMemberLevel(memberName) .. ")"
+		Entry.User.Text = memberName .. " (Lv. " .. Abbreviation:Number(GetMemberLevel(memberName)) .. ")"
 
 		if memberName == leaderName then
 			Entry.User.TextColor3 = LEADER_COLOR

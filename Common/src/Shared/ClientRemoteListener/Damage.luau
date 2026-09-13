@@ -46,7 +46,8 @@ end
 
 function Remote:Activate(entityHurt: Model, amount: number, params: {})
 	local mobs = Workspace:FindFirstChild("Mobs")
-	if not entityHurt or not mobs or not entityHurt:IsDescendantOf(mobs) or Players:GetPlayerFromCharacter(entityHurt) then
+	local playerTarget = entityHurt and Players:GetPlayerFromCharacter(entityHurt)
+	if not entityHurt or (not playerTarget and (not mobs or not entityHurt:IsDescendantOf(mobs))) then
 		return
 	end
 	local style, damageType = DamageStyles.Resolve(params.Type)
@@ -87,7 +88,7 @@ function Remote:Activate(entityHurt: Model, amount: number, params: {})
 
 	Label.TextColor3 = style.Color
 	if amount <= 0 and damageType ~= "Heal" then
-		Label.Text = "Too weak"
+		Label.Text = damageType == "Mob" and "Nullified" or "Too weak"
 	else
 		Label.Text = (damageType == "Heal" and "+" or "") .. Abbreviation:Number(amount)
 	end

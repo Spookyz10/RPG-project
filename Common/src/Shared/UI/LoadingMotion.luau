@@ -45,9 +45,8 @@ function Motion.Start(screen)
 		Ready = function()
 			if closed then return end
 			frame.Play.Visible = true
-			local scale = Instance.new("UIScale")
+			local scale = frame.Play:WaitForChild("ReadyScale")
 			scale.Scale = 0.92
-			scale.Parent = frame.Play
 			tween(scale, 0.45, { Scale = 1 })
 		end,
 		Close = function()

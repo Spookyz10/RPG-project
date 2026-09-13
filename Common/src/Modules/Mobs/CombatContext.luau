@@ -22,6 +22,8 @@ function Context.new(mob, cfg, session)
 	local exclude = RaycastParams.new()
 	exclude.FilterType = Enum.RaycastFilterType.Exclude
 	local excluded = { mob }
+	local mobsFolder = workspace:FindFirstChild("Mobs")
+	if mobsFolder then table.insert(excluded, mobsFolder) end
 	for _, player in Players:GetPlayers() do
 		if player.Character then table.insert(excluded, player.Character) end
 	end
@@ -32,6 +34,7 @@ function Context.new(mob, cfg, session)
 	end
 	local function refreshFilter()
 		local list = { mob }
+		if mobsFolder then table.insert(list, mobsFolder) end
 		for _, player in Players:GetPlayers() do
 			if player.Character then table.insert(list, player.Character) end
 		end
@@ -44,10 +47,10 @@ function Context.new(mob, cfg, session)
 	end
 	local function hit(cf, size, radius, multiplier, knockback, status, seen)
 		if not active() then return end
-		for char in BodyQuery.PlayersInVolume(cf, size, radius) do
+		local damageSize = size + Vector3.new(2, 6, 2)
+		for char in BodyQuery.PlayersInVolume(cf, damageSize, radius and radius + 1 or nil) do
 			local part = char:FindFirstChild("HumanoidRootPart")
 			if not part or not alive(char) or seen[char] or char:FindFirstChildOfClass("ForceField") then continue end
-			-- Walls block damage, including cave walls and obstacles along a rush.
 			if workspace:Raycast(root.Position, part.Position - root.Position, exclude) then continue end
 			seen[char] = true
 			local dealt = Damage:dealDamage(mob, char, multiplier)

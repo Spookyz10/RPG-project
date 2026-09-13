@@ -1,4 +1,9 @@
-return { BeforeIncomingDamage = function(ctx)
- local hum = ctx.Victim:FindFirstChildOfClass("Humanoid")
- if hum and hum.Health <= hum.MaxHealth * 0.35 then ctx.Damage *= 0.75 end
-end }
+return {
+	BeforeIncomingDamage = function(context)
+		local humanoid = context.Victim:FindFirstChildOfClass("Humanoid")
+		if humanoid and humanoid.Health <= humanoid.MaxHealth * 0.35 then
+			context.Damage *= 0.75
+			context.TriggeredDefenderPassives.LastStand = true
+		end
+	end,
+}

@@ -29,7 +29,6 @@ pcall(function()
 	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
 end)
 
--- Only preload assets, not every instance in the workspace.
 local items = {}
 local resources = ReplicatedStorage:FindFirstChild("Resources")
 if resources then

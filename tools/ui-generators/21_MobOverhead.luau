@@ -1,7 +1,3 @@
--- STUDIO COMMAND BAR / EDIT MODE ONLY.
--- Standalone: paste this entire file; no plugin or generator module is required.
--- Existing UI is moved into ServerStorage.RPGUIBackups before replacement.
--- Runtime scripts bind the saved UI and never regenerate it.
 assert(not game:GetService("RunService"):IsRunning(), "Stop Play before generating the UI.")
 local StarterGui = game:GetService("StarterGui")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -9,7 +5,6 @@ local ServerStorage = game:GetService("ServerStorage")
 local Selection = game:GetService("Selection")
 local History = game:GetService("ChangeHistoryService")
 local build = (function()
--- All UI dimensions use Scale. Billboard scale is measured in world studs.
 return function(parent)
 	local function create(class, name, owner, properties)
 		local object = Instance.new(class)
@@ -70,15 +65,27 @@ return function(parent)
 end
 end)()
 local templates = ReplicatedStorage:FindFirstChild("RPGUITemplates")
-if not templates then templates = Instance.new("Folder"); templates.Name = "RPGUITemplates"; templates.Parent = ReplicatedStorage end
+if not templates then
+    templates = Instance.new("Folder")
+    templates.Name = "RPGUITemplates"
+    templates.Parent = ReplicatedStorage
+end
+
 local replacement = build(nil)
-local old = templates:FindFirstChild("MobOverhead")
+local targetName = "MobOverhead"
+local old = templates:FindFirstChild(targetName)
 if old then
- local backups = ServerStorage:FindFirstChild("RPGUIBackups")
- if not backups then backups = Instance.new("Folder"); backups.Name = "RPGUIBackups"; backups.Parent = ServerStorage end
- local backup = Instance.new("Folder"); backup.Name = "MobOverhead_" .. os.date("%Y-%m-%d_%H-%M-%S"); backup.Parent = backups
- old.Parent = backup
+    local backups = ServerStorage:FindFirstChild("RPGUIBackups")
+    if not backups then
+        backups = Instance.new("Folder")
+        backups.Name = "RPGUIBackups"
+        backups.Parent = ServerStorage
+    end
+    local backup = Instance.new("Folder")
+    backup.Name = targetName .. "_" .. os.date("%Y-%m-%d_%H-%M-%S")
+    backup.Parent = backups
+    old.Parent = backup
 end
 replacement.Parent = templates
-Selection:Set({replacement})
-print("MobOverhead saved. Scale-only layout. Save the place, then Play.")
+Selection:Set({ replacement })
+print(targetName .. " upgraded. Only this template changed; the prior version is in ServerStorage.RPGUIBackups.")

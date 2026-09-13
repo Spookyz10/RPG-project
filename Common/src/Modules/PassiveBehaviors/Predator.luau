@@ -1,4 +1,9 @@
-return { AfterHit = function(ctx)
- local hum = ctx.Caster:FindFirstChildOfClass("Humanoid")
- if hum and hum.Health > 0 and ctx.IsCrit then hum.Health = math.min(hum.MaxHealth, hum.Health + ctx.Damage * 0.08) end
-end }
+return {
+	AfterHit = function(context)
+		local humanoid = context.Caster:FindFirstChildOfClass("Humanoid")
+		if not humanoid or humanoid.Health <= 0 or not context.IsCrit then return end
+		local before = humanoid.Health
+		humanoid.Health = math.min(humanoid.MaxHealth, humanoid.Health + context.Damage * 0.08)
+		if humanoid.Health > before then context.TriggeredPassives.Predator = true end
+	end,
+}

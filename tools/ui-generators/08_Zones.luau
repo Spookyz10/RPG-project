@@ -1,7 +1,3 @@
--- STUDIO COMMAND BAR / EDIT MODE ONLY.
--- Standalone: paste this entire file; no plugin or generator module is required.
--- Existing UI is moved into ServerStorage.RPGUIBackups before replacement.
--- Runtime scripts bind the saved UI and never regenerate it.
 assert(not game:GetService("RunService"):IsRunning(), "Stop Play before generating the UI.")
 local StarterGui = game:GetService("StarterGui")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -10,8 +6,6 @@ local Selection = game:GetService("Selection")
 local History = game:GetService("ChangeHistoryService")
 
 local T = (function()
--- Graphite cartoon style, following Info/UITheme.txt.
--- Semantic aliases retain compatibility with the existing screen logic.
 local Theme = {
 	Paper = Color3.fromRGB(32, 33, 41),
 	Surface = Color3.fromRGB(44, 46, 57),
@@ -188,8 +182,6 @@ function C.Card(parent, name, height)
 	return card
 end
 
--- Convert the design measurements once, in Edit mode. Saved instances and
--- responsive attributes use Scale, independently of the Studio viewport.
 function C.SaveScale(root)
 	local function scale(value, reference)
 		return UDim2.fromScale(value.X.Scale + value.X.Offset / math.max(1, reference.X), value.Y.Scale + value.Y.Offset / math.max(1, reference.Y))
@@ -288,7 +280,10 @@ return function(parent)
 	C.Label(mob, "Stats", "Stats", UDim2.fromScale(0.04, 0.66), UDim2.fromScale(0.4, 0.2))
 	C.Label(mob, "Rewards", "Rewards", UDim2.fromScale(0.04, 0.89), UDim2.fromScale(0.4, 0.07))
 	C.Label(mob, "DropsTitle", "ITEM DROPS", UDim2.fromScale(0.48, 0.035), UDim2.fromScale(0.48, 0.07), true)
-	C.New("ViewportFrame", "Preview", mob, {Position = UDim2.fromScale(0.04, 0.13), Size = UDim2.fromScale(0.4, 0.5), BackgroundTransparency = 1, Ambient = Color3.fromRGB(190, 190, 190), LightColor = Color3.fromRGB(255, 240, 216)})
+	local preview = C.New("ViewportFrame", "Preview", mob, {Position = UDim2.fromScale(0.04, 0.13), Size = UDim2.fromScale(0.4, 0.5), BackgroundTransparency = 1, Ambient = Color3.fromRGB(190, 190, 190), LightColor = Color3.fromRGB(255, 240, 216)})
+	C.New("WorldModel", "World", preview)
+	local camera = C.New("Camera", "Camera", preview, {FieldOfView = 35})
+	preview.CurrentCamera = camera
 	C.Label(mob.Preview, "Missing", "Model unavailable", UDim2.new(), UDim2.fromScale(1, 1)).Visible = false
 	local drops = C.Scroll(mob, "Drops", UDim2.fromScale(0.48, 0.14), UDim2.fromScale(0.49, 0.82))
 	drops.UIListLayout:Destroy()
@@ -367,7 +362,6 @@ for _, entry in generated do
         end
     end
 end
--- Loading/tutorial are enabled by their client controllers, not while editing.
 for _, name in { "LoadingScreen", "Tutorial", "UIStylePreview" } do
     local screen = StarterGui:FindFirstChild(name)
     if screen then screen.Enabled = preferred == name end

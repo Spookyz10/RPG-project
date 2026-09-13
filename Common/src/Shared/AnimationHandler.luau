@@ -233,7 +233,6 @@ function AnimationHandler:PlayWeaponIdle(weaponType: string?): AnimationTrack?
 		return nil
 	end
 
-	-- Loading can yield; an unequip or newer weapon selection must win.
 	if not self:WaitUntilReady() then return nil end
 	if PreloadStatus then PreloadStatus:WaitUntilReady() end
 	if self._Destroyed or self.CurrentWeaponIdle ~= weaponType then return nil end

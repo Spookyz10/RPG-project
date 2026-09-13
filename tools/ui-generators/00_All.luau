@@ -1,7 +1,3 @@
--- STUDIO COMMAND BAR / EDIT MODE ONLY.
--- Standalone: paste this entire file; no plugin or generator module is required.
--- Existing UI is moved into ServerStorage.RPGUIBackups before replacement.
--- Runtime scripts bind the saved UI and never regenerate it.
 assert(not game:GetService("RunService"):IsRunning(), "Stop Play before generating the UI.")
 local StarterGui = game:GetService("StarterGui")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -10,8 +6,6 @@ local Selection = game:GetService("Selection")
 local History = game:GetService("ChangeHistoryService")
 
 local T = (function()
--- Graphite cartoon style, following Info/UITheme.txt.
--- Semantic aliases retain compatibility with the existing screen logic.
 local Theme = {
 	Paper = Color3.fromRGB(32, 33, 41),
 	Surface = Color3.fromRGB(44, 46, 57),
@@ -188,8 +182,6 @@ function C.Card(parent, name, height)
 	return card
 end
 
--- Convert the design measurements once, in Edit mode. Saved instances and
--- responsive attributes use Scale, independently of the Studio viewport.
 function C.SaveScale(root)
 	local function scale(value, reference)
 		return UDim2.fromScale(value.X.Scale + value.X.Offset / math.max(1, reference.X), value.Y.Scale + value.Y.Offset / math.max(1, reference.Y))
@@ -331,7 +323,6 @@ return function(parent)
 	C.Image(player, "Icon", UDim2.new(1, -124, 0, 22), UDim2.fromOffset(24, 24))
 
 	local mob = (function()
--- All UI dimensions use Scale. Billboard scale is measured in world studs.
 return function(parent)
 	local function create(class, name, owner, properties)
 		local object = Instance.new(class)
@@ -413,13 +404,111 @@ end)()(folder)
 	objective.TextColor3 = T.Green
 	objective.Visible = false
 	C.Button(quest, "Abandon", "ABANDON QUEST", UDim2.new(0, 12, 1, -60), UDim2.new(1, -24, 0, 48), T.Rose)
-	local toast = C.Label(folder, "ToastTemplate", "", nil, UDim2.new(1, 0, 0, 58), true)
-	toast.BackgroundTransparency = 0
-	toast.BackgroundColor3 = T.Surface
-	toast.TextXAlignment = Enum.TextXAlignment.Center
-	toast.TextSize = 14
-	C.Round(toast)
-	C.Stroke(toast)
+	local toast = (function()
+
+return function(parent)
+	local toast = C.New("CanvasGroup", "ToastTemplate", parent, {
+		Size = UDim2.new(1, 0, 0, 66),
+		BackgroundColor3 = T.Surface,
+		ClipsDescendants = true,
+		Visible = false,
+	})
+	C.Round(toast, 10)
+	C.Stroke(toast, T.Gold)
+
+	C.Frame(toast, "Accent", UDim2.fromScale(0, 0), UDim2.fromScale(0.018, 1), T.Gold)
+	local message = C.Label(toast, "Message", "", UDim2.fromScale(0.07, 0.08), UDim2.fromScale(0.86, 0.68), true)
+	message.TextXAlignment = Enum.TextXAlignment.Center
+	message.TextSize = 14
+
+	local shine = C.Frame(toast, "Shine", UDim2.fromScale(-0.35, 0), UDim2.fromScale(0.24, 1), T.Highlight)
+	shine:SetAttribute("EndPosition", UDim2.fromScale(1.2, 0))
+	shine.BackgroundTransparency = 0.78
+	shine.Rotation = 18
+	local pop = C.New("UIScale", "Pop", toast, { Scale = 1 })
+	pop:SetAttribute("StartScale", 0.82)
+	return toast
+end
+end)()(folder)
+	local buildFeedbackTemplates = (function()
+
+local function skillTemplate(parent)
+	local root = C.New("CanvasGroup", "Skill", parent, {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(2.8, 3.15),
+		BackgroundTransparency = 1,
+		Visible = false,
+		ZIndex = 200,
+	})
+	local pulse = C.Round(C.Frame(root, "Pulse", UDim2.fromScale(0.39, 0.4), UDim2.fromScale(0.22, 0.2), T.Sky), 10)
+	pulse.BackgroundTransparency = 0.72
+	pulse.ZIndex = 201
+	pulse:SetAttribute("EndSize", UDim2.fromScale(0.72, 0.64))
+	pulse:SetAttribute("EndPosition", UDim2.fromScale(0.14, 0.18))
+	local border = C.Stroke(pulse, T.Ink)
+	border.Thickness = 3
+	local echo = C.Image(root, "Echo", UDim2.fromScale(0.4, 0.4), UDim2.fromScale(0.2, 0.2))
+	echo.ZIndex = 202
+	echo:SetAttribute("EndPosition", UDim2.fromScale(0.325, 0.14))
+	echo:SetAttribute("EndSize", UDim2.fromScale(0.35, 0.35))
+	local title = C.Label(root, "Title", "SKILL", UDim2.fromScale(0.05, 0.22), UDim2.fromScale(0.9, 0.13), true)
+	title.ZIndex = 203
+	title.TextColor3 = T.Sky
+	title.TextXAlignment = Enum.TextXAlignment.Center
+	title:SetAttribute("EndPosition", UDim2.fromScale(0.05, 0.08))
+	for index = 1, 8 do
+		local angle = math.pi * 2 * index / 8
+		local particle = C.Round(C.Frame(root, "Particle" .. index, UDim2.fromScale(0.48, 0.47), UDim2.fromScale(0.04, 0.04), index % 2 == 0 and T.Sky or T.Ink), 10)
+		particle.AnchorPoint = Vector2.new(0.5, 0.5)
+		particle.Rotation = 45
+		particle.ZIndex = 204
+		particle:SetAttribute("EndPosition", UDim2.fromScale(0.5 + math.cos(angle) * 0.3, 0.49 + math.sin(angle) * 0.27))
+		particle:SetAttribute("EndSize", UDim2.fromScale(0.012, 0.012))
+	end
+	return root
+end
+
+local function banner(parent, name, color, detail)
+	local card = C.New("CanvasGroup", name, parent, {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.62),
+		Size = UDim2.fromScale(0.24, 0.085),
+		BackgroundColor3 = T.Paper,
+		BackgroundTransparency = 0.08,
+		Visible = false,
+		ZIndex = 201,
+	})
+	card:SetAttribute("BasePosition", card.Position)
+	card:SetAttribute("EntryOffset", UDim2.fromScale(0, 0.08))
+	card:SetAttribute("ExitOffset", UDim2.fromScale(0, -0.04))
+	card:SetAttribute("StackSpacing", 0.095)
+	C.New("UISizeConstraint", "Bounds", card, { MinSize = Vector2.new(250, 56), MaxSize = Vector2.new(310, 64) })
+	C.Round(card, 10)
+	C.Stroke(card, color)
+	local accent = C.Round(C.Frame(card, "Accent", UDim2.fromScale(0.022, 0.1), UDim2.fromScale(0.022, 0.8), color), 10)
+	accent.ZIndex = 202
+	local title = C.Label(card, "Title", name, UDim2.fromScale(0.09, 0.08), UDim2.fromScale(0.87, 0.43), true)
+	title.ZIndex = 203
+	title.TextColor3 = color
+	local subtitle = C.Label(card, "Detail", detail, UDim2.fromScale(0.09, 0.52), UDim2.fromScale(0.87, 0.3))
+	subtitle.ZIndex = 203
+	subtitle.TextColor3 = T.Muted
+	local pop = C.New("UIScale", "Pop", card, { Scale = 1 })
+	pop:SetAttribute("StartScale", 0.72)
+	return card
+end
+
+return function(parent)
+	local folder = C.New("Folder", "FeedbackTemplates", parent)
+	skillTemplate(folder)
+	banner(folder, "Passive", T.Gold, "PASSIVE TRIGGERED")
+	banner(folder, "Buff", T.Green, "BUFF ACTIVE")
+	banner(folder, "Debuff", T.Red, "NEGATIVE EFFECT APPLIED")
+	return folder
+end
+end)()
+buildFeedbackTemplates(folder)
 	C.Label(folder, "EmptyTemplate", "", nil, UDim2.new(1, -8, 0, 120)).TextColor3 = T.Muted
 	C.Button(folder, "DialogueChoiceTemplate", "Continue", nil, UDim2.new(1, -8, 0, 52), T.Sky)
 	C.Button(folder, "AdminItemTemplate", "Item", nil, UDim2.new(1, -8, 0, 48), T.Soft)
@@ -468,6 +557,7 @@ return function(parent)
 	C.Gradient(play)
 	local stroke = C.Stroke(play, T.Line)
 	stroke.Thickness = 1
+	C.New("UIScale", "ReadyScale", play, { Scale = 1 })
 	text("Footer", "YOUR STORY CONTINUES", 0.08, 0.91, 0.5, 0.022, Color3.fromRGB(126, 139, 157))
 	return screen
 end
@@ -501,6 +591,13 @@ return function(parent)
 		amount.TextSize = 13
 		amount.TextXAlignment = Enum.TextXAlignment.Right
 		amount.TextColor3 = index == 1 and T.Gold or T.Blue
+		C.New("UIScale", "GainPop", amount, { Scale = 1 })
+		local gain = C.Label(cell, "Gain", "", UDim2.fromScale(0.42, -0.2), UDim2.fromScale(0.56, 0.8), true)
+		gain:SetAttribute("EndPosition", UDim2.fromScale(0.42, -0.65))
+		amount.GainPop:SetAttribute("PulseStartScale", 0.72)
+		gain.TextColor3 = index == 1 and T.Gold or T.Blue
+		gain.TextTransparency = 1
+		gain.TextXAlignment = Enum.TextXAlignment.Right
 	end
 	return screen
 end
@@ -529,7 +626,6 @@ return function(parent)
 		button:SetAttribute("OpenScreen", entry[3])
 		if entry[1] == "Admin" or entry[1] == "Raids" or entry[1] == "Party" or entry[1] == "Journal" then button.Visible = false end
 	end
-	-- A small primary shortcut stays visible when the menu is collapsed.
 	local bag = C.Button(main, "Backpack", "Bag", UDim2.fromOffset(0, 56), UDim2.fromOffset(80, 48), T.Mint)
 	bag:SetAttribute("OpenScreen", "Inventory")
 	local amount = C.Label(bag, "Amount", "0 / 100", UDim2.fromOffset(0, 28), UDim2.new(1, 0, 0, 16))
@@ -636,6 +732,8 @@ end
 return function(parent)
 	local screen, root, body = C.Window(parent, "Inventory", "Main", "INVENTORY", "Your hero. Your gear. Your next upgrade.", 510, 560)
 	root.Bounds.MaxSize = Vector2.new(740, 630)
+	root.Accent:Destroy()
+	root.Subtitle:Destroy()
 	body:SetAttribute("InventoryLayout", true)
 	body:SetAttribute("Breakpoint", 580)
 	C.Responsive(body, UDim2.new(), UDim2.new(1, -8, 0, 510), UDim2.new(), UDim2.new(1, -8, 0, 568))
@@ -662,18 +760,27 @@ return function(parent)
 	previewStatus.TextXAlignment = Enum.TextXAlignment.Center
 	equipment(hero, "Equipped", { "Weapon", "Armor", "Ring", "Necklace", "Aura", "Rune" })
 	equipment(hero, "Vanities", { "Weapon", "Aura" }).Visible = false
-	C.Button(hero, "Vanity", "GEAR / LOOKS", UDim2.fromOffset(8, 286), UDim2.new(1, -16, 0, 44), T.Purple)
-	C.Section(hero, "StatsHeader", "TOTAL STATS", UDim2.fromOffset(6, 340), UDim2.new(1, -12, 0, 28))
-	local stats = C.Frame(hero, "Stats", UDim2.fromOffset(12, 376), UDim2.new(1, -24, 0, 128))
+	C.Button(hero, "Vanity", "GEAR / LOOKS", UDim2.fromOffset(8, 274), UDim2.new(1, -16, 0, 36), T.Purple)
+	C.Section(hero, "StatsHeader", "TOTAL STATS & POTION MASTERY", UDim2.fromOffset(6, 316), UDim2.new(1, -12, 0, 24))
+	local stats = C.Frame(hero, "Stats", UDim2.fromOffset(12, 345), UDim2.new(1, -24, 0, 159))
 	C.List(stats, false, 2)
-	for _, entry in { { "Attack", "ATK" }, { "Defense", "DEF" }, { "Health", "HP" }, { "Speed", "SPD" }, { "Critical", "CRIT" } } do
-		local row = C.Frame(stats, entry[1], nil, UDim2.new(1, 0, 0, 23), T.Soft)
+	for _, entry in { { "Attack", "ATK", T.Red }, { "Defense", "DEF", T.Blue }, { "Health", "HP", T.Green }, { "Speed", "SPD", T.Gold }, { "Critical", "CRIT", T.Purple } } do
+		local row = C.Frame(stats, entry[1], nil, UDim2.new(1, 0, 0, 30), T.Soft)
 		C.Round(row, 4)
-		C.Label(row, "Label", entry[2], UDim2.fromOffset(8, 0), UDim2.fromScale(0.45, 1), true).TextSize = 13
-		local value = C.Label(row, "Value", "--", UDim2.fromScale(0.45, 0), UDim2.new(0.55, -8, 1, 0), true)
-		value.TextColor3 = entry[1] == "Health" and T.Green or T.Gold
-		value.TextSize = 13
+		C.Frame(row, "Mark", UDim2.fromScale(0, 0.16), UDim2.fromScale(0.015, 0.68), entry[3])
+		C.Label(row, "Label", entry[2], UDim2.fromOffset(7, 1), UDim2.fromScale(0.2, 0.62), true).TextSize = 11
+		local value = C.Label(row, "Value", "--", UDim2.fromScale(0.2, 0.03), UDim2.fromScale(0.2, 0.58), true)
+		value.TextColor3 = entry[3]
+		value.TextSize = 11
 		value.TextXAlignment = Enum.TextXAlignment.Right
+		local potion = C.Label(row, "Potion", "0/10  |  10 LEFT", UDim2.fromScale(0.43, 0.01), UDim2.fromScale(0.54, 0.58), true)
+		potion.TextSize = 9
+		potion.TextColor3 = T.Muted
+		potion.TextXAlignment = Enum.TextXAlignment.Right
+		local progress = C.Round(C.Frame(row, "Progress", UDim2.fromScale(0.43, 0.7), UDim2.fromScale(0.54, 0.16), T.Paper), 3)
+		progress.ClipsDescendants = true
+		local fill = C.Round(C.Frame(progress, "Fill", nil, UDim2.fromScale(0, 1), entry[3]), 3)
+		fill:SetAttribute("DynamicProgress", true)
 	end
 
 	local items = C.Frame(body, "Items", nil, nil, T.Surface)
@@ -710,8 +817,6 @@ return function(parent)
 			C.Button(cell, "Confirm", "CONFIRM", nil, nil, T.Sand).Visible = false
 		end
 	end
-	-- A full-height storage panel covers the hero column; the backpack stays
-	-- available beside it for deposits. Keep Bank under Items for saved-UI bindings.
 	local bank = C.Round(C.Frame(items, "Bank", UDim2.fromScale(-2 / 3, 0), UDim2.fromScale(0.64, 1), T.Paper), 8)
 	bank.Visible = false
 	bank.Active = true
@@ -749,6 +854,10 @@ return function(parent)
 	C.Label(tip, "Description", "", UDim2.fromOffset(12, 94), UDim2.new(1, -24, 0, 78)).TextSize = 13
 	C.Label(tip, "Stats", "", UDim2.fromOffset(12, 180), UDim2.new(1, -24, 0, 68)).TextSize = 13
 	C.Label(tip, "Footer", "", UDim2.new(0, 12, 1, -30), UDim2.new(1, -24, 0, 22)).TextColor3 = T.Gold
+	C.SaveScale(screen)
+	root.Size = UDim2.fromScale(0.5, 0.8)
+	body.AnchorPoint = Vector2.new(0.5, 0.5)
+	body.Position = UDim2.fromScale(0.5, 0.5)
 	return screen
 end
 end)()
@@ -811,7 +920,10 @@ return function(parent)
 	C.Label(mob, "Stats", "Stats", UDim2.fromScale(0.04, 0.66), UDim2.fromScale(0.4, 0.2))
 	C.Label(mob, "Rewards", "Rewards", UDim2.fromScale(0.04, 0.89), UDim2.fromScale(0.4, 0.07))
 	C.Label(mob, "DropsTitle", "ITEM DROPS", UDim2.fromScale(0.48, 0.035), UDim2.fromScale(0.48, 0.07), true)
-	C.New("ViewportFrame", "Preview", mob, {Position = UDim2.fromScale(0.04, 0.13), Size = UDim2.fromScale(0.4, 0.5), BackgroundTransparency = 1, Ambient = Color3.fromRGB(190, 190, 190), LightColor = Color3.fromRGB(255, 240, 216)})
+	local preview = C.New("ViewportFrame", "Preview", mob, {Position = UDim2.fromScale(0.04, 0.13), Size = UDim2.fromScale(0.4, 0.5), BackgroundTransparency = 1, Ambient = Color3.fromRGB(190, 190, 190), LightColor = Color3.fromRGB(255, 240, 216)})
+	C.New("WorldModel", "World", preview)
+	local camera = C.New("Camera", "Camera", preview, {FieldOfView = 35})
+	preview.CurrentCamera = camera
 	C.Label(mob.Preview, "Missing", "Model unavailable", UDim2.new(), UDim2.fromScale(1, 1)).Visible = false
 	local drops = C.Scroll(mob, "Drops", UDim2.fromScale(0.48, 0.14), UDim2.fromScale(0.49, 0.82))
 	drops.UIListLayout:Destroy()
@@ -888,34 +1000,40 @@ builders.Players = (function()
 return function(parent)
 	local screen = C.Screen(parent, "Playerlist", 14)
 	screen.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
-	local list = C.Round(C.Frame(screen, "List", UDim2.fromScale(1, 0), UDim2.fromScale(0.22, 0.4), T.Paper))
+	local list = C.Round(C.Frame(screen, "List", UDim2.fromScale(1, 0.03), UDim2.fromScale(0.255, 0.5), T.Paper))
 	list.AnchorPoint = Vector2.new(1, 0)
 	list:SetAttribute("SideTab", true)
-	C.New("UISizeConstraint", "Bounds", list, { MinSize = Vector2.new(220, 200), MaxSize = Vector2.new(320, 360) })
+	list:SetAttribute("ExpandedPosition", UDim2.fromScale(1, 0.03))
+	list:SetAttribute("CollapsedPosition", UDim2.fromScale(1.22, 0.03))
+	C.New("UISizeConstraint", "Bounds", list, { MinSize = Vector2.new(260, 250), MaxSize = Vector2.new(390, 460) })
 	C.Stroke(list)
 	C.Frame(list, "Accent", UDim2.fromScale(0.05, 0), UDim2.fromScale(0.9, 0.012), T.Sky)
 	local toggle = C.Button(list, "Toggle", "", UDim2.fromScale(-0.12, 0.02), UDim2.fromScale(0.12, 0.18), T.Sky)
 	local arrow = C.Label(toggle, "Arrow", ">", UDim2.fromScale(0.15, 0.2), UDim2.fromScale(0.7, 0.6), true)
 	arrow.TextXAlignment = Enum.TextXAlignment.Center
+	arrow:SetAttribute("ExpandedRotation", 0)
+	arrow:SetAttribute("CollapsedRotation", 180)
 	C.New("UISizeConstraint", "TouchBounds", toggle, { MinSize = Vector2.new(32, 44) })
-	local title = C.Label(list, "Title", "ADVENTURERS", UDim2.fromScale(0.06, 0.035), UDim2.fromScale(0.88, 0.09), true)
+	local title = C.Label(list, "Title", "ADVENTURERS", UDim2.fromScale(0.06, 0.03), UDim2.fromScale(0.88, 0.09), true)
 	title.TextXAlignment = Enum.TextXAlignment.Center
-	local heading = C.Round(C.Frame(list, "Columns", UDim2.fromScale(0.04, 0.15), UDim2.fromScale(0.92, 0.09), T.Soft), 6)
+	C.Label(list, "Subtitle", "Inspect gear, records and party status", UDim2.fromScale(0.07, 0.11), UDim2.fromScale(0.86, 0.05)).TextColor3 = T.Muted
+	local heading = C.Round(C.Frame(list, "Columns", UDim2.fromScale(0.04, 0.18), UDim2.fromScale(0.92, 0.08), T.Soft), 6)
 	C.Label(heading, "Adventurer", "Adventurer", UDim2.fromScale(0.15, 0.1), UDim2.fromScale(0.57, 0.8), true)
 	local levelHeading = C.Label(heading, "Level", "Lvl", UDim2.fromScale(0.75, 0.1), UDim2.fromScale(0.22, 0.8), true)
 	levelHeading.TextColor3 = T.Gold
 	levelHeading.TextXAlignment = Enum.TextXAlignment.Center
-	local container = C.Scroll(list, "Container", UDim2.fromScale(0.035, 0.26), UDim2.fromScale(0.94, 0.71))
+	local container = C.Scroll(list, "Container", UDim2.fromScale(0.035, 0.29), UDim2.fromScale(0.94, 0.67))
 	container.UIListLayout.Padding = UDim.new(0.035, 0)
-	local row = C.New("TextButton", "EntryTemplate", list, { Text = "", Visible = false, Size = UDim2.fromScale(0.96, 0.2), BackgroundColor3 = T.Surface, AutoButtonColor = true })
-	C.Round(row, 6)
+	local row = C.New("TextButton", "EntryTemplate", list, { Text = "", Visible = false, Size = UDim2.fromScale(0.96, 0.23), BackgroundColor3 = T.Surface, AutoButtonColor = true })
+	C.Round(row, 9)
 	C.Stroke(row)
 	C.Gradient(row)
-	C.Image(row, "Rank", UDim2.fromScale(0.025, 0.22), UDim2.fromScale(0.11, 0.56))
-	local name = C.Label(row, "PlayerName", "Adventurer", UDim2.fromScale(0.15, 0.16), UDim2.fromScale(0.56, 0.68), true)
+	C.Image(row, "Rank", UDim2.fromScale(0.035, 0.2), UDim2.fromScale(0.12, 0.6))
+	local name = C.Label(row, "PlayerName", "Adventurer", UDim2.fromScale(0.18, 0.12), UDim2.fromScale(0.53, 0.5), true)
 	name.TextWrapped = false
 	name.TextTruncate = Enum.TextTruncate.AtEnd
-	C.Frame(row, "Divider", UDim2.fromScale(0.735, 0.2), UDim2.fromScale(0.006, 0.6), T.Soft)
+	C.Label(row, "Hint", "View profile", UDim2.fromScale(0.18, 0.6), UDim2.fromScale(0.5, 0.25)).TextColor3 = T.Muted
+	C.Frame(row, "Divider", UDim2.fromScale(0.735, 0.17), UDim2.fromScale(0.006, 0.66), T.Soft)
 	local level = C.Label(row, "Level", "1", UDim2.fromScale(0.76, 0.18), UDim2.fromScale(0.21, 0.64), true)
 	level.TextColor3 = T.Gold
 	level.TextXAlignment = Enum.TextXAlignment.Center
@@ -969,10 +1087,11 @@ builders.Notifications = (function()
 
 return function(parent)
 	local screen = C.Screen(parent, "Notifications", 80)
-	local container = C.Frame(screen, "Container", UDim2.new(0.5, 0, 0, 12), UDim2.new(1, -24, 0, 200))
+	local container = C.Frame(screen, "Container", UDim2.fromScale(0.5, 0.02), UDim2.fromScale(0.38, 0.26))
+	container.AnchorPoint = Vector2.new(0.5, 0)
 	container.AnchorPoint = Vector2.new(0.5, 0)
 	C.New("UISizeConstraint", "Bounds", container, { MaxSize = Vector2.new(400, 200) })
-	C.List(container)
+	C.List(container, false, 9)
 	return screen
 end
 end)()
@@ -1030,6 +1149,43 @@ return function(parent)
 end
 end)()
 
+builders.ZoneTransition = (function()
+
+return function(parent)
+	local screen = C.Screen(parent, "ZoneTransition", 95)
+	screen.Enabled = false
+	local veil = C.Frame(screen, "Veil", UDim2.fromScale(0, 0), UDim2.fromScale(1, 1), Color3.fromRGB(8, 10, 17))
+	local panel = C.Round(C.Frame(veil, "Panel", UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.52, 0.18), T.Paper), 18)
+	panel.AnchorPoint = Vector2.new(0.5, 0.5)
+	C.Stroke(panel, T.Gold)
+	C.Label(panel, "Eyebrow", "TRAVELING", UDim2.fromScale(0.08, 0.12), UDim2.fromScale(0.84, 0.18), true).TextColor3 = T.Gold
+	local title = C.Label(panel, "Title", "GRASSLANDS", UDim2.fromScale(0.08, 0.30), UDim2.fromScale(0.84, 0.34), true)
+	title.TextXAlignment = Enum.TextXAlignment.Center
+	title.TextSize = 28
+	local rule = C.Round(C.Frame(panel, "Rule", UDim2.fromScale(0.17, 0.73), UDim2.fromScale(0.66, 0.05), T.Gold), 8)
+	return screen
+end
+end)()
+
+builders.DeathScreen = (function()
+
+return function(parent)
+	local screen = C.Screen(parent, "DeathScreen", 96)
+	screen.Enabled = false
+	local veil = C.Frame(screen, "Veil", UDim2.fromScale(0, 0), UDim2.fromScale(1, 1), Color3.fromRGB(13, 8, 13))
+	veil.BackgroundTransparency = 0.2
+	local panel = C.Round(C.Frame(veil, "Panel", UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.44, 0.26), T.Paper), 18)
+	panel.AnchorPoint = Vector2.new(0.5, 0.5)
+	C.Stroke(panel, T.Rose)
+	local title = C.Label(panel, "Title", "YOU DIED", UDim2.fromScale(0.08, 0.12), UDim2.fromScale(0.84, 0.25), true)
+	title.TextColor3 = T.Rose; title.TextXAlignment = Enum.TextXAlignment.Center; title.TextSize = 30
+	local timer = C.Label(panel, "Timer", "You will respawn in 6 seconds", UDim2.fromScale(0.08, 0.42), UDim2.fromScale(0.84, 0.18), true)
+	timer.TextXAlignment = Enum.TextXAlignment.Center
+	local button = C.Button(panel, "RespawnNow", "RESPAWN NOW", UDim2.fromScale(0.22, 0.68), UDim2.fromScale(0.56, 0.20), T.Mint)
+	return screen
+end
+end)()
+
 builders.Admin = (function()
 
 return function(parent)
@@ -1053,32 +1209,131 @@ end)()
 
 builders.PlayerCard = (function()
 
+local STATS = {
+	{ "Attack", "ATK", T.Red },
+	{ "Defense", "DEF", T.Blue },
+	{ "Health", "HP", T.Green },
+	{ "Speed", "SPD", T.Gold },
+	{ "Critical", "CRIT", T.Purple },
+}
+
+local function meter(parent, color)
+	local progress = C.Round(C.Frame(parent, "Progress", UDim2.fromScale(0.035, 0.6), UDim2.fromScale(0.93, 0.27), T.Paper), 5)
+	progress.ClipsDescendants = true
+	local fill = C.Round(C.Frame(progress, "Fill", UDim2.new(), UDim2.fromScale(0, 1), color), 5)
+	fill:SetAttribute("DynamicProgress", true)
+	local potion = C.Label(progress, "Potion", "POTIONS  0/10  |  10 TO MAX", UDim2.fromScale(0.03, 0), UDim2.fromScale(0.94, 1), true)
+	potion.TextSize = 10
+	potion.TextXAlignment = Enum.TextXAlignment.Center
+	return progress
+end
+
+local function gearSlot(parent, name, order)
+	local slot = C.Round(C.Frame(parent, name, nil, nil, T.Paper), 7)
+	slot.LayoutOrder = order
+	C.Stroke(slot, T.Line).Thickness = 2
+	C.Image(slot, "Icon", UDim2.fromScale(0.16, 0.08), UDim2.fromScale(0.68, 0.62))
+	local label = C.Label(slot, "Slot", string.upper(name), UDim2.fromScale(0.04, 0.72), UDim2.fromScale(0.92, 0.23), true)
+	label.TextSize = 8
+	label.TextXAlignment = Enum.TextXAlignment.Center
+	return slot
+end
+
 return function(parent)
-	local screen, root, body = C.Window(parent, "PlayerCard", "Main", "PLAYER PROFILE", "Equipment, progress and combat record", 490, 490)
-	root.Bounds.MaxSize = Vector2.new(720, 620)
-	C.Label(body, "PlayerName", "Adventurer", UDim2.fromScale(0.02, 0), UDim2.fromScale(0.96, 0.065), true)
-	C.Label(body, "Level", "Level 1", UDim2.fromScale(0.02, 0.075), UDim2.fromScale(0.96, 0.045))
-	local preview = C.New("ViewportFrame", "Avatar", body, { Position = UDim2.fromScale(0.02, 0.15), Size = UDim2.fromScale(0.4, 0.51), BackgroundColor3 = T.Surface, Ambient = Color3.fromRGB(200, 205, 220), LightColor = Color3.fromRGB(255, 241, 220), LightDirection = Vector3.new(-1, -1, -2) })
-	C.Round(preview)
+	local screen, root, body = C.Window(parent, "PlayerCard", "Main", "ADVENTURER DOSSIER", "Inspect their build, progress and battle record", 520, 620)
+	root.Bounds.MaxSize = Vector2.new(800, 680)
+
+	local profile = C.Round(C.Frame(body, "Profile", UDim2.fromScale(0, 0), UDim2.fromScale(0.35, 0.89), T.Surface), 10)
+	C.Stroke(profile)
+	C.Frame(profile, "Accent", UDim2.fromScale(0.04, 0.015), UDim2.fromScale(0.92, 0.012), T.Purple)
+	local playerName = C.Label(profile, "PlayerName", "Adventurer", UDim2.fromScale(0.055, 0.035), UDim2.fromScale(0.89, 0.075), true)
+	playerName.TextSize = 20
+	playerName.TextXAlignment = Enum.TextXAlignment.Center
+	local level = C.Round(C.Frame(profile, "LevelBadge", UDim2.fromScale(0.24, 0.115), UDim2.fromScale(0.52, 0.065), T.Purple), 8)
+	C.Label(level, "Level", "LEVEL 1", nil, UDim2.fromScale(1, 1), true).TextXAlignment = Enum.TextXAlignment.Center
+
+	local preview = C.New("ViewportFrame", "Avatar", profile, {
+		Position = UDim2.fromScale(0.06, 0.195),
+		Size = UDim2.fromScale(0.88, 0.43),
+		BackgroundColor3 = T.Paper,
+		Ambient = Color3.fromRGB(200, 205, 220),
+		LightColor = Color3.fromRGB(255, 241, 220),
+		LightDirection = Vector3.new(-1, -1, -2),
+	})
+	C.Round(preview, 9)
+	C.Stroke(preview, T.Line).Thickness = 2
 	C.New("WorldModel", "World", preview)
-	C.New("Camera", "Camera", preview, { FieldOfView = 32 })
-	C.Label(preview, "Status", "Loading avatar...", UDim2.fromScale(0.05, 0.4), UDim2.fromScale(0.9, 0.2))
-	local record = C.Frame(body, "Record", UDim2.fromScale(0.46, 0.15), UDim2.fromScale(0.52, 0.51))
-	for index, key in { "Gold", "Kills", "Deaths", "PlayTime", "SessionTime" } do
-		local row = C.Frame(record, key, UDim2.fromScale(0, (index - 1) * 0.2), UDim2.fromScale(1, 0.17), T.Surface)
-		C.Label(row, "Label", key, UDim2.fromScale(0.04, 0.12), UDim2.fromScale(0.48, 0.76))
-		C.Label(row, "Value", "--", UDim2.fromScale(0.54, 0.12), UDim2.fromScale(0.42, 0.76), true).TextXAlignment = Enum.TextXAlignment.Right
+	local camera = C.New("Camera", "Camera", preview, { FieldOfView = 32 })
+	preview.CurrentCamera = camera
+	local avatarStatus = C.Label(preview, "Status", "Loading avatar...", UDim2.fromScale(0.05, 0.4), UDim2.fromScale(0.9, 0.2))
+	avatarStatus.TextXAlignment = Enum.TextXAlignment.Center
+	avatarStatus.TextColor3 = T.Muted
+
+	local gearHeader = C.Section(profile, "GearHeader", "EQUIPPED GEAR", UDim2.fromScale(0.04, 0.645), UDim2.fromScale(0.92, 0.065))
+	gearHeader.Title.TextSize = 12
+	local gear = C.Frame(profile, "Gear", UDim2.fromScale(0.055, 0.73), UDim2.fromScale(0.89, 0.245))
+	C.New("UIGridLayout", "Grid", gear, {
+		CellSize = UDim2.fromScale(0.29, 0.43),
+		CellPadding = UDim2.fromScale(0.065, 0.1),
+		HorizontalAlignment = Enum.HorizontalAlignment.Center,
+		VerticalAlignment = Enum.VerticalAlignment.Center,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	})
+	for index, name in { "Weapon", "Armor", "Ring", "Necklace", "Aura", "Rune" } do
+		gearSlot(gear, name, index)
 	end
-	local gear = C.Frame(body, "Gear", UDim2.fromScale(0.02, 0.69), UDim2.fromScale(0.96, 0.14))
-	for index, key in { "Weapon", "Armor", "Ring", "Necklace", "Aura", "Rune" } do
-		local slot = C.Image(gear, key, UDim2.fromScale((index - 1) / 6, 0), UDim2.fromScale(0.15, 0.72))
-		slot.BackgroundTransparency = 0
-		slot.BackgroundColor3 = T.Surface
-		C.Label(slot, "Slot", key, UDim2.fromScale(0, 1.04), UDim2.fromScale(1, 0.32))
+
+	local details = C.Frame(body, "Details", UDim2.fromScale(0.37, 0), UDim2.fromScale(0.63, 0.89))
+	local record = C.Round(C.Frame(details, "Record", nil, UDim2.fromScale(1, 0.245), T.Surface), 10)
+	C.Stroke(record)
+	local recordHeader = C.Section(record, "Header", "ADVENTURE RECORD", UDim2.fromScale(0.025, 0.045), UDim2.fromScale(0.95, 0.2))
+	recordHeader.Title.TextSize = 12
+	local recordGrid = C.Frame(record, "Grid", UDim2.fromScale(0.025, 0.29), UDim2.fromScale(0.95, 0.65))
+	C.New("UIGridLayout", "Layout", recordGrid, {
+		CellSize = UDim2.fromScale(0.31, 0.44),
+		CellPadding = UDim2.fromScale(0.035, 0.1),
+		HorizontalAlignment = Enum.HorizontalAlignment.Center,
+		VerticalAlignment = Enum.VerticalAlignment.Center,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	})
+	for index, entry in { { "Gold", "GOLD" }, { "Kills", "KILLS" }, { "Deaths", "DEATHS" }, { "PlayTime", "PLAY TIME" }, { "SessionTime", "SESSION" } } do
+		local key = entry[1]
+		local row = C.Round(C.Frame(recordGrid, key, nil, nil, T.Paper), 6)
+		row.LayoutOrder = index
+		local label = C.Label(row, "Label", entry[2], UDim2.fromScale(0.04, 0.08), UDim2.fromScale(0.92, 0.35), true)
+		label.TextSize = 8
+		label.TextColor3 = T.Muted
+		label.TextXAlignment = Enum.TextXAlignment.Center
+		local value = C.Label(row, "Value", "--", UDim2.fromScale(0.04, 0.42), UDim2.fromScale(0.92, 0.5), true)
+		value.TextSize = 13
+		value.TextXAlignment = Enum.TextXAlignment.Center
 	end
-	C.Label(body, "Stats", "ATK --   DEF --   HP --   SPD --   CRIT --", UDim2.fromScale(0.02, 0.85), UDim2.fromScale(0.96, 0.055), true)
-	C.Button(body, "Invite", "INVITE TO PARTY", UDim2.fromScale(0.52, 0.93), UDim2.fromScale(0.46, 0.07), T.Sky)
-	C.Label(body, "Status", "", UDim2.fromScale(0.02, 0.93), UDim2.fromScale(0.47, 0.07))
+
+	local statsPanel = C.Round(C.Frame(details, "StatsPanel", UDim2.fromScale(0, 0.275), UDim2.fromScale(1, 0.725), T.Surface), 10)
+	C.Stroke(statsPanel)
+	local statsHeader = C.Section(statsPanel, "Header", "ATTRIBUTES & POTION MASTERY", UDim2.fromScale(0.025, 0.018), UDim2.fromScale(0.95, 0.09))
+	statsHeader.Title.TextSize = 12
+	local stats = C.Frame(statsPanel, "Rows", UDim2.fromScale(0.025, 0.125), UDim2.fromScale(0.95, 0.85))
+	C.List(stats, false, 5)
+	for index, entry in STATS do
+		local row = C.Round(C.Frame(stats, entry[1], nil, UDim2.new(1, 0, 0, 48), T.Soft), 7)
+		row.LayoutOrder = index
+		C.Frame(row, "Mark", UDim2.fromScale(0, 0.12), UDim2.fromScale(0.012, 0.76), entry[3])
+		local label = C.Label(row, "Label", entry[2], UDim2.fromScale(0.035, 0.07), UDim2.fromScale(0.28, 0.42), true)
+		label.TextSize = 12
+		local value = C.Label(row, "Value", "--", UDim2.fromScale(0.66, 0.07), UDim2.fromScale(0.3, 0.42), true)
+		value.TextSize = 13
+		value.TextColor3 = entry[3]
+		value.TextXAlignment = Enum.TextXAlignment.Right
+		meter(row, entry[3])
+	end
+
+	local actions = C.Frame(body, "Actions", UDim2.fromScale(0, 0.915), UDim2.fromScale(1, 0.085))
+	local status = C.Label(actions, "Status", "", UDim2.fromScale(0.01, 0), UDim2.fromScale(0.43, 1))
+	status.TextSize = 11
+	status.TextColor3 = T.Muted
+	C.Button(actions, "Invite", "INVITE TO PARTY", UDim2.fromScale(0.46, 0.08), UDim2.fromScale(0.35, 0.84), T.Sky)
+	C.Button(actions, "Trade", "TRADE", UDim2.fromScale(0.83, 0.08), UDim2.fromScale(0.16, 0.84), T.Gold)
 	return screen
 end
 end)()
@@ -1208,6 +1463,10 @@ local ok, reason = pcall(function()
 
     table.insert(generated, { Object = builders.StylePreview(staging), Target = StarterGui })
 
+    table.insert(generated, { Object = builders.ZoneTransition(staging), Target = StarterGui })
+
+    table.insert(generated, { Object = builders.DeathScreen(staging), Target = StarterGui })
+
     table.insert(generated, { Object = builders.Admin(staging), Target = StarterGui })
 
     table.insert(generated, { Object = builders.PlayerCard(staging), Target = StarterGui })
@@ -1256,7 +1515,6 @@ for _, entry in generated do
         end
     end
 end
--- Loading/tutorial are enabled by their client controllers, not while editing.
 for _, name in { "LoadingScreen", "Tutorial", "UIStylePreview" } do
     local screen = StarterGui:FindFirstChild(name)
     if screen then screen.Enabled = preferred == name end

@@ -31,7 +31,8 @@ function Controller:Start(mob, definition)
   spec.Execute(ctx, spec)
   mob:SetAttribute("Attack", nil)
  end
-	local nextBasic, nextSkill = 0, os.clock() + 2
+	local nextBasic = 0
+	local nextSkills = {}
 	local bossIndex = mob:GetAttribute("SkillSequence") or 0
 	local ok, err = xpcall(function()
 		while ctx.Active() do
@@ -52,21 +53,28 @@ function Controller:Start(mob, definition)
 			facing:Release()
 			local inMeleeRange = pursuit:Update(target)
 			ctx.MeleeReach = pursuit.MeleeReach
-			local skill = #definition.Skills > 0 and distance <= cfg.SkillRange and os.clock() >= nextSkill
+			local skill
+			for offset = 1, #definition.Skills do
+				local index = (bossIndex + offset - 1) % #definition.Skills + 1
+				local candidate = definition.Skills[index]
+				local range = candidate.Range or cfg.SkillRange or math.huge
+				if distance <= range and os.clock() >= (nextSkills[index] or 0) then
+					skill, bossIndex = candidate, index
+					break
+				end
+			end
 			if skill or inMeleeRange then
 				pursuit:Stop()
 				hum.AutoRotate = false
 				local aligned = facing:Towards(target.Position)
-				-- Telegraph only after turning: its locked direction must match the attack.
 				if not aligned then
 					ctx.Pause(0.05)
 					continue
 				end
 				if skill then
-					bossIndex = bossIndex % #definition.Skills + 1
 					mob:SetAttribute("SkillSequence", bossIndex)
-					attack(definition.Skills[bossIndex])
-					nextSkill = os.clock() + cfg.SkillCooldown
+					attack(skill)
+					nextSkills[bossIndex] = os.clock() + (skill.Cooldown or cfg.SkillCooldown or 6)
 					nextBasic = math.min(nextBasic, os.clock() + 0.15)
 				elseif os.clock() >= nextBasic then
 					nextBasic = os.clock() + cfg.BasicCooldown

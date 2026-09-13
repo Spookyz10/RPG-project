@@ -1,7 +1,6 @@
 local Animations = require(game:GetService("ReplicatedStorage").Shared.MobAnimations)
 return function(ctx, attack)
  local size = attack.Size or ctx.Config.Size
- -- Keep the telegraph and damage volume identical when a large body needs more clearance.
  if ctx.MeleeReach then
   size = Vector3.new(size.X, size.Y, math.max(size.Z, ctx.MeleeReach))
  end

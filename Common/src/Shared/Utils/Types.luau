@@ -62,7 +62,6 @@ export type PlayerData = {
 	RaidAutoDelete: { [string]: boolean },
 }
 
--- Reactive data cells returned by Data.Service:waitForData / Data.client.
 export type PlayerDataValue = Value.Value<PlayerData>
 
 export type Drop = {
@@ -284,6 +283,7 @@ export type DamageContext = {
 	CriticalMultiplier: number,
 	ForceCritical: boolean,
 	TriggeredPassives: { [string]: boolean },
+	TriggeredDefenderPassives: { [string]: boolean },
 	AttackerPassives: { any },
 	DefenderPassives: { any },
 }

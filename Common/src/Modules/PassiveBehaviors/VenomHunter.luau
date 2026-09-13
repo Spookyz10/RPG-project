@@ -1,4 +1,10 @@
 local StatusEffects = require(script.Parent.Parent.StatusEffectManager)
-return { BeforeAttack = function(ctx)
- if StatusEffects:HasEffect(ctx.Victim, "Venom") then ctx.Attack *= 1.2 end
-end }
+
+return {
+	BeforeAttack = function(context)
+		if StatusEffects:HasEffect(context.Victim, "Venom") then
+			context.Attack *= 1.2
+			context.TriggeredPassives.VenomHunter = true
+		end
+	end,
+}

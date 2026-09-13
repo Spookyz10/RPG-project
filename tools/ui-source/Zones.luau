@@ -43,7 +43,10 @@ return function(parent)
 	C.Label(mob, "Stats", "Stats", UDim2.fromScale(0.04, 0.66), UDim2.fromScale(0.4, 0.2))
 	C.Label(mob, "Rewards", "Rewards", UDim2.fromScale(0.04, 0.89), UDim2.fromScale(0.4, 0.07))
 	C.Label(mob, "DropsTitle", "ITEM DROPS", UDim2.fromScale(0.48, 0.035), UDim2.fromScale(0.48, 0.07), true)
-	C.New("ViewportFrame", "Preview", mob, {Position = UDim2.fromScale(0.04, 0.13), Size = UDim2.fromScale(0.4, 0.5), BackgroundTransparency = 1, Ambient = Color3.fromRGB(190, 190, 190), LightColor = Color3.fromRGB(255, 240, 216)})
+	local preview = C.New("ViewportFrame", "Preview", mob, {Position = UDim2.fromScale(0.04, 0.13), Size = UDim2.fromScale(0.4, 0.5), BackgroundTransparency = 1, Ambient = Color3.fromRGB(190, 190, 190), LightColor = Color3.fromRGB(255, 240, 216)})
+	C.New("WorldModel", "World", preview)
+	local camera = C.New("Camera", "Camera", preview, {FieldOfView = 35})
+	preview.CurrentCamera = camera
 	C.Label(mob.Preview, "Missing", "Model unavailable", UDim2.new(), UDim2.fromScale(1, 1)).Visible = false
 	local drops = C.Scroll(mob, "Drops", UDim2.fromScale(0.48, 0.14), UDim2.fromScale(0.49, 0.82))
 	drops.UIListLayout:Destroy()

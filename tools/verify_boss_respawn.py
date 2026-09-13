@@ -34,7 +34,6 @@ now = 129.2; assert(coroutine.resume(runner))
 assert(gui.Countdown.Text == "Dire Bear\nRespawns in 1s")
 now = 130; assert(coroutine.resume(runner))
 assert(gui.Destroyed and coroutine.status(runner) == "dead")
--- A missing visual template must not prevent scheduling the respawn.
 templates.FindFirstChild = function() return nil end
 module.Start(origin, 30)
 assert(origin.RespawnAt == 160)

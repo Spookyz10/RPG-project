@@ -1,7 +1,3 @@
--- STUDIO COMMAND BAR / EDIT MODE ONLY.
--- Standalone: paste this entire file; no plugin or generator module is required.
--- Existing UI is moved into ServerStorage.RPGUIBackups before replacement.
--- Runtime scripts bind the saved UI and never regenerate it.
 assert(not game:GetService("RunService"):IsRunning(), "Stop Play before generating the UI.")
 local StarterGui = game:GetService("StarterGui")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -10,8 +6,6 @@ local Selection = game:GetService("Selection")
 local History = game:GetService("ChangeHistoryService")
 
 local T = (function()
--- Graphite cartoon style, following Info/UITheme.txt.
--- Semantic aliases retain compatibility with the existing screen logic.
 local Theme = {
 	Paper = Color3.fromRGB(32, 33, 41),
 	Surface = Color3.fromRGB(44, 46, 57),
@@ -188,8 +182,6 @@ function C.Card(parent, name, height)
 	return card
 end
 
--- Convert the design measurements once, in Edit mode. Saved instances and
--- responsive attributes use Scale, independently of the Studio viewport.
 function C.SaveScale(root)
 	local function scale(value, reference)
 		return UDim2.fromScale(value.X.Scale + value.X.Offset / math.max(1, reference.X), value.Y.Scale + value.Y.Offset / math.max(1, reference.Y))
@@ -298,6 +290,8 @@ end
 return function(parent)
 	local screen, root, body = C.Window(parent, "Inventory", "Main", "INVENTORY", "Your hero. Your gear. Your next upgrade.", 510, 560)
 	root.Bounds.MaxSize = Vector2.new(740, 630)
+	root.Accent:Destroy()
+	root.Subtitle:Destroy()
 	body:SetAttribute("InventoryLayout", true)
 	body:SetAttribute("Breakpoint", 580)
 	C.Responsive(body, UDim2.new(), UDim2.new(1, -8, 0, 510), UDim2.new(), UDim2.new(1, -8, 0, 568))
@@ -324,18 +318,27 @@ return function(parent)
 	previewStatus.TextXAlignment = Enum.TextXAlignment.Center
 	equipment(hero, "Equipped", { "Weapon", "Armor", "Ring", "Necklace", "Aura", "Rune" })
 	equipment(hero, "Vanities", { "Weapon", "Aura" }).Visible = false
-	C.Button(hero, "Vanity", "GEAR / LOOKS", UDim2.fromOffset(8, 286), UDim2.new(1, -16, 0, 44), T.Purple)
-	C.Section(hero, "StatsHeader", "TOTAL STATS", UDim2.fromOffset(6, 340), UDim2.new(1, -12, 0, 28))
-	local stats = C.Frame(hero, "Stats", UDim2.fromOffset(12, 376), UDim2.new(1, -24, 0, 128))
+	C.Button(hero, "Vanity", "GEAR / LOOKS", UDim2.fromOffset(8, 274), UDim2.new(1, -16, 0, 36), T.Purple)
+	C.Section(hero, "StatsHeader", "TOTAL STATS & POTION MASTERY", UDim2.fromOffset(6, 316), UDim2.new(1, -12, 0, 24))
+	local stats = C.Frame(hero, "Stats", UDim2.fromOffset(12, 345), UDim2.new(1, -24, 0, 159))
 	C.List(stats, false, 2)
-	for _, entry in { { "Attack", "ATK" }, { "Defense", "DEF" }, { "Health", "HP" }, { "Speed", "SPD" }, { "Critical", "CRIT" } } do
-		local row = C.Frame(stats, entry[1], nil, UDim2.new(1, 0, 0, 23), T.Soft)
+	for _, entry in { { "Attack", "ATK", T.Red }, { "Defense", "DEF", T.Blue }, { "Health", "HP", T.Green }, { "Speed", "SPD", T.Gold }, { "Critical", "CRIT", T.Purple } } do
+		local row = C.Frame(stats, entry[1], nil, UDim2.new(1, 0, 0, 30), T.Soft)
 		C.Round(row, 4)
-		C.Label(row, "Label", entry[2], UDim2.fromOffset(8, 0), UDim2.fromScale(0.45, 1), true).TextSize = 13
-		local value = C.Label(row, "Value", "--", UDim2.fromScale(0.45, 0), UDim2.new(0.55, -8, 1, 0), true)
-		value.TextColor3 = entry[1] == "Health" and T.Green or T.Gold
-		value.TextSize = 13
+		C.Frame(row, "Mark", UDim2.fromScale(0, 0.16), UDim2.fromScale(0.015, 0.68), entry[3])
+		C.Label(row, "Label", entry[2], UDim2.fromOffset(7, 1), UDim2.fromScale(0.2, 0.62), true).TextSize = 11
+		local value = C.Label(row, "Value", "--", UDim2.fromScale(0.2, 0.03), UDim2.fromScale(0.2, 0.58), true)
+		value.TextColor3 = entry[3]
+		value.TextSize = 11
 		value.TextXAlignment = Enum.TextXAlignment.Right
+		local potion = C.Label(row, "Potion", "0/10  |  10 LEFT", UDim2.fromScale(0.43, 0.01), UDim2.fromScale(0.54, 0.58), true)
+		potion.TextSize = 9
+		potion.TextColor3 = T.Muted
+		potion.TextXAlignment = Enum.TextXAlignment.Right
+		local progress = C.Round(C.Frame(row, "Progress", UDim2.fromScale(0.43, 0.7), UDim2.fromScale(0.54, 0.16), T.Paper), 3)
+		progress.ClipsDescendants = true
+		local fill = C.Round(C.Frame(progress, "Fill", nil, UDim2.fromScale(0, 1), entry[3]), 3)
+		fill:SetAttribute("DynamicProgress", true)
 	end
 
 	local items = C.Frame(body, "Items", nil, nil, T.Surface)
@@ -372,8 +375,6 @@ return function(parent)
 			C.Button(cell, "Confirm", "CONFIRM", nil, nil, T.Sand).Visible = false
 		end
 	end
-	-- A full-height storage panel covers the hero column; the backpack stays
-	-- available beside it for deposits. Keep Bank under Items for saved-UI bindings.
 	local bank = C.Round(C.Frame(items, "Bank", UDim2.fromScale(-2 / 3, 0), UDim2.fromScale(0.64, 1), T.Paper), 8)
 	bank.Visible = false
 	bank.Active = true
@@ -411,6 +412,10 @@ return function(parent)
 	C.Label(tip, "Description", "", UDim2.fromOffset(12, 94), UDim2.new(1, -24, 0, 78)).TextSize = 13
 	C.Label(tip, "Stats", "", UDim2.fromOffset(12, 180), UDim2.new(1, -24, 0, 68)).TextSize = 13
 	C.Label(tip, "Footer", "", UDim2.new(0, 12, 1, -30), UDim2.new(1, -24, 0, 22)).TextColor3 = T.Gold
+	C.SaveScale(screen)
+	root.Size = UDim2.fromScale(0.5, 0.8)
+	body.AnchorPoint = Vector2.new(0.5, 0.5)
+	body.Position = UDim2.fromScale(0.5, 0.5)
 	return screen
 end
 end)()
@@ -459,7 +464,6 @@ for _, entry in generated do
         end
     end
 end
--- Loading/tutorial are enabled by their client controllers, not while editing.
 for _, name in { "LoadingScreen", "Tutorial", "UIStylePreview" } do
     local screen = StarterGui:FindFirstChild(name)
     if screen then screen.Enabled = preferred == name end

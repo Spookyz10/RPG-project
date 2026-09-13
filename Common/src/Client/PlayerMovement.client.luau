@@ -1,4 +1,3 @@
--- Override the default Animate locomotion assets, retaining its state transitions.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 

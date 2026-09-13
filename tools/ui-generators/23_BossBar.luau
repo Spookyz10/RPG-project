@@ -1,4 +1,3 @@
--- Standalone Studio Command Bar / Edit mode generator.
 assert(not game:GetService("RunService"):IsRunning(), "Stop Play first")
 local function make(class, name, parent, props)
 	local obj = Instance.new(class); obj.Name = name

@@ -1,8 +1,6 @@
--- Executed by verify_ui.py, which prepends the current shared-module sources.
--- Models Instance hierarchy/events and replicated data; does not emulate rendering/physics.
 local function signal()
 	local listeners = {}
-	return {
+	local event = {
 		Connect = function(_, callback)
 			local connection = { Connected = true }
 			function connection:Disconnect() self.Connected = false end
@@ -13,6 +11,15 @@ local function signal()
 			for _, entry in table.clone(listeners) do if entry[2].Connected then entry[1](...) end end
 		end,
 	}
+	function event:Once(callback)
+		local connection
+		connection = self:Connect(function(...)
+			connection:Disconnect()
+			callback(...)
+		end)
+		return connection
+	end
+	return event
 end
 
 local function enumGroup(group)
@@ -25,18 +32,36 @@ end
 local Enum = setmetatable({}, { __index = function(t, key) local g = enumGroup(key); rawset(t, key, g); return g end })
 local UDim = { new = function(s, o) return { Scale = s, Offset = o } end }
 local UDim2 = {}
-function UDim2.new(xs, xo, ys, yo) return { X = UDim.new(xs or 0, xo or 0), Y = UDim.new(ys or 0, yo or 0) } end
+local udim2Meta = {
+	__add = function(a, b) return UDim2.new(a.X.Scale + b.X.Scale, a.X.Offset + b.X.Offset, a.Y.Scale + b.Y.Scale, a.Y.Offset + b.Y.Offset) end,
+	__sub = function(a, b) return UDim2.new(a.X.Scale - b.X.Scale, a.X.Offset - b.X.Offset, a.Y.Scale - b.Y.Scale, a.Y.Offset - b.Y.Offset) end,
+	__eq = function(a, b) return a.X.Scale == b.X.Scale and a.X.Offset == b.X.Offset and a.Y.Scale == b.Y.Scale and a.Y.Offset == b.Y.Offset end,
+}
+function UDim2.new(xs, xo, ys, yo) return setmetatable({ X = UDim.new(xs or 0, xo or 0), Y = UDim.new(ys or 0, yo or 0) }, udim2Meta) end
 function UDim2.fromScale(x, y) return UDim2.new(x, 0, y, 0) end
 function UDim2.fromOffset(x, y) return UDim2.new(0, x, 0, y) end
 local Vector2 = { new = function(x, y) return { X = x, Y = y } end }
-local vector3Meta = { __add = function(a, b) return { X = a.X + b.X, Y = a.Y + b.Y, Z = a.Z + b.Z } end }
-local Vector3 = { new = function(x, y, z) return setmetatable({ X = x, Y = y, Z = z }, vector3Meta) end }
+local Vector3
+local vector3Meta = {
+	__add = function(a, b) return Vector3.new(a.X + b.X, a.Y + b.Y, a.Z + b.Z) end,
+	__mul = function(a, b)
+		local vector, scalar = type(a) == "number" and b or a, type(a) == "number" and a or b
+		return Vector3.new(vector.X * scalar, vector.Y * scalar, vector.Z * scalar)
+	end,
+	__index = function(vector, key)
+		local magnitude = math.sqrt(vector.X ^ 2 + vector.Y ^ 2 + vector.Z ^ 2)
+		if key == "Magnitude" then return magnitude end
+		if key == "Unit" then return magnitude > 0 and Vector3.new(vector.X / magnitude, vector.Y / magnitude, vector.Z / magnitude) or Vector3.zero end
+	end,
+}
+Vector3 = { new = function(x, y, z) return setmetatable({ X = x, Y = y, Z = z }, vector3Meta) end }
+Vector3.zero = Vector3.new(0, 0, 0)
 local CFrame = { Angles = function() return {} end, lookAt = function(position, target) return { Position = position, Target = target } end }
 local Color3 = { fromRGB = function(r, g, b) return { R = r / 255, G = g / 255, B = b / 255 } end }
 local ColorSequence = { new = function(...) return { ... } end }
 local ColorSequenceKeypoint = { new = function(...) return { ... } end }
 local inherited = {
-	Frame = "GuiObject", ScrollingFrame = "GuiObject", TextLabel = "GuiObject", TextBox = "GuiObject",
+	Frame = "GuiObject", CanvasGroup = "GuiObject", ScrollingFrame = "GuiObject", TextLabel = "GuiObject", TextBox = "GuiObject",
 	TextButton = "GuiButton", ImageButton = "GuiButton", ImageLabel = "GuiObject", ViewportFrame = "GuiObject", GuiButton = "GuiObject",
 	ScreenGui = "LayerCollector", BillboardGui = "LayerCollector",
 }
@@ -95,6 +120,11 @@ function methods:Destroy()
 	self.Destroying:Fire()
 	for _, child in self:GetChildren() do child:Destroy() end
 	self.Parent = nil
+end
+function methods:ClearAllChildren()
+	for _, child in self:GetChildren() do
+		child:Destroy()
+	end
 end
 function methods:Clone()
 	local clone = Instance.new(self.ClassName)
@@ -180,15 +210,34 @@ players.LocalPlayer = player
 players.GetPlayers = function() return { player } end
 players.GetUserThumbnailAsync = function() return "" end
 local avatarRequests = 0
+local idleLoads = 0
 local resources = folder(rs, "Resources")
 folder(resources, "Weapons")
 folder(resources, "Animations")
-players.CreateHumanoidModelFromUserIdAsync = function(_, userId)
+players.GetHumanoidDescriptionFromUserIdAsync = function(_, userId)
 	assert(userId == player.UserId)
+	return Instance.new("HumanoidDescription")
+end
+players.CreateHumanoidModelFromDescriptionAsync = function(_, _, rigType)
+	assert(rigType == Enum.HumanoidRigType.R6)
 	avatarRequests += 1
 	local model = Instance.new("Model")
 	model.PivotTo = function() end
 	model.GetBoundingBox = function() return { Position = Vector3.new(0, 0, 0) }, Vector3.new(4, 6, 2) end
+	local humanoid = folder(model, "Humanoid", "Humanoid")
+	humanoid.RigType = Enum.HumanoidRigType.R6
+	local animator = folder(humanoid, "Animator", "Animator")
+	animator.LoadAnimation = function()
+		idleLoads += 1
+		return {
+			Looped = false,
+			Priority = Enum.AnimationPriority.Core,
+			Play = function() end,
+			Stop = function() end,
+			Destroy = function() end,
+			AdjustSpeed = function() end,
+		}
+	end
 	return model
 end
 local stats = folder(player, "PublicStats")
@@ -202,7 +251,13 @@ services.ChangeHistoryService = { TryBeginRecording = function() return "test-re
 services.GuiService = { GetGuiInset = function() return Vector2.new(0, 36) end }
 services.UserInputService = { TouchEnabled = false, MouseEnabled = true, InputBegan = signal(), GetMouseLocation = function() return Vector2.new(400, 200) end }
 services.Debris = { AddItem = function() end }
-services.TweenService = { Create = function(_, object, _, properties) return { Play = function() for k, v in properties do object[k] = v end end, Cancel = function() end } end }
+services.TweenService = { Create = function(_, object, _, properties)
+	return {
+		Play = function() for key, value in properties do object[key] = value end end,
+		Cancel = function() end,
+		Completed = { Once = function(_, callback) callback() end, Wait = function() end },
+	}
+end }
 local workspace = folder(nil, "Workspace")
 local modules = {}
 for name in sources do
@@ -226,6 +281,7 @@ local state = {
 	Storage = { stored = { ID = "Small Health Potion", Name = "Small Health Potion", Amount = 3 } },
 	CurrentInventorySpace = 2, MaxInventorySpace = 100, CurrentStorageSpace = 1, MaxStorageSpace = 100,
 	Currencies = { Gold = 500, ["Raid Coins"] = 0, Tokens = 0, ["Rune Crystals"] = 0 },
+	ExtraStats = { Attack = 5, Defense = 1, Health = 4, Speed = 0, Critical = 2 },
 	RaidAutoDelete = {}, RaidRecords = {}, RaidRuns = {}, Quests = {}, CompletedQuests = {},
 }
 local function dataNode(path)
@@ -263,7 +319,6 @@ local overrides = {
 }
 local jobs = {}
 local task = { spawn = function(callback, ...) return callback(...) end, delay = function(_, callback) table.insert(jobs, callback) end, wait = function() coroutine.yield() end }
--- Typewriter/countdown coroutines are started but not timed in these contract checks.
 task.spawn = function(callback, ...)
 	local co = coroutine.create(callback)
 	local ok, err = coroutine.resume(co, ...)
@@ -284,7 +339,6 @@ local function loadModule(module)
 	return cache[module]
 end
 
--- Execute the actual standalone Command Bar bundle. It must need no game modules.
 local command = assert(loadstring(sources.StandaloneGenerator, "00_All"))
 setfenv(command, env)
 command()
@@ -313,7 +367,6 @@ assert(original:GetAttribute("UserEdit") == "preserve this" and original.Parent.
 assert(rs.RPGUITemplates and not services.StarterGui:FindFirstChild("RPGUITemplates"), "Templates placed in wrong service")
 for _, screen in services.StarterGui:GetChildren() do screen.Parent = gui end
 local bootstrap = loadModule(modules["UI/Bootstrap"])
--- Simulate personal Studio edits, including grid dimensions.
 gui.Inventory.Main.Position = UDim2.fromScale(0.48, 0.49)
 gui.Inventory.Main.Body.Content.Items.Container.Size = UDim2.fromScale(0.91, 0.51)
 gui.Inventory.Main.Body.Content.Items.Container.UIGridLayout.CellSize = UDim2.fromScale(0.22, 0.31)
@@ -336,6 +389,12 @@ for _, id in { "Gold", "Kills", "Donations", "PlayTime" } do
 end
 local logic = loadModule(modules["UI/Logic"])
 local windows = loadModule(modules["UI/WindowManager"])
+local abbreviation = loadModule(modules["Utils/Abbreviation"])
+assert(abbreviation:Number(999) == "999")
+assert(abbreviation:Number(1000) == "1K")
+assert(abbreviation:Number(1250000) == "1.25M")
+assert(abbreviation:Number(-12500) == "-12.5K")
+assert(abbreviation:Number(math.huge) == "INF")
 local function last(name) local call = calls[#calls]; assert(call and call[1] == name, "Expected remote " .. name); return call end
 local function click(button) assert(button:IsA("GuiButton"), "Not a button"); button.Activated:Fire() end
 
@@ -360,13 +419,16 @@ assert(inv.Container.sword.ItemName.Text == "Paper Sword")
 for _, job in jobs do job() end
 table.clear(jobs)
 assert(content.Hero.Stats.Attack.Value.Text == "12", "Hero stats did not update")
+assert(string.find(content.Hero.Stats.Attack.Potion.Text, "5/10") and string.find(content.Hero.Stats.Attack.Potion.Text, "5 LEFT"))
+assert(content.Hero.Stats.Attack.Progress.Fill.Size.X.Scale == 0.5)
 assert(avatarRequests == 1, "Preview must load the user avatar once")
-local cachedAvatar = content.Hero.CharacterPreview.World.HeroPreview
+assert(idleLoads == 1, "Inventory preview must play an idle animation")
+local cachedAvatar = content.Hero.CharacterPreview.World.ViewportAvatar
 windows.Close()
 windows.Open("Inventory")
 for _, job in jobs do job() end
 table.clear(jobs)
-assert(avatarRequests == 1 and content.Hero.CharacterPreview.World.HeroPreview == cachedAvatar, "Reopening rebuilt cached avatar")
+assert(avatarRequests == 1 and content.Hero.CharacterPreview.World.ViewportAvatar == cachedAvatar, "Reopening rebuilt cached avatar")
 inv.Container.sword.MouseEnter:Fire()
 assert(gui.Inventory.ItemTooltip.Visible, "Item hover did not show details")
 local tooltipPosition = gui.Inventory.ItemTooltip.AbsolutePosition
@@ -436,14 +498,13 @@ click(gui.Partylist.PartyInvite.YES)
 assert(last("AcceptPartyInvite")[2] == "Friend")
 logic.Party.OnLeave()
 assert(gui.Partylist.Panel.Body.Content.Empty.Visible)
--- Persistent roster: local priority, descending levels, colors, Rank and card data.
 assert(gui.Playerlist.ScreenInsets == Enum.ScreenInsets.DeviceSafeInsets)
 click(gui.Playerlist.List.Toggle)
-assert(gui.Playerlist.List.Position.X.Scale == 1.251 and gui.Playerlist.List.Position.Y.Scale == 0)
-assert(gui.Playerlist.List.Toggle.Arrow.Rotation == 180)
+assert(gui.Playerlist.List.Position == gui.Playerlist.List:GetAttribute("CollapsedPosition"))
+assert(gui.Playerlist.List.Toggle.Arrow.Rotation == gui.Playerlist.List.Toggle.Arrow:GetAttribute("CollapsedRotation"))
 click(gui.Playerlist.List.Toggle)
-assert(gui.Playerlist.List.Visible and gui.Playerlist.List.Toggle.Arrow.Rotation == 0)
-assert(gui.Playerlist.List.Position.X.Scale == 1 and gui.Playerlist.List.Position.Y.Scale == 0)
+assert(gui.Playerlist.List.Visible and gui.Playerlist.List.Toggle.Arrow.Rotation == gui.Playerlist.List.Toggle.Arrow:GetAttribute("ExpandedRotation"))
+assert(gui.Playerlist.List.Position == gui.Playerlist.List:GetAttribute("ExpandedPosition"))
 local roster = gui.Playerlist.List.Container
 assert(roster.Tester.Level.Text == "Lvl 25")
 local function otherPlayer(name, id, level)
@@ -462,12 +523,16 @@ assert(roster.Veteran.PlayerName.TextColor3 == loadModule(modules["UI/Theme"]).G
 local previousInvoke = remotes.InvokeServerFunction
 remotes.InvokeServerFunction = function(name, target)
 	assert(name == "GetPlayerInfo" and target == player)
-	return { Level = 25, Gold = 150, Kills = 10, Deaths = 2, PlayTime = 3600, SessionTime = 60, Stats = { Attack = 12 }, Equipment = {} }
+	return { Level = 25, Gold = 150, Kills = 10, Deaths = 2, PlayTime = 3600, SessionTime = 60, Stats = { Attack = 12 }, ExtraStats = { Attack = 5 }, Equipment = {} }
 end
 click(roster.Tester)
-assert(gui.PlayerCard.Main.Visible and gui.PlayerCard.Main.Body.Content.Record.Deaths.Value.Text == "2")
-assert(gui.PlayerCard.Main.Body.Content.Record.PlayTime.Value.Text == "01:00:00")
-assert(gui.PlayerCard.Main.Body.Content.Record.SessionTime.Value.Text == "00:01:00")
+local dossier = gui.PlayerCard.Main.Body.Content
+assert(gui.PlayerCard.Main.Visible and dossier.Details.Record.Grid.Deaths.Value.Text == "2")
+assert(dossier.Details.Record.Grid.PlayTime.Value.Text == "01:00:00")
+assert(dossier.Details.Record.Grid.SessionTime.Value.Text == "00:01:00")
+assert(string.find(dossier.Details.StatsPanel.Rows.Attack.Progress.Potion.Text, "5 TO MAX"))
+assert(dossier.Details.StatsPanel.Rows.Attack.Progress.Fill.Size.X.Scale == 0.5)
+assert(avatarRequests == 1 and idleLoads == 2, "Player card must clone the cached avatar and play its own idle")
 windows.Close()
 remotes.InvokeServerFunction = previousInvoke
 players.PlayerRemoving:Fire(veteran); veteran.Parent = nil
@@ -502,6 +567,17 @@ logic.Buffs:Start("Safeguard", 5)
 assert(gui.Attack.Buffs.Safeguard)
 logic.Buffs:Stop("Safeguard")
 assert(not gui.Attack.Buffs:FindFirstChild("Safeguard"))
+local feedbackTemplates = rs.RPGUITemplates.FeedbackTemplates
+assert(feedbackTemplates.Skill and feedbackTemplates.Passive and feedbackTemplates.Buff and feedbackTemplates.Debuff)
+local feedback = loadModule(modules["UI/UIFeedback"])
+local skillSlot = gui.Attack.Slots.Slot1
+local iconPosition, iconSize, iconZIndex = skillSlot.Icon.Position, skillSlot.Icon.Size, skillSlot.Icon.ZIndex
+feedback.Skill(skillSlot, "Cyclone")
+assert(skillSlot.SkillFeedback and skillSlot.SkillFeedback.Title.Text == "CYCLONE")
+assert(skillSlot.Icon.Position == iconPosition and skillSlot.Icon.Size == iconSize and skillSlot.Icon.ZIndex == iconZIndex)
+feedback.Passive("Fury")
+feedback.Status("Poison", "Debuff")
+assert(gui.Attack.PassiveFeedback and gui.Attack.DebuffFeedback)
 
 for _, size in { { 1280, 720 }, { 844, 326 }, { 390, 760 }, { 320, 568 } } do
 	viewport = Vector2.new(size[1], size[2])
@@ -516,7 +592,7 @@ for _, size in { { 1280, 720 }, { 844, 326 }, { 390, 760 }, { 320, 568 } } do
 		end
 	end
 	for object, properties in savedGeometry do
-		if object.Parent and object ~= gui.Inventory.ItemTooltip and object ~= gui.Playerlist.List and not object:FindFirstAncestor("Attack") and object.Name ~= "Bar" then
+		if object.Parent and object ~= gui.Inventory.ItemTooltip and object.Name ~= "Bar" then
 			for key, value in properties do
 				assert(object[key] == value, object.Name .. "." .. key .. " overwrote Studio layout")
 			end
@@ -525,4 +601,4 @@ for _, size in { { 1280, 720 }, { 844, 326 }, { 390, 760 }, { 320, 568 } } do
 	assert(content.Hero.Visible and content.Items.Visible and not content.MobileTabs.Visible, "Viewport changed saved visibility")
 
 end
-print("PASS: 21 standalone Edit generators, backup preservation, saved-UI bootstrap, hero stats, item hovers, saved layout preservation, UI initialization, inventory/equipment/search/quantities/sale, skill locks, raids, party, dialogue, journal, shop, bars, buffs, and 4 viewport sizes.")
+print("PASS: standalone generators, backup preservation, saved UI geometry, inventory and player-card potion mastery, viewport contracts, skill/passive/status feedback, gameplay UI, and 4 viewport sizes.")

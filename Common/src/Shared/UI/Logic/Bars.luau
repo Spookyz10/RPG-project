@@ -2,6 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
+local Abbreviation = require(ReplicatedStorage.Shared.Utils.Abbreviation)
 
 local UI = {}
 local StatusEffects = require(ReplicatedStorage.Shared.StatusEffects)
@@ -13,7 +14,7 @@ function UI.UpdateBar(value: number, maxValue: number, bar: string)
 	local Bar = UIConstants.PlayerGui:WaitForChild("HUD").Main:FindFirstChild(bar)
 	local MainContainer = Bar:FindFirstChild("Main")
 
-	MainContainer:FindFirstChild("Amount").Text = bar .. "  " .. math.floor(math.max(0, value)) .. " / " .. math.floor(math.max(0, maxValue))
+	MainContainer:FindFirstChild("Amount").Text = bar .. "  " .. Abbreviation:Number(math.max(0, value), 0) .. " / " .. Abbreviation:Number(math.max(0, maxValue), 0)
 	if bar == "HP" then
 		OriginalHPColor = OriginalHPColor or MainContainer.Bar.BackgroundColor3
 		local character = game:GetService("Players").LocalPlayer.Character

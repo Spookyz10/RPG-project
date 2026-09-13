@@ -39,7 +39,10 @@ ATTACK_MODULES
 local function context()
  local log={Hits={},Indicators={},Circles={},VFX={}}
  local enabled=true
+ local attributes={}
  local ctx={Mob={},Root={CFrame=cf()},Config={Size=vector(4,6,4)},RaycastParams={},Alive=function() return true end}
+ function ctx.Mob:GetAttribute(key) return attributes[key] end
+ function ctx.Mob:SetAttribute(key,value) attributes[key]=value end
  ctx.VFX=function(...) table.insert(log.VFX,{...}) end
  ctx.Active=function() return enabled end
  ctx.Pause=function(t) now+=t; return enabled end
@@ -64,7 +67,8 @@ assert(log.Hits[1][7]==log.Hits[2][7],"Overlapping spikes must share hit dedupli
 ctx,log=context(); local start=now; attacks.TailSpin(ctx)
 assert(now-start>=2.8 and #log.Hits>=19 and log.Hits[1][5]==65)
 assert(log.Hits[1][7]==log.Hits[#log.Hits][7])
-ctx,log=context(); attacks.Rush(ctx); assert(#log.Hits>0 and #log.Indicators==1)
+ctx,log=context(); attacks.Rush(ctx); assert(#log.Hits>0 and #log.Indicators==1 and log.Indicators[1][1]=="Line")
+ctx,log=context(); ctx.Mob:SetAttribute("RushIndicatorStyle","Line"); attacks.Rush(ctx); assert(log.Indicators[1][1]=="Square")
 ctx,log=context(); wall=true; attacks.Rush(ctx); assert(#log.Hits==0); wall=false
 ctx,log=context(); attacks.GroundSlam(ctx); attacks.Roar(ctx)
 assert(log.Circles[1][1]==16 and log.Circles[2][1]==24)

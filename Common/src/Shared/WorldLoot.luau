@@ -1,4 +1,3 @@
--- Cosmetic local drops. Inventory grants remain authoritative on the server.
 local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -33,7 +32,6 @@ function Loot.Play(items, origin)
 		local angle = i / math.max(1, #names) * math.pi * 2
 		local target = origin + Vector3.new(math.cos(angle) * 4, 0, math.sin(angle) * 4)
 		local hit = workspace:Raycast(target + Vector3.new(0, 8, 0), Vector3.new(0, -60, 0), params)
-		-- No floor means no grounded drop effect (the notification still appears).
 		if not hit then continue end
 		local part = Instance.new("Part")
 		part.Name = "LocalLoot"

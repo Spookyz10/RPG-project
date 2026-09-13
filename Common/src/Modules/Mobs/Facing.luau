@@ -1,4 +1,3 @@
--- Rotate the server-owned assembly through physics without writing its position.
 local Facing = {}
 Facing.__index = Facing
 

@@ -5,6 +5,16 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local RewardManager = require(script.Parent.RewardManager)
 local Data = require(ReplicatedStorage.Shared.Data).server
 local DailyReward = {}
+local DAILY_COOLDOWN = 24 * 60 * 60
+local STREAK_GRACE_PERIOD = 48 * 60 * 60
+local FIRST_UNIX_TIMESTAMP = 1_000_000_000
+
+local function getClaimElapsed(lastClaimed: number, now: number): number?
+	if lastClaimed < FIRST_UNIX_TIMESTAMP then
+		return nil
+	end
+	return math.max(0, now - lastClaimed)
+end
 
 function DailyReward.ClaimDaily(Player: Player)
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
@@ -14,14 +24,15 @@ function DailyReward.ClaimDaily(Player: Player)
 		return
 	end
 
-	local timeNow = os.clock()
+	local timeNow = os.time()
 	local LastClaimed = PlayerData.LastDailyReward()
+	local elapsed = getClaimElapsed(LastClaimed, timeNow)
 
-	if timeNow - LastClaimed < 86400 then
+	if elapsed and elapsed < DAILY_COOLDOWN then
 		RemoteManager.SendClientEvent(
 			"Notification",
 			{ Player = Player },
-			"You may claim in " .. Functions.FormatTime(timeNow - LastClaimed)
+			"You may claim again in " .. Functions.FormatTime(DAILY_COOLDOWN - elapsed)
 		)
 		return
 	end
@@ -52,13 +63,14 @@ function DailyReward.ResetDailyStreak(Player: Player)
 		return
 	end
 
-	if os.clock() - PlayerData.LastDailyReward() < 172800 then
+	local elapsed = getClaimElapsed(PlayerData.LastDailyReward(), os.time())
+	if elapsed and elapsed >= STREAK_GRACE_PERIOD then
 		PlayerData.DailyStreak(0)
 		RemoteManager.SendClientEvent(
 			"Notification",
 			{ Player = Player },
 			"You lost your daily streak, you have been away for: "
-				.. Functions.FormatTime(os.clock() - PlayerData.LastDailyReward())
+				.. Functions.FormatTime(elapsed)
 		)
 	end
 end

@@ -1,4 +1,3 @@
--- All UI dimensions use Scale. Billboard scale is measured in world studs.
 return function(parent)
 	local function create(class, name, owner, properties)
 		local object = Instance.new(class)

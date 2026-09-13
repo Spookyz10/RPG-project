@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Data = require(ReplicatedStorage.Shared.Data).client
 local Logic = require(ReplicatedStorage.Shared.UI.Logic)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
+local Abbreviation = require(ReplicatedStorage.Shared.Utils.Abbreviation)
 
 local Player = Players.LocalPlayer
 local Humanoid = nil :: Humanoid?
@@ -54,7 +55,7 @@ Logic["Bars"].UpdateBar(Data.XP(), Functions:GetXPNeeded(Data.Level()), "XP")
 local function UpdateLevel()
 	local HUD = Player.PlayerGui.HUD.Main
 	HUD.PlayerName.Text = Player.DisplayName
-	HUD.Level.Text = "Lv. " .. Data.Level()
+	HUD.Level.Text = "Lv. " .. Abbreviation:Number(Data.Level())
 	Logic.Bars.UpdateBar(Data.XP(), Functions:GetXPNeeded(Data.Level()), "XP")
 end
 

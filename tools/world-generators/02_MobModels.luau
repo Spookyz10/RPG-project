@@ -1,4 +1,3 @@
--- Standalone Edit-mode generator. All limbs are Motor6D connected, ready for animation.
 assert(not game:GetService("RunService"):IsRunning(), "Stop Play first")
 local RS = game:GetService("ReplicatedStorage")
 local SS = game:GetService("ServerStorage")
@@ -41,7 +40,6 @@ for _, def in definitions do
 			body("Tusk", Vector3.new(0.4, 1.3, 0.45), head.Position + Vector3.new(side * 1.1, -0.3, -head.Size.Z * 0.65), Color3.fromRGB(247, 232, 191), head)
 		end
 	end
-	-- Layered facets use a restrained woodland palette and follow their parent joints.
 	local dark = def[2]:Lerp(Color3.fromRGB(28, 35, 32), 0.35)
 	local light = def[2]:Lerp(Color3.fromRGB(210, 201, 168), 0.3)
 	local cream = Color3.fromRGB(227, 219, 188)
@@ -87,7 +85,6 @@ for _, def in definitions do
 			facet("ShoulderFur", Vector3.new(2.1, 3.8, 4.2), Vector3.new(side * 3.5, 0.4, -1.5), light, torso, CFrame.Angles(0, 0, side * 0.2))
 		end
 	end
-	-- Distinct paws and claws articulate with the original leg joints.
 	for _, limb in model:GetChildren() do
 		if limb:IsA("BasePart") and string.find(limb.Name, "Leg") then
 			local paw = body("Paw", Vector3.new(limb.Size.X * 1.2, 0.55, limb.Size.Z * 1.35), limb.Position + Vector3.new(0, -limb.Size.Y / 2 + 0.15, -0.15), dark, limb)
@@ -104,7 +101,6 @@ for _, def in definitions do
 end
 local destination = folder(RS, "Mobs")
 local backup = folder(folder(SS, "WorldGeneratorBackups"), "Mobs_" .. os.date("%Y%m%d_%H%M%S"))
--- Remove duplicate templates with these names from lookup, retaining them as backups.
 for _, old in destination:GetDescendants() do
 	if old:IsA("Model") and staging:FindFirstChild(old.Name) then old.Parent = backup end
 end

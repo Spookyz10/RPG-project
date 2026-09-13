@@ -1,4 +1,3 @@
--- Adds hover/focus feedback without overriding Studio colors or gameplay selection colors.
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Hover = {}

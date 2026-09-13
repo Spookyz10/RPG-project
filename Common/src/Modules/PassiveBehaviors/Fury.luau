@@ -1,36 +1,62 @@
 local StatusEffects = require(script.Parent.Parent.StatusEffectManager)
-local Fury = {}
-function Fury.OnEquip(character, state)
- state.Stacks, state.Next = 0, os.clock() + 15
 
+local Fury = {}
+local CHARGE_TIME = 15
+local MAX_STACKS = 2
+
+local function alive(character: Model): boolean
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	return character.Parent ~= nil and humanoid ~= nil and humanoid.Health > 0
 end
-function Fury.OnUnequip(character)
- StatusEffects:Remove(character, "Fury")
+
+local function sync(character: Model, state)
+	if state.Stacks > 0 then
+		StatusEffects:Apply(character, "Fury", { Stacks = state.Stacks })
+	else
+		StatusEffects:Remove(character, "Fury")
+	end
 end
-function Fury.Update(character, state)
- local now = os.clock()
- if state.Stacks < 2 and now >= state.Next then
-  local count = math.floor((now - state.Next) / 15) + 1
-  state.Stacks = math.min(2, state.Stacks + count)
-  state.Next += count * 15
- end
- if state.Stacks > 0 then
-  local current = StatusEffects:Get(character, "Fury")
-  if not current or current.Stacks ~= state.Stacks then StatusEffects:Apply(character, "Fury", { Stacks = state.Stacks }) end
- end
+
+local function scheduleCharge(character: Model, state)
+	if not state.Active or state.ChargePending or state.Stacks >= MAX_STACKS then return end
+	state.ChargePending = true
+	local generation = state.Generation
+	task.delay(CHARGE_TIME, function()
+		if not state.Active or state.Generation ~= generation or not alive(character) then return end
+		state.ChargePending = false
+		state.Stacks = math.min(MAX_STACKS, state.Stacks + 1)
+		sync(character, state)
+		scheduleCharge(character, state)
+	end)
 end
-function Fury.BeforeAttack(ctx, state)
- if state.Stacks > 0 then
-  ctx.ForceCritical = true
-  ctx.CriticalMultiplier += 1.5
-  ctx.TriggeredPassives.Fury = true
- end
+
+function Fury.OnEquip(character: Model, state)
+	state.Active = true
+	state.Generation = (state.Generation or 0) + 1
+	state.Stacks = 0
+	state.ChargePending = false
+	scheduleCharge(character, state)
 end
-function Fury.OnHitConfirmed(ctx, state)
- if not ctx.TriggeredPassives.Fury then return end
- if state.Stacks == 2 then state.Next = os.clock() + 15 end
- state.Stacks = math.max(0, state.Stacks - 1)
- if state.Stacks > 0 then StatusEffects:Apply(ctx.Caster, "Fury", { Stacks = state.Stacks })
- else StatusEffects:Remove(ctx.Caster, "Fury") end
+
+function Fury.OnUnequip(character: Model, state)
+	state.Active = false
+	state.Generation = (state.Generation or 0) + 1
+	state.ChargePending = false
+	StatusEffects:Remove(character, "Fury")
 end
+
+function Fury.BeforeAttack(context, state)
+	if state.Stacks <= 0 then return end
+	context.ForceCritical = true
+	context.CriticalMultiplier += 1.5
+	context.TriggeredPassives.Fury = true
+end
+
+function Fury.OnHitConfirmed(context, state)
+	if not context.TriggeredPassives.Fury then return end
+	state.Stacks = math.max(0, state.Stacks - 1)
+	sync(context.Caster, state)
+	scheduleCharge(context.Caster, state)
+end
+
 return Fury

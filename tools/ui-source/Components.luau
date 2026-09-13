@@ -141,8 +141,6 @@ function C.Card(parent, name, height)
 	return card
 end
 
--- Convert the design measurements once, in Edit mode. Saved instances and
--- responsive attributes use Scale, independently of the Studio viewport.
 function C.SaveScale(root)
 	local function scale(value, reference)
 		return UDim2.fromScale(value.X.Scale + value.X.Offset / math.max(1, reference.X), value.Y.Scale + value.Y.Offset / math.max(1, reference.Y))

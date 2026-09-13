@@ -1,11 +1,9 @@
--- Replicated state restores status visuals for late joiners and streamed-in characters.
 local RS = game:GetService("ReplicatedStorage")
 local CollectionService = game:GetService("CollectionService")
 local VFX = require(RS.Shared.CombatVFX)
 CollectionService:GetInstanceRemovedSignal("CombatVFXStatus"):Connect(function(entity)
  for _, id in VFX.StatusNames do VFX:StopStatus(entity, id) end
 end)
--- The gallery belongs to Edit Mode; only template clones appear during gameplay.
 local function hideGallery(child)
  if child.Name == "RPGVFXLab" and child:GetAttribute("Generator") == "BootlegVFXLab" then child:Destroy() end
 end

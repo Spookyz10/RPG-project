@@ -17,7 +17,6 @@ local function getHand(character: Model): BasePart?
 	return character:FindFirstChild("Right Arm") :: BasePart?
 end
 
--- Orientation uses degrees and the same rotation order as Attachment.Orientation.
 local DefaultGripAttributes = {
 	GripPosition = Vector3.new(0, -1, 0),
 	GripOrientation = Vector3.zero,

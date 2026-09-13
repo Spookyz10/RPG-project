@@ -27,6 +27,13 @@ return function(parent)
 		amount.TextSize = 13
 		amount.TextXAlignment = Enum.TextXAlignment.Right
 		amount.TextColor3 = index == 1 and T.Gold or T.Blue
+		C.New("UIScale", "GainPop", amount, { Scale = 1 })
+		local gain = C.Label(cell, "Gain", "", UDim2.fromScale(0.42, -0.2), UDim2.fromScale(0.56, 0.8), true)
+		gain:SetAttribute("EndPosition", UDim2.fromScale(0.42, -0.65))
+		amount.GainPop:SetAttribute("PulseStartScale", 0.72)
+		gain.TextColor3 = index == 1 and T.Gold or T.Blue
+		gain.TextTransparency = 1
+		gain.TextXAlignment = Enum.TextXAlignment.Right
 	end
 	return screen
 end

@@ -20,6 +20,28 @@ sources = {name: (root / path).read_text() for name, path in {
 }.items()}
 script = r'''
 local now = 0
+local scheduled = {}
+local taskMock = {}
+function taskMock.delay(delay, callback)
+    table.insert(scheduled, {At=now+delay, Callback=callback})
+end
+function taskMock.spawn(callback, ...)
+    callback(...)
+end
+local function advance(target)
+    while true do
+        local index
+        local at = math.huge
+        for candidate, entry in scheduled do
+            if entry.At <= target and entry.At < at then index,at=candidate,entry.At end
+        end
+        if not index then break end
+        local entry=table.remove(scheduled,index)
+        now=entry.At
+        entry.Callback()
+    end
+    now=target
+end
 local player = {UserId = 1}
 local items = {fang = {Passive="Fury", Data={ID="Fang Dagger",Name="Fang Daggers"}}, ivy = {Data={ID="Dark Ivy"}}}
 local snapshot = {Equipment={Weapon="w"},Inventory={w=items.fang}}
@@ -44,7 +66,7 @@ local dataService={server={Service={waitForData=function() return data end}}}
 local shared={Utils={Functions=functions,RemoteManager={SendClientEvent=function() end},Types={}},Data=dataService}
 local modules={ModifierSystem={Aggregate=function(_, _, _, value) return value end},EventBus={Fire=function() end}}
 local services={Players={GetPlayerFromCharacter=function(_, c) return c.Player end},ReplicatedStorage={Shared=shared},ServerStorage={Modules=modules}}
-local env=setmetatable({game={GetService=function(_,n) return services[n] end},workspace={GetServerTimeNow=function() return now end},os={clock=function() return now end},require=function(x) return x end},{__index=getfenv()})
+local env=setmetatable({game={GetService=function(_,n) return services[n] end},workspace={GetServerTimeNow=function() return now end},os={clock=function() return now end},task=taskMock,require=function(x) return x end},{__index=getfenv()})
 local function load(source)
     local fn=assert(loadstring(source))
     setfenv(fn,setmetatable({script={Parent=modules}},{__index=env}))
@@ -66,15 +88,15 @@ local damage=load(DAMAGE)
 local active=passives:Get(caster,snapshot)
 local state=active[1].State
 assert(state.Stacks==0)
-now=14.99; passives:Get(caster,snapshot); assert(state.Stacks==0)
-now=15; passives:Get(caster,snapshot); assert(state.Stacks==1)
-now=90; passives:Get(caster,snapshot); assert(state.Stacks==2)
+advance(14.99); assert(state.Stacks==0)
+advance(15); assert(state.Stacks==1)
+advance(90); assert(state.Stacks==2)
 local amount,crit=damage:dealDamage(caster,victim)
 assert(crit and math.abs(amount-37)<0.0001 and state.Stacks==1, "Fury must be 2x + 20% + 150%")
 damage:dealDamage(caster,victim); assert(state.Stacks==0)
 local normal,normalCrit=damage:dealDamage(caster,victim)
 assert(normal==10 and not normalCrit)
-now=105; passives:Get(caster,snapshot); assert(state.Stacks==1)
+advance(105); assert(state.Stacks==1)
 local unsubscribe=modules.EventBus:Subscribe("BeforeDamageCalculated",function(context) context.Cancelled=true end)
 damage:dealDamage(caster,victim); assert(state.Stacks==1,"Cancelled hit consumed Fury")
 unsubscribe()
@@ -84,16 +106,19 @@ local fresh=entity(true); passives:Get(fresh,snapshot); assert(charges(fresh)==0
 caster.Humanoid.Health=800
 local health=caster.Humanoid.Health
 snapshot.Inventory.r={Passive="Predator"}; snapshot.Equipment.Ring="r"
-passives:Run(passives:Get(caster,snapshot),"AfterHit",{Caster=caster,Victim=victim,Damage=100,IsCrit=true})
+local predatorContext={Caster=caster,Victim=victim,Damage=100,IsCrit=true,TriggeredPassives={}}
+passives:Run(passives:Get(caster,snapshot),"AfterHit",predatorContext)
 assert(caster.Humanoid.Health==math.min(1000,health+8))
+assert(predatorContext.TriggeredPassives.Predator)
 snapshot.Inventory.r.Passive="Venom"
-passives:Run(passives:Get(caster,snapshot),"AfterHit",{Caster=caster,Victim=victim,Damage=10,IsCrit=false})
+local venomContext={Caster=caster,Victim=victim,Damage=10,IsCrit=false,TriggeredPassives={}}
+passives:Run(passives:Get(caster,snapshot),"AfterHit",venomContext)
 assert(status:HasEffect(victim,"Venom"))
+assert(venomContext.TriggeredPassives.Venom)
 snapshot.Inventory.w.Passive="VenomHunter"
 assert(math.abs(damage:BuildContext(caster,victim).Damage-12)<0.001)
 print("PASS: Fury timing/cap/consumption/cancellation/swap/respawn, Critical Power, healing and Venom synergy")
 
--- Maul counts confirmed damage, never previews, cancelled hits or zero damage.
 snapshot.Equipment.Ring=nil
 snapshot.Inventory.w.Passive="Maul"
 caster.Stats.Attack=9
@@ -114,23 +139,23 @@ assert(passives:Get(caster,snapshot)[1].State.Hits==0,"Unequip did not reset Mau
 caster.Stats.Attack=10
 print("PASS: Maul fourth hit, previews, cancellation, zero damage and unequip reset")
 
--- Defender thresholds and unrelated equipment changes.
 local defender=entity(true)
 local defenseData={Equipment={Armor="armor"},Inventory={armor={Passive="Bulwark"}}}
-local ctx={Victim=defender,Damage=100}
+local ctx={Victim=defender,Damage=100,TriggeredDefenderPassives={}}
 passives:Run(passives:Get(defender,defenseData),"BeforeIncomingDamage",ctx)
 assert(ctx.Damage==85)
-defender.Humanoid.Health=699; ctx.Damage=100
+assert(ctx.TriggeredDefenderPassives.Bulwark)
+defender.Humanoid.Health=699; ctx.Damage=100; ctx.TriggeredDefenderPassives={}
 passives:Run(passives:Get(defender,defenseData),"BeforeIncomingDamage",ctx); assert(ctx.Damage==100)
-defenseData.Inventory.armor.Passive="LastStand"; defender.Humanoid.Health=350; ctx.Damage=100
+defenseData.Inventory.armor.Passive="LastStand"; defender.Humanoid.Health=350; ctx.Damage=100; ctx.TriggeredDefenderPassives={}
 passives:Run(passives:Get(defender,defenseData),"BeforeIncomingDamage",ctx); assert(ctx.Damage==75)
-defender.Humanoid.Health=351; ctx.Damage=100
+assert(ctx.TriggeredDefenderPassives.LastStand)
+defender.Humanoid.Health=351; ctx.Damage=100; ctx.TriggeredDefenderPassives={}
 passives:Run(passives:Get(defender,defenseData),"BeforeIncomingDamage",ctx); assert(ctx.Damage==100)
 snapshot.Inventory.w.Passive="Fury"; passives:Get(caster,snapshot)
-now+=15; passives:Get(caster,snapshot); assert(charges(caster)==1)
+advance(now+15); assert(charges(caster)==1)
 snapshot.Inventory.r.Passive="Regrowth"; passives:Get(caster,snapshot); assert(charges(caster)==1)
 passives:Clear(caster); assert(charges(caster)==0 and not status:HasEffect(caster,"Fury"))
--- A new module's hook executes without changes to DamageHandler or dispatcher.
 modules.PassiveBehaviors.TestExtension={BeforeAttack=function(c) c.Attack+=7 end}
 snapshot.Inventory.w.Passive="TestExtension"
 assert(damage:BuildContext(caster,victim).Damage==17)
@@ -139,7 +164,6 @@ assert(damage:BuildContext(caster,victim).Damage==10)
 print("PASS: defensive thresholds, independent state, cleanup and new passive extension")
 
 
--- Status effects: tick, refresh, priority fallback, removal and modifier ownership.
 local poisoned=entity(false)
 function poisoned.Humanoid:TakeDamage(n) self.Health-=n end
 status:Apply(poisoned,"Poison")
@@ -160,7 +184,6 @@ status:Apply(poisoned,"Poison"); poisoned.Humanoid.Health=0; status:Step(now)
 assert(not status:HasEffect(poisoned,"Poison") and not poisoned.Poisoned)
 print("PASS: unified statuses, periodic damage, refresh, priority fallback, death and modifier cleanup")
 
--- Cleansing removes all debuff groups, including suppressed entries, but preserves buffs.
 caster.Humanoid.Health=500
 status:Apply(caster,"Poison",{Duration=10})
 status:Apply(caster,"Poison",{Duration=20,Priority=2})
@@ -175,7 +198,6 @@ assert(damage:heal(caster,caster,caster.Humanoid.MaxHealth)==500)
 assert(caster.Humanoid.Health==caster.Humanoid.MaxHealth)
 print("PASS: full healing and debuff cleanse preserve beneficial statuses")
 
--- Crafting: use callable data cells and the actual remote handler.
 local function cell(initial)
     local value=initial
     return function(...) if select('#',...)>0 then value=(...) end; return value end

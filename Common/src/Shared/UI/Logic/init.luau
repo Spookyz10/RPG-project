@@ -7,8 +7,7 @@ for _, module in script:GetDescendants() do
 	end
 end
 
--- Initialize before publishing the module, so remote listeners cannot access unbound UI.
-for _, name in { "Bars", "Buffs", "Currencies", "Buttons", "Inventory", "SkillSelector", "ZoneSelector", "Raids", "PlayerList", "Party", "Dialog", "Journal", "Crafting" } do
+for _, name in { "Bars", "Buffs", "Currencies", "Buttons", "Inventory", "SkillSelector", "ZoneSelector", "Raids", "PlayerList", "Party", "Dialog", "Journal", "Crafting", "DeathScreen" } do
 	local module = Modules[name]
 	if module and module.Init then module.Init() end
 end

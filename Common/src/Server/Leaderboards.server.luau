@@ -82,7 +82,6 @@ local function refresh(id)
 		end
 		table.insert(rows, { Rank = rank, UserId = userId, Username = name, Value = item.value })
 	end
-	-- Publish a single payload so clients never observe a partially rebuilt list.
 	board:SetAttribute("Rows", game:GetService("HttpService"):JSONEncode(rows))
 	board:SetAttribute("UpdatedAt", workspace:GetServerTimeNow())
 	board:SetAttribute("Status", #rows == 0 and "Be the first on this leaderboard!" or "Global top " .. Config.Limit)

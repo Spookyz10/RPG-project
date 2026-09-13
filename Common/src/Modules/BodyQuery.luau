@@ -1,6 +1,5 @@
 local BodyQuery = {}
 
--- Walk through nested rig models, but do not turn weapon/accessory geometry into a body.
 function BodyQuery.Resolve(part)
 	if not part:IsA("BasePart") or part.Name == "Hitbox" then return nil end
 	local ancestor = part.Parent
@@ -29,7 +28,6 @@ function BodyQuery.PlayersInVolume(cf, size, radius)
 		local character = BodyQuery.Resolve(part)
 		if not character or not players:GetPlayerFromCharacter(character) then continue end
 		if radius then
-			-- Closest point on the limb bounds to the vertical attack axis.
 			local axis = Vector3.new(cf.Position.X, math.clamp(part.Position.Y, cf.Position.Y - size.Y / 2, cf.Position.Y + size.Y / 2), cf.Position.Z)
 			local localPoint = part.CFrame:PointToObjectSpace(axis)
 			local half = part.Size / 2

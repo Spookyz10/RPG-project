@@ -1,3 +1,5 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Abbreviation = require(ReplicatedStorage.Shared.Utils.Abbreviation)
 local player = game:GetService("Players").LocalPlayer
 local mobs = workspace:WaitForChild("Mobs")
 local gui = player:WaitForChild("PlayerGui"):WaitForChild("BossBar", 30)
@@ -19,9 +21,9 @@ while gui.Parent do
 	panel.Visible = nearest ~= nil
 	if nearest then
 		local hum = nearest:FindFirstChildOfClass("Humanoid")
-		panel.Title.Text = nearest.Name .. "  •  Lv. " .. tostring(nearest:GetAttribute("Level") or 15)
+		panel.Title.Text = nearest.Name .. "  •  Lv. " .. Abbreviation:Number(nearest:GetAttribute("Level") or 15)
 		panel.Track.Fill.Size = UDim2.fromScale(math.clamp(hum.Health / math.max(hum.MaxHealth, 1), 0, 1), 1)
-		panel.Health.Text = math.ceil(hum.Health) .. " / " .. math.ceil(hum.MaxHealth)
+		panel.Health.Text = Abbreviation:Number(math.ceil(hum.Health)) .. " / " .. Abbreviation:Number(math.ceil(hum.MaxHealth))
 	end
 	task.wait(0.05)
 end

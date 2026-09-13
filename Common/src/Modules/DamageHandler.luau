@@ -13,6 +13,18 @@ local DamageHandler = {}
 
 local BASE_CRITICAL_MULTIPLIER = 2
 
+local function sendPassiveFeedback(player: Player?, triggers: { [string]: boolean })
+	if not player then return end
+	local ids = {}
+	for id, triggered in triggers do
+		if triggered then table.insert(ids, id) end
+	end
+	table.sort(ids)
+	for _, id in ids do
+		RemoteManager.SendClientEvent("CombatFeedback", { Player = player }, "Passive", id)
+	end
+end
+
 function DamageHandler:BuildContext(caster: Model, victim: Model, multi: number?): Types.DamageContext
 	local CasterPlayer = Players:GetPlayerFromCharacter(caster)
 	local VictimPlayer = Players:GetPlayerFromCharacter(victim)
@@ -28,7 +40,7 @@ function DamageHandler:BuildContext(caster: Model, victim: Model, multi: number?
 		CasterPlayer = CasterPlayer, VictimPlayer = VictimPlayer,
 		Attack = CasterStats.Attack,
 		CriticalMultiplier = BASE_CRITICAL_MULTIPLIER + (CasterStats["Critical Power"] or 0) / 100,
-		ForceCritical = false, TriggeredPassives = {},
+		ForceCritical = false, TriggeredPassives = {}, TriggeredDefenderPassives = {},
 		Multiplier = multi, Tags = {}, Cancelled = false,
 		AttackerPassives = CasterData and Passives:Get(caster, CasterData()) or {},
 		DefenderPassives = VictimData and Passives:Get(victim, VictimData()) or {},
@@ -94,7 +106,9 @@ function DamageHandler:dealDamage(caster: Model, victim: Model, multi: number?):
 	VictimHumanoid.Health -= Damage
 	if Damage > 0 then
 		EventBus:Fire("HitApplied", Context)
+		sendPassiveFeedback(Context.CasterPlayer, Context.TriggeredPassives)
 	end
+	sendPassiveFeedback(Context.VictimPlayer, Context.TriggeredDefenderPassives)
 
 	EventBus:Fire("DamageDealt", Context)
 
@@ -112,7 +126,7 @@ function DamageHandler:dealDamage(caster: Model, victim: Model, multi: number?):
 	end
 
 	RemoteManager.SendClientEvent("Damage", { All = true }, victim, Damage, {
-		Type = Context.IsCrit and "Crit" or "Base",
+		Type = Context.CasterPlayer and (Context.IsCrit and "Crit" or "Base") or "Mob",
 		CasterUserId = Context.CasterPlayer and Context.CasterPlayer.UserId,
 	})
 

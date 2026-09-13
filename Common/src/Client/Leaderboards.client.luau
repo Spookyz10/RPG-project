@@ -2,6 +2,7 @@ local RS = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local Http = game:GetService("HttpService")
 local Config = require(RS.Shared.LeaderboardConfig)
+local Abbreviation = require(RS.Shared.Utils.Abbreviation)
 local screen = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Leaderboards")
 local snapshots = RS:WaitForChild("LeaderboardSnapshots")
 local template = RS:WaitForChild("RPGUITemplates"):WaitForChild("Leaderboard")
@@ -13,12 +14,9 @@ local colors = {
 local thumbnails = {}
 local function formatValue(id, value)
 	if id == "PlayTime" then return string.format("%dh %02dm", math.floor(value / 3600), math.floor(value / 60) % 60) end
-	if value >= 1000000 then return string.format("%.1fM", value / 1000000) end
-	if value >= 1000 then return string.format("%.1fK", value / 1000) end
-	return tostring(value)
+	return Abbreviation:Number(value)
 end
 local function applyRank(row, rank)
-	-- Only toggle the saved gradients; their colors and sequences stay editable.
 	for _, style in row:GetDescendants() do
 		if style:IsA("UIGradient") then
 			if style.Name == "Basic" then style.Enabled = rank > 3
@@ -61,13 +59,12 @@ for id in Config.Boards do
 			applyRank(row, entry.Rank)
 			row.PlayerName.Text = entry.Username
 			local rankLabel = row:FindFirstChild("Rank", true)
-			if rankLabel and rankLabel:IsA("TextLabel") then rankLabel.Text = "#" .. entry.Rank end
+			if rankLabel and rankLabel:IsA("TextLabel") then rankLabel.Text = "#" .. Abbreviation:Number(entry.Rank) end
 			row.Stat.RichText = true
 			row.Stat.TextColor3 = colors[id]
 			row.Stat.Text = labels[id] .. ':<br/><font color="rgb(255,255,255)">' .. formatValue(id, entry.Value) .. '</font>'
 			row.Visible = true
 			row.Parent = main.Rows
-			-- Thumbnail requests yield, so they must never interrupt row creation.
 			task.spawn(function()
 				local image = thumbnails[entry.UserId]
 				if not image then

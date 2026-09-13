@@ -5,6 +5,7 @@ local TweenService = game:GetService("TweenService")
 local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
 local MobAnimations = require(ReplicatedStorage.Shared.MobAnimations)
 local MobsData = require(ReplicatedStorage.Shared.MobsData)
+local Abbreviation = require(ReplicatedStorage.Shared.Utils.Abbreviation)
 
 local Templates = require(ReplicatedStorage.Shared.UI.Bootstrap).GetTemplates()
 local MobsFolder = workspace:WaitForChild("Mobs")
@@ -30,13 +31,12 @@ local function UpdateHP(Overhead: BillboardGui, Humanoid: Humanoid)
 	else
 		Bar.Size = goal
 	end
-	Health.Text = "HP  " .. math.floor(math.max(Humanoid.Health, 0)) .. " / " .. math.floor(math.max(Humanoid.MaxHealth, 0))
+	Health.Text = "HP  " .. Abbreviation:Number(math.max(Humanoid.Health, 0), 0) .. " / " .. Abbreviation:Number(math.max(Humanoid.MaxHealth, 0), 0)
 end
 
 local function PlayDeathAnimation(mobModel: Model)
 	local Handler = AnimationHandler.GetOrCreate(mobModel)
 	Handler:StopAll(0)
-	-- MobDeath animates the intact body on the server for every mob rig.
 end
 
 local function SetupMovementAnimation(mobModel: Model, Humanoid: Humanoid)
@@ -114,7 +114,7 @@ local function SetupMob(mobModel: Model)
 		local badge = Overhead.Info:FindFirstChild("LevelBadge")
 		if badge then
 			local info = MobsData[mobModel.Name]
-			badge.Level.Text = "Lv. " .. tostring(mobModel:GetAttribute("Level") or (info and info.Level) or 1)
+			badge.Level.Text = "Lv. " .. Abbreviation:Number(mobModel:GetAttribute("Level") or (info and info.Level) or 1)
 		end
 	end
 	UpdateLevel()

@@ -7,7 +7,7 @@ local Skill: Types.SkillDefinition = {
 	Multiplier = 1,
 	LevelRequirement = 10,
 	Icon = "rbxassetid://5611282549",
-	Description = "Heal 25% of your health.",
+	Description = "Heal yourself and nearby allies for 25% of their maximum health.",
 	SkillType = "Support",
 }
 

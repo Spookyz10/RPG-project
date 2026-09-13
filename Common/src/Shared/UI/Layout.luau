@@ -1,5 +1,3 @@
--- Studio owns positions, sizes and grid settings, on every device.
--- Optional tabs only change visibility when explicitly activated by the player.
 local Layout = {}
 local bound = setmetatable({}, { __mode = "k" })
 

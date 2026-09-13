@@ -1,4 +1,3 @@
--- Binds saved Studio UI only. Screen construction lives in tools/ui-generators.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -10,6 +9,7 @@ local screenNames = {
 	"LoadingScreen", "HUD", "Buttons", "Attack", "Inventory", "SkillSelector",
 	"ZoneSelector", "RaidsGUI", "Playerlist", "Partylist", "Dialogue", "Shop",
 	"Journal", "Notifications", "Tutorial", "Main", "PlayerCard",
+	"ZoneTransition", "DeathScreen",
 }
 
 function Bootstrap.Ensure()
@@ -17,9 +17,9 @@ function Bootstrap.Ensure()
 	local gui = Players.LocalPlayer:WaitForChild("PlayerGui")
 	if ready then return gui end
 	for _, name in screenNames do
-		assert(gui:WaitForChild(name, 20), "Missing UI: " .. name .. ". Run the Edit-mode generators, then save the place.")
+		gui:WaitForChild(name)
 	end
-	assert(ReplicatedStorage:WaitForChild("RPGUITemplates", 20), "Generate Templates in Edit mode before playing.")
+	ReplicatedStorage:WaitForChild("RPGUITemplates")
 	if ready then return gui end
 	ready = true
 	for _, screen in gui:GetChildren() do
@@ -38,7 +38,7 @@ function Bootstrap.Ensure()
 end
 
 function Bootstrap.GetTemplates()
-	return ReplicatedStorage:WaitForChild("RPGUITemplates", 20)
+	return ReplicatedStorage:WaitForChild("RPGUITemplates")
 end
 
 return Bootstrap

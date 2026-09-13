@@ -12,7 +12,6 @@ function Maul.BeforeAttack(ctx, state)
 end
 
 function Maul.OnHitConfirmed(ctx, state)
-	-- Only confirmed positive damage advances or consumes the combo.
 	if ctx.TriggeredPassives.Maul then
 		state.Hits = 0
 	else

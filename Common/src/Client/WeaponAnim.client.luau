@@ -11,7 +11,6 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Player = Players.LocalPlayer
 local readyCharacter: Model? = nil
 
--- Asset preload completion is earlier than the player pressing Play.
 PreloadStatus:WaitUntilLoadingClosed()
 
 local function refresh(character: Model)
@@ -40,8 +39,6 @@ local function refresh(character: Model)
 end
 
 local function onCharacterAdded(character: Model)
-	-- Replication may still be completing, including on respawn. Do not create
-	-- a handler with a readiness timeout until the server's Animator exists.
 	while Player.Character == character do
 		local humanoid = character:FindFirstChildOfClass("Humanoid")
 		if character:IsDescendantOf(workspace) and humanoid and humanoid:FindFirstChildOfClass("Animator")

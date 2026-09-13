@@ -40,6 +40,7 @@ return function(parent)
 	C.Gradient(play)
 	local stroke = C.Stroke(play, T.Line)
 	stroke.Thickness = 1
+	C.New("UIScale", "ReadyScale", play, { Scale = 1 })
 	text("Footer", "YOUR STORY CONTINUES", 0.08, 0.91, 0.5, 0.022, Color3.fromRGB(126, 139, 157))
 	return screen
 end

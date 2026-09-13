@@ -23,7 +23,7 @@ local function selectActive(target, id, group)
 	end
 	if best then
 		if best.Attribute then target:SetAttribute(best.Attribute, true) end
-		Events:Fire("StatusEffectChanged", target, id, best)
+		Events:Fire("StatusEffectChanged", target, id, best, previous)
 	elseif previous then
 		if previous.Attribute then target:SetAttribute(previous.Attribute, nil) end
 		Events:Fire("StatusEffectRemoved", target, id, previous)
@@ -46,7 +46,6 @@ function Manager:Apply(target, id, options)
 	local group = entity[id]
 	if not group then group = { Entries = {} }; entity[id] = group end
 	local previous = group.Entries[priority]
-	-- Refresh replaces the same priority; it does not start a second ticking loop.
 	config.Priority = priority
 	config.Stacks = math.clamp(config.Stacks or 1, 1, config.MaxStacks or 1)
 	config.ExpiresAt = config.Duration and os.clock() + config.Duration or math.huge
@@ -87,24 +86,31 @@ function Manager:GetEffectsByTag(target, tag)
 end
 
 function Manager:ClearDebuffs(target)
- for id, group in table.clone(Entities[target] or {}) do
-  local debuff = Definitions[id] and Definitions[id].Category == "Debuff"
-  for _, entry in group.Entries do
-   if entry.Category == "Debuff" then debuff = true; break end
-  end
-  if debuff then self:Remove(target, id) end
- end
+	for id, group in table.clone(Entities[target] or {}) do
+		local debuff = Definitions[id] and Definitions[id].Category == "Debuff"
+		for _, entry in group.Entries do
+			if entry.Category == "Debuff" then
+				debuff = true
+				break
+			end
+		end
+		if debuff then
+			self:Remove(target, id)
+		end
+	end
 end
 
 function Manager:ClearEntity(target)
 	for id in table.clone(Entities[target] or {}) do self:Remove(target, id) end
 end
 
--- A single scheduler owns all lifetimes. Explicit stepping also supports deterministic tests.
 function Manager:Step(now)
 	for target, entity in table.clone(Entities) do
 		local humanoid = target:FindFirstChildOfClass("Humanoid")
-		if not target.Parent or not humanoid or humanoid.Health <= 0 then self:ClearEntity(target); continue end
+		if not target.Parent or not humanoid or humanoid.Health <= 0 then
+			self:ClearEntity(target)
+			continue
+		end
 		for id, group in table.clone(entity) do
 			local active = group.Active
 			local behavior = Behaviors[id]
@@ -113,17 +119,27 @@ function Manager:Step(now)
 				if behavior and behavior.OnTick then behavior.OnTick(target, active) end
 				if humanoid.Health <= 0 or self:Get(target, id) ~= active then break end
 			end
-			if entity[id] ~= group then continue end
-			if humanoid.Health <= 0 then self:ClearEntity(target); break end
+			if entity[id] ~= group then
+				continue
+			end
+			if humanoid.Health <= 0 then
+				self:ClearEntity(target)
+				break
+			end
 			local changed = false
 			for priority, entry in group.Entries do
-				if now >= entry.ExpiresAt then group.Entries[priority] = nil; changed = true end
+				if now >= entry.ExpiresAt then
+					group.Entries[priority] = nil
+					changed = true
+				end
 			end
-			if next(group.Entries) == nil then self:Remove(target, id)
+			if next(group.Entries) == nil then
+				self:Remove(target, id)
 			elseif changed then
 				selectActive(target, id, group)
-				-- Suppressed effects do not accumulate deferred ticks.
-				if group.Active.Interval then group.Active.NextTick = now + group.Active.Interval end
+				if group.Active.Interval then
+					group.Active.NextTick = now + group.Active.Interval
+				end
 			end
 		end
 	end

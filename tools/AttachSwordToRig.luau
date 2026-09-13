@@ -1,4 +1,3 @@
--- Paste into Studio's Command Bar in Edit mode, before opening Animation Editor.
 local RunService = game:GetService("RunService")
 assert(not RunService:IsRunning(), "Execute em modo Edit, fora do Play.")
 
@@ -17,7 +16,6 @@ assert(Handle and Handle:IsA("BasePart"), "Sword sem Handle.")
 local GripPoint = Handle:FindFirstChild("GripPoint")
 assert(not GripPoint or GripPoint:IsA("Attachment"), "GripPoint precisa ser Attachment.")
 
--- Match WeaponLoader defaults; copy custom runtime values here if needed.
 local Position = Sword:GetAttribute("GripPosition")
 local Orientation = Sword:GetAttribute("GripOrientation")
 Position = if typeof(Position) == "Vector3" then Position else Vector3.new(0, -1, 0)
@@ -28,7 +26,6 @@ local AttachmentOffset = if GripPoint then GripPoint.CFrame else CFrame.identity
 
 game:GetService("ChangeHistoryService"):SetWaypoint("Before attaching Sword")
 
--- Remove previous arm-to-sword joints, including a previous run of this script.
 for _, Joint in Rig:GetDescendants() do
 	if Joint:IsA("JointInstance") or Joint:IsA("WeldConstraint") then
 		if (Joint.Part0 == Arm and Joint.Part1 == Handle)

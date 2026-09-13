@@ -43,7 +43,6 @@ function Remote:Activate(player, recipeID)
 		local info = Items[recipeID]
 		if not info then return end
 		inventory[Functions:GenUUID()] = { ID = recipeID, Name = info.Data.Name, Amount = 1, Enchants = {}, Upgrades = 0, UpgradeCap = math.random(3, 10) }
-		-- No yields between validated snapshot and commit; competing remote requests cannot interleave.
 		data.Inventory(inventory)
 		data.CurrentInventorySpace(count + 1)
 		data.Currencies.Gold(data.Currencies().Gold - recipe.Gold)

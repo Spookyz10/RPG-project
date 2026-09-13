@@ -137,7 +137,7 @@ function AttackManager:UseSkill(Player: Player, slot: string)
 
 	CooldownSystem:StartCooldown(Player, slot, Definition.Cooldown)
 
-	RemoteManager.SendClientEvent("SkillCooldown", { Player = Player }, slot, Definition.Cooldown)
+	RemoteManager.SendClientEvent("SkillCooldown", { Player = Player }, slot, Definition.Cooldown, Definition.Name)
 
 	local Track = Behavior:Execute(Player, Definition)
 

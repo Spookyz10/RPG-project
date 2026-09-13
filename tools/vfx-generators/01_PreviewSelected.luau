@@ -1,5 +1,3 @@
--- EDIT MODE: select one generated Model in Resources or the lab, then paste this file.
--- Animates a temporary clone. The saved template is never modified.
 assert(not game:GetService("RunService"):IsRunning(), "Stop Play first.")
 local selected = game:GetService("Selection"):Get()[1]
 assert(selected and selected:IsA("Model") and selected.PrimaryPart and selected:GetAttribute("Duration"), "Select one generated VFX Model.")

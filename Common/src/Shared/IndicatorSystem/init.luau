@@ -24,7 +24,7 @@ function Indicators:CreateIndicator(
 		local Template = IndicatorList[string.lower(indicatorName)] :: BasePart
 		if not Template then
    local name = string.lower(indicatorName)
-   if name ~= "circle" and name ~= "square" then return end
+   if name ~= "circle" and name ~= "square" and name ~= "line" then return end
    local fallback = Instance.new("Part")
    fallback.Name = indicatorName
    fallback.Shape = name == "circle" and Enum.PartType.Cylinder or Enum.PartType.Block
@@ -45,7 +45,6 @@ function Indicators:CreateIndicator(
 		Indicator.Parent = workspace
 
 		if size then
-			-- Callers provide footprint X/Z and thickness Y. Cylinders run along local X.
 			Indicator.Size = Indicator:IsA("Part") and Indicator.Shape == Enum.PartType.Cylinder
 				and Vector3.new(size.Y, size.X, size.Z) or size
 		end
@@ -65,7 +64,16 @@ function Indicators:CreateIndicator(
 		FakeIndicator.CFrame += Vector3.new(0, 0.02, 0)
 		FakeIndicator.Parent = Indicator.Parent
 
-		if FakeIndicator:IsA("Part") and FakeIndicator.Shape == Enum.PartType.Block then
+		local isLineFill = string.lower(indicatorName) == "line"
+		if isLineFill and FakeIndicator:IsA("Part") and FakeIndicator.Shape == Enum.PartType.Block then
+			local finalSize = Indicator.Size
+			FakeIndicator.Size = Vector3.new(finalSize.X, finalSize.Y, 0.05)
+			FakeIndicator:PivotTo(Indicator.CFrame * CFrame.new(0, 0, finalSize.Z / 2 - FakeIndicator.Size.Z / 2))
+			Tween = TweenService:Create(FakeIndicator, TweenInfoObj, {
+				Size = finalSize,
+				CFrame = Indicator.CFrame,
+			})
+		elseif FakeIndicator:IsA("Part") and FakeIndicator.Shape == Enum.PartType.Block then
 			FakeIndicator.Size = Vector3.new(1, FakeIndicator.Size.Y, 1)
 			Tween = TweenService:Create(FakeIndicator, TweenInfoObj, { Size = Indicator.Size })
 		elseif FakeIndicator:IsA("Part") and FakeIndicator.Shape == Enum.PartType.Cylinder then

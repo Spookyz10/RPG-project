@@ -22,7 +22,6 @@ return function(parent)
 		button:SetAttribute("OpenScreen", entry[3])
 		if entry[1] == "Admin" or entry[1] == "Raids" or entry[1] == "Party" or entry[1] == "Journal" then button.Visible = false end
 	end
-	-- A small primary shortcut stays visible when the menu is collapsed.
 	local bag = C.Button(main, "Backpack", "Bag", UDim2.fromOffset(0, 56), UDim2.fromOffset(80, 48), T.Mint)
 	bag:SetAttribute("OpenScreen", "Inventory")
 	local amount = C.Label(bag, "Amount", "0 / 100", UDim2.fromOffset(0, 28), UDim2.new(1, 0, 0, 16))

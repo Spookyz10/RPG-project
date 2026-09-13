@@ -4,6 +4,7 @@ local Templates = require(UI.Bootstrap).GetTemplates()
 local T = require(UI.Theme)
 local Quests = require(UI.Parent.QuestsData)
 local Remotes = require(UI.Parent.Utils.RemoteManager)
+local Abbreviation = require(UI.Parent.Utils.Abbreviation)
 local Journal = {}
 
 function Journal.Init()
@@ -28,7 +29,7 @@ function Journal.Init()
 				local amount = (progress.Objectives or {})[index] or 0
 				local label = card.ObjectiveTemplate:Clone()
 				label.Name = "Objective" .. index
-				label.Text = objective.Target .. "  " .. math.min(amount, objective.Amount) .. " / " .. objective.Amount
+				label.Text = objective.Target .. "  " .. Abbreviation:Number(math.min(amount, objective.Amount)) .. " / " .. Abbreviation:Number(objective.Amount)
 				label.Position = UDim2.fromScale(0.03, (110 + (index - 1) * 28) / height)
 				label.Visible = true
 				label.Parent = card

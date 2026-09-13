@@ -1,4 +1,3 @@
--- Paste into Studio Command Bar in Edit mode. Coordinates are relative to ORIGIN.
 assert(not game:GetService("RunService"):IsRunning(), "Stop Play before generating Grasslands")
 local ORIGIN = Vector3.new(0, 0, 1000)
 local RS = game:GetService("ReplicatedStorage")
@@ -33,7 +32,6 @@ local function marker(parent, name, pos)
 	p.Transparency = 1; p.CanCollide = false; p.CanTouch = false; p.CanQuery = false
 	return p
 end
--- Broad, asymmetric valley with continuous walls following the terrain outline.
 local green = Color3.fromRGB(112, 157, 76)
 local rock = Color3.fromRGB(91, 103, 92)
 local cliffs = folder(map, "Cliffs")
@@ -52,7 +50,6 @@ local function stone(parent, name, pos, size, color)
 	p.Orientation = Vector3.new(random:NextNumber(-12, 12), random:NextNumber(0, 180), random:NextNumber(-12, 12))
 	return p
 end
--- Each cross-section defines a different left/right bank, forming connected bays.
 local banks = {
 	{Z = -22, Left = -76, Right = 82},
 	{Z = 28, Left = -105, Right = 108},
@@ -74,7 +71,6 @@ local function bankAt(z)
 	end
 	return banks[#banks].Left, banks[#banks].Right
 end
--- Overlapping foundation strips end beneath the enclosing cliff segments.
 for z = -22, 318, 4 do
 	local left, right = bankAt(z + 2)
 	part(terrain, "ValleyFloor", Vector3.new(right - left + 16, 12, 4.2), Vector3.new((left + right) / 2, -6, z + 2), green)
@@ -101,7 +97,6 @@ end
 for _, bank in {banks[1], banks[#banks]} do
 	boundary(Vector3.new(bank.Left, 0, bank.Z), Vector3.new(bank.Right, 0, bank.Z))
 end
--- Low grassy shelves in the wider bays, reached by gentle slopes.
 local shelves = folder(terrain, "GrassyShelves")
 for _, shelf in {
 	{X = -97, Z = 74, Width = 30, Depth = 29, Height = 4},
@@ -116,7 +111,6 @@ for _, shelf in {
 		cosmetic(stone(shelves, "MossyEdge", Vector3.new(shelf.X + side * (shelf.Width / 2 - 2), shelf.Height - 0.7, shelf.Z + 5), Vector3.new(5, 2, 9), Color3.fromRGB(107, 141, 74)))
 	end
 end
--- Continuous winding path, with widened clearings at each encounter.
 local nodes = {Vector3.new(0, 0, 0), Vector3.new(-12, 0, 38), Vector3.new(-34, 0, 82), Vector3.new(-6, 0, 125), Vector3.new(32, 0, 170), Vector3.new(19, 0, 218), Vector3.new(0, 0, 255), Vector3.new(0, 0, 294)}
 for i = 1, #nodes - 1 do
 	local a, b = nodes[i], nodes[i + 1]
@@ -151,12 +145,10 @@ for _, side in {-1, 1} do
 		end
 	end
 end
--- Keep the center and all spawn pockets unobstructed.
 for i = 1, 125 do
 	local z = random:NextNumber(5, 281)
 	local left, right = bankAt(z)
 	local x = i % 2 == 0 and random:NextNumber(59, math.max(60, right - 26)) or random:NextNumber(math.min(-60, left + 26), -59)
-	-- Keep terrace surfaces and their approach ramps clean.
 	if (math.abs(x + 97) < 19 and z > 33 and z < 93)
 		or (math.abs(x - 102) < 20 and z > 131 and z < 195)
 		or (math.abs(x + 88) < 17 and z > 203 and z < 257) then continue end
@@ -187,7 +179,6 @@ for _, z in {12, 94, 188, 279} do
 	end
 	for _, x in {-13, 13} do lantern(details, Vector3.new(pathX + x, 0, z)) end
 end
--- Small arrival plaza and sign, framed by a low wooden fence.
 for i = -2, 2 do
 	cosmetic(part(entrance, "Paving", Vector3.new(5.5, 0.2, 9), Vector3.new(i * 5.8, 0.12, 3), Color3.fromRGB(168, 168, 137)))
 end
@@ -198,7 +189,6 @@ end
 local sign = part(entrance, "GrasslandsSign", Vector3.new(13, 4, 0.8), Vector3.new(30, 6, 14), Color3.fromRGB(91, 69, 47))
 local surface = Instance.new("SurfaceGui"); surface.Face = Enum.NormalId.Front; surface.CanvasSize = Vector2.new(520, 160); surface.Parent = sign
 local title = Instance.new("TextLabel"); title.Size = UDim2.fromScale(1, 1); title.BackgroundTransparency = 1; title.Text = "GRASSLANDS"; title.TextColor3 = Color3.fromRGB(255, 235, 174); title.Font = Enum.Font.GothamBold; title.TextScaled = true; title.Parent = surface
--- Shallow ornamental pond tucked into the side, away from the route.
 cosmetic(part(details, "PondBank", Vector3.new(21, 0.22, 16), Vector3.new(-49, 0.14, 100), Color3.fromRGB(151, 145, 106)))
 local water = cosmetic(part(details, "Pond", Vector3.new(17, 0.24, 12), Vector3.new(-49, 0.27, 100), Color3.fromRGB(85, 165, 171)))
 water.Material = Enum.Material.Glass; water.Transparency = 0.18
@@ -206,13 +196,11 @@ for i = 1, 7 do
 	local a = i / 7 * math.pi * 2
 	stone(details, "PondStone", Vector3.new(-49 + math.cos(a) * 10, 0.8, 100 + math.sin(a) * 8), Vector3.new(3, 2, 3))
 end
--- Four spawns per encounter, with shorter travel between groups.
 for _, group in {{"Bushling", 40, 3, -12}, {"Wolf", 130, 4, 19}, {"Boar", 220, 4, 10}} do
 	for i = 1, 4 do
 		marker(spawns, group[1], Vector3.new(group[4] + (i % 2 == 0 and 24 or -24), group[3], group[2] + math.floor((i - 1) / 2) * 26))
 	end
 end
--- Dark, layered cave mouth nestled into the rear cliff.
 for _, x in {-24, 24} do
 	stone(entrance, "CavePillar", Vector3.new(x, 15, 294), Vector3.new(19, 34, 23))
 end
@@ -228,7 +216,6 @@ end
 portal("EnterDireBearCave", Vector3.new(0, 13, 290), "DireBearCave")
 marker(destinations, "Grasslands", Vector3.new(0, 1, 0))
 marker(destinations, "GrasslandsCaveExit", Vector3.new(0, 1, 269)).CFrame *= CFrame.Angles(0, math.pi, 0)
--- Separate enclosed arena: 230 x 260 studs, 70 studs of headroom.
 local center = Vector3.new(650, 0, 400)
 part(cave, "Floor", Vector3.new(250, 12, 280), center + Vector3.new(0, -6, 0), rock)
 part(cave, "Ceiling", Vector3.new(250, 16, 280), center + Vector3.new(0, 78, 0), rock)
@@ -241,7 +228,6 @@ for i = 1, 22 do
 	p.Orientation = Vector3.new(0, -math.deg(angle), 12)
 	local light = Instance.new("PointLight"); light.Color = p.Color; light.Brightness = 1.5; light.Range = 38; light.Parent = p
 end
--- Faceted cave walls and ceiling teeth leave the boss arena clear.
 for i = 1, 24 do
 	local angle = i / 24 * math.pi * 2
 	local edge = center + Vector3.new(math.cos(angle) * 110, 0, math.sin(angle) * 123)
@@ -258,7 +244,6 @@ portal("LeaveDireBearCave", center + Vector3.new(0, 13, -122), "GrasslandsCaveEx
 marker(spawns, "Dire Bear", center + Vector3.new(0, 9, 30))
 marker(bosses, "Dire Bear", center + Vector3.new(0, 22, 30))
 local region = marker(regions, "DireBearCave", center + Vector3.new(0, 35, 0)); region.Size = Vector3.new(250, 100, 280)
--- Replace only generated roots, retaining prior objects in a dated backup.
 local backup = folder(folder(SS, "WorldGeneratorBackups"), "Grasslands_" .. os.date("%Y%m%d_%H%M%S"))
 local function install(object, parent, name)
 	local old = parent:FindFirstChild(name)

@@ -1,8 +1,3 @@
-"""Run generated UI contract/interaction checks with the official Luau CLI.
-
-This is an Instance/data mock, not a substitute for Studio's device emulator.
-Usage: python tools/verify_ui.py --luau PATH_TO_LUAU
-"""
 import argparse
 import json
 from pathlib import Path
@@ -16,7 +11,6 @@ parser.add_argument("--zones-only", action="store_true")
 args = parser.parse_args()
 sources = []
 paths = [(path, path.relative_to(ROOT / "Common/src/Shared").as_posix().removesuffix(".luau")) for path in sorted((ROOT / "Common/src/Shared").rglob("*.luau"))]
-# The harness loads Edit-only builder sources in a virtual namespace, never into the game.
 paths += [(path, "UI/Components" if path.stem == "Components" else "UI/Generators/" + path.stem) for path in sorted((ROOT / "tools/ui-source").glob("*.luau"))]
 paths += [(ROOT / "tools/ui-generators/00_All.luau", "StandaloneGenerator")]
 for path, name in paths:
@@ -31,7 +25,6 @@ if args.zones_only:
     harness = harness.replace("local overrides = {", 'local overrides = {\n [modules["Utils/Types"]] = {},')
     harness = harness[:harness.index('local logic = loadModule')] + r'''
 local selector = loadModule(modules["UI/Logic/ZoneSelector"])
--- Roblox GuiButton.Selected is a boolean and takes precedence over a child name.
 gui.ZoneSelector.Templates.ZoneEntry.Selected = false
 selector.Init()
 local content = gui.ZoneSelector.Main.Body.Content

@@ -4,6 +4,7 @@ local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local UIFunctions = require(ReplicatedStorage.Shared.UI.UIFunctions)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
+local Abbreviation = require(ReplicatedStorage.Shared.Utils.Abbreviation)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Inventory = {}
@@ -137,7 +138,7 @@ local function UpdateEntry(Button: TextButton, ItemData: Types.ItemData)
 	end
 	local LevelLabel = Button:FindFirstChild("ItemLevel")
 	if LevelLabel then
-		LevelLabel.Text = "Lv. " .. (ItemInfo.Data.Level or 1)
+		LevelLabel.Text = "Lv. " .. Abbreviation:Number(ItemInfo.Data.Level or 1)
 	end
 	local Icon = Button:FindFirstChild("Icon") :: ImageLabel?
 	local Amount = Button:FindFirstChild("Amount") :: TextLabel?
@@ -148,7 +149,7 @@ local function UpdateEntry(Button: TextButton, ItemData: Types.ItemData)
 
 	if Amount then
 		Amount.Visible = ItemInfo.Data.Stackable == true
-		Amount.Text = tostring(ItemData.Amount)
+		Amount.Text = Abbreviation:Number(ItemData.Amount)
 	end
 
 	UIFunctions:ApplyRarity(Button, ItemInfo.Data.Rarity)
@@ -180,13 +181,11 @@ local function UpdateEquippedLabel(UUID: string, Button: TextButton)
 		if EquippedLabel then
 			EquippedLabel.Visible = true
 		end
-		Button.BorderSizePixel = 1
 		Button.LayoutOrder = SlotOrder[Key] or DEFAULT_LAYOUT_ORDER
 	else
 		if EquippedLabel then
 			EquippedLabel.Visible = false
 		end
-		Button.BorderSizePixel = 0
 		Button.LayoutOrder = DEFAULT_LAYOUT_ORDER
 	end
 end
@@ -241,8 +240,8 @@ local function OpenActionFrame(UUID: string, ItemData: Types.ItemData, ItemInfo:
 	local Inner = ActionFrame.Inner
 
 	Inner.ItemName.Text = ItemData.Name
-	Inner.ItemDamage.Text = "Damage: " .. tostring(ItemInfo.Stats.Attack)
-	Inner.ItemLevel.Text = "Level Requirement: " .. tostring(ItemInfo.Data.Level) .. "+"
+	Inner.ItemDamage.Text = "Damage: " .. Abbreviation:Number(ItemInfo.Stats.Attack)
+	Inner.ItemLevel.Text = "Level Requirement: " .. Abbreviation:Number(ItemInfo.Data.Level) .. "+"
 
 	local ItemDesc = Inner:FindFirstChild("ItemDesc") :: TextLabel?
 	if ItemDesc then
@@ -288,7 +287,7 @@ local function OpenGeneralFrame(UUID: string, ItemData: Types.ItemData, ItemInfo
 	local Inner = GeneralFrame.Inner
 
 	Inner.ItemName.Text = ItemData.Name
-	Inner.ItemLevel.Text = "Level Requirement: " .. tostring(ItemInfo.Data.Level) .. "+"
+	Inner.ItemLevel.Text = "Level Requirement: " .. Abbreviation:Number(ItemInfo.Data.Level) .. "+"
 
 	local MeetsLevel = UIConstants.Data.Level() >= ItemInfo.Data.Level
 	Inner.ItemLevel.TextColor3 = MeetsLevel and Theme.Green or Theme.Red
@@ -298,9 +297,9 @@ local function OpenGeneralFrame(UUID: string, ItemData: Types.ItemData, ItemInfo
 		local StatValue = ItemInfo.Stats[StatKeys[statLabel]] or 0
 
 		if PercentStats[statLabel] then
-			Inner.Stats[statLabel].Text = statLabel .. ": " .. string.format("%.1f", StatValue) .. "%"
+			Inner.Stats[statLabel].Text = statLabel .. ": " .. Abbreviation:Percent(StatValue)
 		else
-			Inner.Stats[statLabel].Text = statLabel .. ": " .. tostring(StatValue)
+			Inner.Stats[statLabel].Text = statLabel .. ": " .. Abbreviation:Number(StatValue)
 		end
 	end
 
@@ -341,7 +340,7 @@ local function OpenUsableFrame(UUID: string, ItemData: Types.ItemData, ItemInfo:
 	local Inner = UsableFrame.Inner
 
 	Inner.ItemName.Text = ItemData.Name
-	Inner.ItemLevel.Text = "Level Requirement: " .. tostring(ItemInfo.Data.Level) .. "+"
+	Inner.ItemLevel.Text = "Level Requirement: " .. Abbreviation:Number(ItemInfo.Data.Level) .. "+"
 
 	local ItemDesc = Inner:FindFirstChild("ItemDesc") :: TextLabel?
 	if ItemDesc then
@@ -405,8 +404,8 @@ local function OnItemClicked(UUID: string)
 		CloseUsableFrame()
 		MaterialFrame.Inner.ItemName.Text = ItemData.Name
 		MaterialFrame.Inner.ItemDesc.Text = ItemInfo.Data.Description or ""
-		MaterialFrame.Inner.ItemLevel.Text = ItemInfo.Data.Rarity .. " / x" .. ItemData.Amount
-		MaterialFrame.Inner.ItemDamage.Text = "Sell value: " .. (ItemInfo.Data.SellsFor or 0) .. " gold each"
+		MaterialFrame.Inner.ItemLevel.Text = ItemInfo.Data.Rarity .. " / x" .. Abbreviation:Number(ItemData.Amount)
+		MaterialFrame.Inner.ItemDamage.Text = "Sell value: " .. Abbreviation:Number(ItemInfo.Data.SellsFor or 0) .. " gold each"
 		MaterialFrame.Visible = true
 	end
 end
@@ -425,13 +424,13 @@ end
 
 local function UpdateSellLabel()
 	ItemLimit.Text = "Selling: "
-		.. CountSelected()
+		.. Abbreviation:Number(CountSelected())
 		.. "/"
 		.. SELL_LIMIT
 		.. '  <font color="'
 		.. GOLD_COLOR_HEX
 		.. '">Gold: '
-		.. SellTotal
+		.. Abbreviation:Number(SellTotal)
 		.. "</font>"
 end
 local function OpenStackSell(UUID: string, Button: TextButton, ItemData: Types.ItemData, ItemInfo: Types.Item)
@@ -483,7 +482,7 @@ local function UpdateItemLimit()
 	local Current = UIConstants.Data.CurrentInventorySpace()
 	local Max = UIConstants.Data.MaxInventorySpace()
 
-	ItemLimit.Text = Current .. "/" .. Max
+	ItemLimit.Text = Abbreviation:Number(Current) .. "/" .. Abbreviation:Number(Max)
 end
 
 local function ExitSellMode()
@@ -712,7 +711,7 @@ local function UpdateBankLimit()
 	local Current = UIConstants.Data.CurrentStorageSpace()
 	local Max = UIConstants.Data.MaxStorageSpace()
 
-	BankItemLimit.Text = Current .. "/" .. Max
+	BankItemLimit.Text = Abbreviation:Number(Current) .. "/" .. Abbreviation:Number(Max)
 end
 
 local function UpdateEquippedSlot(slot: string, UUID: string)
@@ -916,11 +915,6 @@ function Inventory.Init()
 	SellFrame.Cancel.Visible = false
 	AdvancedFrame.Confirm.Visible = false
 	StorageFrame.Cancel.Visible = false
-
-	local GridLayout = Container:FindFirstChildOfClass("UIGridLayout")
-	if GridLayout then
-		GridLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	end
 
 	for UUID, ItemData in UIConstants.Data.Inventory() do
 		CreateEntry(UUID, ItemData)
