@@ -14,7 +14,7 @@ return function(ctx)
 		local character = player.Character
 		local part = character and character:FindFirstChild("HumanoidRootPart")
 		if part and ctx.Alive(character) and (part.Position - root.Position).Magnitude <= 24 then
-			StunManager:Stun(player, 3)
+			StunManager:HardStun(player, 3)
 			StatusEffects:Apply(character, "Dire Bear Roar", { Source = ctx.Mob })
 		end
 	end

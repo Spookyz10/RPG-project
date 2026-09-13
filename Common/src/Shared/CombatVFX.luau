@@ -76,10 +76,12 @@ function VFX:Play(group, name, cf, options)
  if entry.Expand then model:ScaleTo(entry.Scale * entry.Expand) end
  model:PivotTo(cf * CFrame.new(0, -entry.Rise, 0))
  model.Parent = workspace
- for _, emitter in entry.Emitters do
-  emitter.Enabled = (entry.Status ~= nil or name == "Rush") and emitter.Rate > 0
-  emitter:Emit(emitter:GetAttribute("EmitCount") or 1)
- end
+	for _, emitter in entry.Emitters do
+		emitter.Enabled = (entry.Status ~= nil or name == "Rush") and emitter.Rate > 0
+		-- Attack particles are intentionally authored disabled. Emit a burst instead
+		-- of enabling their rate, so an impact stays a one-shot effect.
+		emitter:Emit(emitter:GetAttribute("EmitCount") or math.max(1, math.floor(emitter.Rate * 0.25)))
+	end
  table.insert(active, entry)
  return entry
 end

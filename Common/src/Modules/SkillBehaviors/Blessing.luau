@@ -1,6 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
-local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
 local DamageHandler = require(ServerStorage.Modules.DamageHandler)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
@@ -29,9 +28,6 @@ function Behavior:Execute(caster: Player, definition: Types.SkillDefinition): An
 
 	RemoteManager.SendClientEvent("SkillVFX", { All = true }, "Blessing", Character)
 
-	local Handler = AnimationHandler.GetOrCreate(Character)
-	local Track = Handler:Play("Blessing", 0.1)
-
 	for _, player in game:GetService("Players"):GetPlayers() do
 		local target = player.Character
 		local root = target and target:FindFirstChild("HumanoidRootPart")
@@ -42,7 +38,7 @@ function Behavior:Execute(caster: Player, definition: Types.SkillDefinition): An
 		end
 	end
 
-	return Track
+	return nil
 end
 
 return Behavior

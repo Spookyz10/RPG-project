@@ -1,6 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
-local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
 local Data = require(ReplicatedStorage.Shared.Data).server
 local StatusEffectManager = require(ServerStorage.Modules.StatusEffectManager)
 local DamageHandler = require(ServerStorage.Modules.DamageHandler)
@@ -34,9 +33,6 @@ function Behavior:Execute(caster: Player, definition: Types.SkillDefinition): An
 
 	RemoteManager.SendClientEvent("SkillVFX", { All = true }, "Lure Jab", Character)
 
-	local Handler = AnimationHandler.GetOrCreate(Character)
-	local Track = Handler:Play("Lure Jab", 0.1)
-
 	Hitbox:Create({
 		Size = Vector3.new(10, 10, 10),
 		Part = Character.PrimaryPart,
@@ -64,7 +60,7 @@ function Behavior:Execute(caster: Player, definition: Types.SkillDefinition): An
 		end,
 	})
 
-	return Track
+	return nil
 end
 
 return Behavior

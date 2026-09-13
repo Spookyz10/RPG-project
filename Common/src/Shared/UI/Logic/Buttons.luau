@@ -59,7 +59,7 @@ function Buttons.Init()
 				setShortcutsVisible(true)
 				if target == "Journal" then clearQuestNotifications() end
 				if target == "Home" then
-					local teleporters = workspace:FindFirstChild("ZoneTeleportes") or workspace:FindFirstChild("ZoneTeleporters")
+					local teleporters = workspace:FindFirstChild("ZoneTeleporters")
 					local lobby = teleporters and teleporters:FindFirstChild("Lobby")
 					if lobby and lobby:IsA("BasePart") and Constants.Player.Character then
 						require(UI.ZoneTransition).Play("Lobby", function()

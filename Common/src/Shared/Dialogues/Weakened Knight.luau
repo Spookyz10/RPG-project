@@ -8,7 +8,7 @@ local Dialogue: Types.Dialogue = {
 			return "InProgress"
 		end
 		if PlayerData.CompletedQuests()["Weakened Knight"] then
-			return "Completed"
+			return "Repeat"
 		end
 		return "Start"
 	end,
@@ -52,8 +52,12 @@ local Dialogue: Types.Dialogue = {
 			Text = "The <shake><font color=\"#FF6F76\"><b>Dire Bear</b></font></shake> is still in the cave behind me. Be patient, watch its attacks, and come back alive.",
 		},
 
-		Completed = {
-			Text = "The cave is quiet at last. You did what I could not. Thank you. The road is safer because of you.",
+		Repeat = {
+			Text = "The cave is quiet for now, but I can hear something moving in the deeper tunnels. If the <shake><font color=\"#FF6F76\"><b>Dire Bear</b></font></shake> returns, will you face it again?",
+			Options = {
+				{ Text = "I will handle it", Next = "Mission" },
+				{ Text = "Not right now", Next = "Leave" },
+			},
 		},
 
 		Leave = {

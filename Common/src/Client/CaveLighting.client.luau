@@ -5,7 +5,7 @@ local grasslands = require(RS.Shared.Zones.Grasslands)
 local inside = false
 while true do
 	local regions = workspace:FindFirstChild("ZoneRegions")
-	local region = regions and regions:FindFirstChild("DireBearCave")
+	local region = regions and regions:FindFirstChild("Dire Bear Cave")
 	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 	local current = false
 	if region and root then
@@ -16,11 +16,22 @@ while true do
 	if current ~= inside then
 		inside = current
 		if inside then
-			manager:Apply("DireBearCave", {ClockTime = 0, Brightness = 1, Ambient = Color3.fromRGB(55, 65, 80), OutdoorAmbient = Color3.fromRGB(35, 42, 55), FogColor = Color3.fromRGB(25, 34, 42), FogStart = 80, FogEnd = 330})
+			manager:Apply(
+				"Dire Bear Cave",
+				{
+					ClockTime = 0,
+					Brightness = 1,
+					Ambient = Color3.fromRGB(55, 65, 80),
+					OutdoorAmbient = Color3.fromRGB(35, 42, 55),
+					FogColor = Color3.fromRGB(25, 34, 42),
+					FogStart = 80,
+					FogEnd = 330,
+				}
+			)
 		else
 			manager:ResetToDefault()
-			local destinations = workspace:FindFirstChild("ZoneTeleportes")
-			local exit = destinations and destinations:FindFirstChild("GrasslandsCaveExit")
+			local destinations = workspace:FindFirstChild("ZoneTeleporters")
+			local exit = destinations and destinations:FindFirstChild("Dire Bear Cave Exit")
 			if root and exit and (root.Position - exit.Position).Magnitude < 100 then
 				manager:Apply("Grasslands", grasslands.getLighting())
 			end

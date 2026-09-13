@@ -26,8 +26,10 @@ local function replace(name, color, texture, lifetime, rate)
 	model.Parent = attacks
 end
 
-replace("DireBearJumpWarning", Color3.fromRGB(255, 180, 72), "rbxasset://textures/particles/sparkles_main.dds", 3, 9)
 replace("DireBearJumpImpact", Color3.fromRGB(255, 210, 120), "rbxasset://textures/particles/smoke_main.dds", 1, 75)
-replace("CavefallWarning", Color3.fromRGB(255, 165, 60), "rbxasset://textures/particles/sparkles_main.dds", 0.8, 12)
 replace("CavefallImpact", Color3.fromRGB(126, 104, 84), "rbxasset://textures/particles/smoke_main.dds", 0.8, 95)
+for _, name in { "DireBearJumpWarning", "CavefallWarning" } do
+	local warning = attacks:FindFirstChild(name)
+	if warning then warning:Destroy() end
+end
 print("Dire Bear skill VFX saved to ReplicatedStorage.Resources.CombatVFX.Attacks.")

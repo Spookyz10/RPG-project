@@ -29,7 +29,7 @@ return {
 	["Dire Bear"] = {
 		AggroRange = 300,
 		LeashDistance = 300,
-		ArenaRegion = "DireBearCave",
+		ArenaRegion = "Dire Bear Cave",
 		Health = 2400,
 		Height = 15,
 		Speed = 12,

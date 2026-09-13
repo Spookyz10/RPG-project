@@ -20,7 +20,7 @@ local function TeleportToZone(zoneName: string)
 		return
 	end
 
-	local Teleporter = workspace:FindFirstChild("ZoneTeleportes") or workspace:FindFirstChild("ZoneTeleporters")
+	local Teleporter = workspace:FindFirstChild("ZoneTeleporters")
 	local TargetPart = Teleporter and Teleporter:FindFirstChild(zoneName)
 	if not TargetPart then
 		Toast.Show("This destination is not available from here.")

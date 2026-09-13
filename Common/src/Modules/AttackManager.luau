@@ -2,7 +2,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Data = require(ReplicatedStorage.Shared.Data).server
 local CombatConstants = require(ReplicatedStorage.Shared.Combat.Constants)
 local AttackStyles = require(ReplicatedStorage.Shared.Combat.AttackStyles)
-local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
 
 local CooldownSystem = require(script.Parent.CooldownSystem)
 local ComboManager = require(script.Parent.ComboManager)
@@ -84,9 +83,6 @@ function AttackManager:Swing(Player: Player)
 	SwingComboIndex[Player] = ((SwingComboIndex[Player] or 0) % Style.MaxCombo) + 1
 
 	CooldownSystem:StartCooldown(Player, "Swing", Cooldown - 0.2)
-
-	local Handler = AnimationHandler.GetOrCreate(Character)
-	Handler:Play(Style.Prefix .. SwingComboIndex[Player], 0.1)
 
 	RemoteManager.SendClientEvent("AttackSound", { All = true }, Character)
 	RemoteManager.SendClientEvent("SkillVFX", { All = true }, "Basic", Character)

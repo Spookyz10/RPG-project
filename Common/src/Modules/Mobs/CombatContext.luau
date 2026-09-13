@@ -1,12 +1,32 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+local Debris = game:GetService("Debris")
 local Remote = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Damage = require(script.Parent.Parent.DamageHandler)
 local StatusEffects = require(script.Parent.Parent.StatusEffectManager)
 local Behavior = require(script.Parent.BehaviorManager)
 local BodyQuery = require(script.Parent.Parent.BodyQuery)
 local Context = {}
+
+local function showDebugHitbox(cf: CFrame, size: Vector3)
+	local debug = ServerScriptService:FindFirstChild("DebugHitboxes")
+	if not (debug and debug:IsA("BoolValue") and debug.Value and RunService:IsStudio()) then return end
+	local part = Instance.new("Part")
+	part.Name = "MobHitboxDebug"
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanTouch = false
+	part.CanQuery = false
+	part.Material = Enum.Material.ForceField
+	part.Color = Color3.fromRGB(255, 70, 45)
+	part.Transparency = 0.65
+	part.Size = size
+	part.CFrame = cf
+	part.Parent = workspace
+	Debris:AddItem(part, 0.3)
+end
 local function alive(model)
  local hum = model and model:FindFirstChildOfClass("Humanoid")
  return model and model.Parent and hum and hum.Health > 0
@@ -45,13 +65,16 @@ function Context.new(mob, cfg, session)
 			{ Main = Color3.fromRGB(220, 55, 45), Display = Color3.fromRGB(255, 170, 60) },
 			ground(cf), duration, size)
 	end
-	local function hit(cf, size, radius, multiplier, knockback, status, seen)
+	local function hit(cf, size, radius, multiplier, knockback, status, seen, ignoreLineOfSight)
 		if not active() then return end
-		local damageSize = size + Vector3.new(2, 6, 2)
+		-- The hit volume is deliberately tall: indicators are ground-only, while
+		-- players can be jumping, falling, or standing on uneven cave geometry.
+		local damageSize = Vector3.new(size.X + 2, math.max(size.Y + 6, 40), size.Z + 2)
+		showDebugHitbox(cf, damageSize)
 		for char in BodyQuery.PlayersInVolume(cf, damageSize, radius and radius + 1 or nil) do
 			local part = char:FindFirstChild("HumanoidRootPart")
 			if not part or not alive(char) or seen[char] or char:FindFirstChildOfClass("ForceField") then continue end
-			if workspace:Raycast(root.Position, part.Position - root.Position, exclude) then continue end
+			if not ignoreLineOfSight and workspace:Raycast(root.Position, part.Position - root.Position, exclude) then continue end
 			seen[char] = true
 			local dealt = Damage:dealDamage(mob, char, multiplier)
 			if dealt > 0 and alive(char) then

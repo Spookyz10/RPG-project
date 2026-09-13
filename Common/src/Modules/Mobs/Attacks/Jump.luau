@@ -29,8 +29,7 @@ return function(ctx)
 		end
 	end
 
-	indicator("Circle", landing, Vector3.new(14, 0.15, 14), WARNING_DURATION)
-	ctx.VFX("DireBearJumpWarning", landing, WARNING_DURATION)
+	indicator("Circle", landing, Vector3.new(22, 0.15, 22), WARNING_DURATION)
 	while ctx.Active() and os.clock() < jumpsAt do
 		faceLanding()
 		local velocity = root.AssemblyLinearVelocity
@@ -41,30 +40,35 @@ return function(ctx)
 	if not ctx.Active() then return end
 
 	faceLanding()
-	local flightTime = math.max(finishesAt - os.clock(), 0.1)
-	local displacement = landingPosition - root.Position
-	local gravity = workspace.Gravity
+	local jumpStart = root.Position
+	local horizontal = (landingPosition - jumpStart) * Vector3.new(1, 0, 1)
+	local jumpDirection = horizontal.Magnitude > 0.01 and horizontal.Unit or root.CFrame.LookVector
+	local arcHeight = math.max(12, horizontal.Magnitude * 0.18)
 	local humanoid = ctx.Mob:FindFirstChildOfClass("Humanoid")
 	if humanoid then
 		humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
 	end
-	root.AssemblyLinearVelocity = Vector3.new(
-		displacement.X / flightTime,
-		(displacement.Y + 0.5 * gravity * flightTime * flightTime) / flightTime,
-		displacement.Z / flightTime
-	)
 
-	while ctx.Active() and os.clock() < finishesAt do
+	-- Use a server-driven arc rather than a launch velocity. Physics collisions
+	-- can otherwise stop the bear mid-air, leaving the final correction looking
+	-- like a teleport when the indicator finishes.
+	while ctx.Active() do
+		local progress = math.clamp((os.clock() - jumpsAt) / JUMP_DURATION, 0, 1)
+		local position = jumpStart:Lerp(landingPosition, progress)
+		position += Vector3.new(0, arcHeight * 4 * progress * (1 - progress), 0)
+		root.CFrame = CFrame.lookAt(position, position + jumpDirection)
+		root.AssemblyLinearVelocity = Vector3.zero
+		root.AssemblyAngularVelocity = Vector3.zero
+		if progress >= 1 then break end
 		RunService.Heartbeat:Wait()
 	end
 	if not ctx.Active() then return end
 
-	local landingDirection = root.CFrame.LookVector * Vector3.new(1, 0, 1)
-	root.CFrame = if landingDirection.Magnitude > 0.01
-		then CFrame.lookAt(landingPosition, landingPosition + landingDirection.Unit)
-		else CFrame.new(landingPosition)
+	root.CFrame = CFrame.lookAt(landingPosition, landingPosition + jumpDirection)
 	root.AssemblyLinearVelocity = Vector3.zero
 	root.AssemblyAngularVelocity = Vector3.zero
 	ctx.VFX("DireBearJumpImpact", landing, 1)
-	hit(landing, Vector3.new(14, 10, 14), 7, 2, 80, false, {})
+	-- Ground impacts must match the warning even when cave geometry blocks the
+	-- boss's line of sight to a player standing in the marked area.
+	hit(landing, Vector3.new(22, 14, 22), 11, 2, 80, false, {}, true)
 end

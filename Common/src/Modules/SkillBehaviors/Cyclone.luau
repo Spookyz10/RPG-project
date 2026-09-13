@@ -1,6 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
-local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
 local DamageHandler = require(ServerStorage.Modules.DamageHandler)
 local Hitbox = require(ServerStorage.Modules.Hitbox)
 local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
@@ -23,9 +22,6 @@ function Behavior:Execute(caster: Player, definition: Types.SkillDefinition): An
 	end
 
 	RemoteManager.SendClientEvent("SkillVFX", { All = true }, "Cyclone", Character)
-
-	local Handler = AnimationHandler.GetOrCreate(Character)
-	local Track = Handler:Play("Cyclone", 0.1)
 
 	task.spawn(function()
 		for tick = 1, TICK_COUNT do
@@ -51,7 +47,7 @@ function Behavior:Execute(caster: Player, definition: Types.SkillDefinition): An
 		end
 	end)
 
-	return Track
+	return nil
 end
 
 return Behavior
