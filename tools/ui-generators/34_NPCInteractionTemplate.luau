@@ -4,7 +4,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 local Selection = game:GetService("Selection")
 local History = game:GetService("ChangeHistoryService")
-
 local T = (function()
 local Theme = {
 	Paper = Color3.fromRGB(32, 33, 41),
@@ -38,7 +37,6 @@ Theme.Rarities = {
 }
 return Theme
 end)()
-
 local C = (function()
 local C = {}
 
@@ -238,75 +236,70 @@ end
 
 return C
 end)()
-
-local builders = {}
-
-builders.ZoneTransition = (function()
+local build = (function()
 
 return function(parent)
-	local screen = C.Screen(parent, "ZoneTransition", 95)
-	screen.Enabled = false
-	local veil = C.Frame(screen, "Veil", UDim2.fromScale(0, 0), UDim2.fromScale(1, 1), Color3.fromRGB(8, 10, 17))
-	local panel = C.Round(C.Frame(veil, "Panel", UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.52, 0.18), T.Paper), 18)
-	panel.AnchorPoint = Vector2.new(0.5, 0.5)
-	C.Stroke(panel, T.Gold)
-	C.Label(panel, "Eyebrow", "TRAVELING", UDim2.fromScale(0.08, 0.12), UDim2.fromScale(0.84, 0.18), true).TextColor3 = T.Gold
-	local title = C.Label(panel, "Title", "GRASSLANDS", UDim2.fromScale(0.08, 0.30), UDim2.fromScale(0.84, 0.34), true)
-	title.TextXAlignment = Enum.TextXAlignment.Center
-	title.TextSize = 28
-	local rule = C.Round(C.Frame(panel, "Rule", UDim2.fromScale(0.17, 0.73), UDim2.fromScale(0.66, 0.05), T.Gold), 8)
-	return screen
+	local prompt = C.New("BillboardGui", "NPCInteractionTemplate", parent, {
+		Size = UDim2.fromOffset(300, 76),
+		StudsOffsetWorldSpace = Vector3.new(0, 3.5, 0),
+		AlwaysOnTop = true,
+		ResetOnSpawn = false,
+		LightInfluence = 0,
+		Enabled = false,
+	})
+	local main = C.Round(C.New("CanvasGroup", "Main", prompt, {
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = T.Paper,
+		GroupTransparency = 0,
+	}), 14)
+	C.Stroke(main, T.Line).Thickness = 3
+	C.New("UIScale", "PromptScale", main, { Scale = 1 })
+	local accent = C.Round(C.Frame(main, "Accent", UDim2.fromOffset(8, 11), UDim2.fromOffset(5, 54), T.Gold), 3)
+	accent.ZIndex = main.ZIndex + 1
+	local name = C.Label(main, "NPCName", "Friendly face", UDim2.fromOffset(24, 9), UDim2.new(1, -108, 0, 27), true)
+	name.TextColor3 = T.Gold
+	name.TextSize = 16
+	local action = C.Label(main, "Action", "Talk", UDim2.fromOffset(24, 38), UDim2.new(1, -108, 0, 24))
+	action.TextColor3 = T.Muted
+	action.TextSize = 12
+	local key = C.Round(C.Label(main, "Key", "F", UDim2.new(1, -68, 0.5, -23), UDim2.fromOffset(52, 46), true), 10)
+	key.BackgroundColor3 = T.Sky
+	key.BackgroundTransparency = 0
+	key.TextXAlignment = Enum.TextXAlignment.Center
+	key.TextSize = 19
+	C.Stroke(key, T.Ink).Thickness = 2
+	local tap = C.New("TextButton", "Tap", main, {
+		Text = "",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		AutoButtonColor = false,
+		ZIndex = key.ZIndex + 2,
+	})
+	return prompt
 end
 end)()
+local templates = ReplicatedStorage:FindFirstChild("RPGUITemplates")
+if not templates then
+    templates = Instance.new("Folder")
+    templates.Name = "RPGUITemplates"
+    templates.Parent = ReplicatedStorage
+end
 
-local staging = Instance.new("Folder")
-local generated = {}
-local ok, reason = pcall(function()
-
-    table.insert(generated, { Object = builders.ZoneTransition(staging), Target = StarterGui })
-
-for _, entry in generated do C.SaveScale(entry.Object) end
-end)
-if not ok then staging:Destroy(); error("UI generation failed; existing screens were preserved: " .. tostring(reason)) end
-local recording
-pcall(function() recording = History:TryBeginRecording("GenerateRPGUI", "Generate RPG interface") end)
-local backupRoot = ServerStorage:FindFirstChild("RPGUIBackups")
-local backup
-for _, entry in generated do
-    local old = entry.Target:FindFirstChild(entry.Object.Name)
-    if old then
-        if not backupRoot then backupRoot = Instance.new("Folder"); backupRoot.Name = "RPGUIBackups"; backupRoot.Parent = ServerStorage end
-        if not backup then
-            backup = Instance.new("Folder")
-            backup.Name = os.date("%Y-%m-%d_%H-%M-%S")
-            backup.Parent = backupRoot
-        end
-        old:SetAttribute("OriginalService", entry.Target.Name)
-        old.Parent = backup
+local replacement = build(nil)
+local targetName = "NPCInteractionTemplate"
+local old = templates:FindFirstChild(targetName)
+if old then
+    local backups = ServerStorage:FindFirstChild("RPGUIBackups")
+    if not backups then
+        backups = Instance.new("Folder")
+        backups.Name = "RPGUIBackups"
+        backups.Parent = ServerStorage
     end
-    entry.Object:SetAttribute("RPGUIVersion", 2)
-    entry.Object.Parent = entry.Target
+    local backup = Instance.new("Folder")
+    backup.Name = targetName .. "_" .. os.date("%Y-%m-%d_%H-%M-%S")
+    backup.Parent = backups
+    old.Parent = backup
 end
-staging:Destroy()
-local selected
-
-local preferred = "ZoneTransition"
-
-for _, entry in generated do
-    local object = entry.Object
-    if object.Name == preferred then
-        selected = object
-        if object:IsA("ScreenGui") then
-            for _, child in object:GetChildren() do
-                if child:IsA("GuiObject") and child:GetAttribute("Window") then child.Visible = true end
-            end
-        end
-    end
-end
-for _, name in { "LoadingScreen", "Tutorial", "UIStylePreview" } do
-    local screen = StarterGui:FindFirstChild(name)
-    if screen then screen.Enabled = preferred == name end
-end
-if selected then Selection:Set({ selected }) end
-if recording then History:FinishRecording(recording, Enum.FinishRecordingOperation.Commit) end
-print("RPG UI saved as editable instances. Save the place before Play. Backups: ServerStorage.RPGUIBackups")
+replacement.Parent = templates
+Selection:Set({ replacement })
+print(targetName .. " upgraded. Only this template changed; the prior version is in ServerStorage.RPGUIBackups.")

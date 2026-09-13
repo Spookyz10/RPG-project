@@ -3,7 +3,14 @@ local windows = {}
 local playerGui
 local current
 
-function Manager.Close()
+function Manager.Close(immediate: boolean?)
+	if current and not immediate then
+		local closeRequest = current:FindFirstChild("CloseRequest")
+		if closeRequest and closeRequest:IsA("BindableEvent") then
+			closeRequest:Fire()
+			return
+		end
+	end
 	if current then current.Visible = false end
 	current = nil
 	if playerGui then playerGui:SetAttribute("UIWindowOpen", false) end
@@ -13,7 +20,7 @@ function Manager.Open(screenName, toggle)
 	local target = windows[screenName]
 	if not target then return false end
 	if current == target and toggle then Manager.Close(); return true end
-	Manager.Close()
+	Manager.Close(true)
 	current = target
 	target.Visible = true
 	playerGui:SetAttribute("UIWindowOpen", true)

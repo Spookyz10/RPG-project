@@ -5,18 +5,19 @@ local UIFunctions = require(ReplicatedStorage.Shared.UI.UIFunctions)
 local Dialogue: Types.Dialogue = {
 	Nodes = {
 		Start = {
-			Text = "Hah, another one covered in dirt and scratches. What brings you to my forge?",
-			Next = "Choice",
-		},
-
-		Choice = {
-			Text = "Take a look around, I've got plenty to offer.",
+			Text = "Need something? I can put the forge to work if you brought the right materials.",
 			Options = {
-				{ Text = "Enchants", Next = "Enchants" },
-				{ Text = "Upgrades", Next = "Upgrades" },
-				{ Text = "Crafting", Next = "CraftingOffer" },
 				{
-					Text = "Leave",
+					Text = "I want to craft something",
+					Action = function(self, PlayerData, Goto, Close)
+						Close()
+						UIFunctions:OpenUI("Crafting")
+					end,
+				},
+				{ Text = "How did you become a blacksmith?", Next = "Lore" },
+				{ Text = "Do you have any advice?", Next = "Tips" },
+				{
+					Text = "Nothing right now",
 					Action = function(self, PlayerData, Goto, Close)
 						Close()
 					end,
@@ -24,22 +25,14 @@ local Dialogue: Types.Dialogue = {
 			},
 		},
 
-		Enchants = {
-			Text = "Enchanting isn't ready yet, come back another time.",
-			Next = "Choice",
+		Lore = {
+			Text = "My father taught me when I was young. Back then I only repaired farm tools. Adventurers started coming through Fuji, and broken swords kept piling up. I learned quickly.",
+			Next = "Start",
 		},
 
-		Upgrades = {
-			Text = "Upgrades aren't ready yet, I'm still setting things up.",
-			Next = "Choice",
-		},
-
-		CraftingOffer = {
-			Text = "If you've got the materials and the blueprint, I can get you crafting right away.",
-			Action = function(self, PlayerData, Goto, Close)
-				Close()
-				UIFunctions:OpenUI("Crafting")
-			end,
+		Tips = {
+			Text = "Keep every material you find until you know what it makes. A common trophy may be the last thing missing from a good weapon. Also, do not spend all your <font color=\"#FFD051\"><b>gold</b></font> at once.",
+			Next = "Start",
 		},
 	},
 }

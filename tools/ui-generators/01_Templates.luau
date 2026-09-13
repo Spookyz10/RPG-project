@@ -224,6 +224,11 @@ function C.SaveScale(root)
 			end
 		elseif object:IsA("UICorner") then
 			object.CornerRadius = UDim.new(object.CornerRadius.Scale + object.CornerRadius.Offset / math.min(wideParent.X, wideParent.Y), 0)
+		elseif object:IsA("BillboardGui") then
+			-- Billboard contents are laid out inside the billboard's own pixel canvas,
+			-- not the generic template folder reference.
+			wide = size(object.Size, wideParent)
+			narrow = wide
 		end
 		for _, child in object:GetChildren() do visit(child, wide, narrow) end
 	end
@@ -509,6 +514,48 @@ return function(parent)
 end
 end)()
 buildFeedbackTemplates(folder)
+	(function()
+
+return function(parent)
+	local prompt = C.New("BillboardGui", "NPCInteractionTemplate", parent, {
+		Size = UDim2.fromOffset(300, 76),
+		StudsOffsetWorldSpace = Vector3.new(0, 3.5, 0),
+		AlwaysOnTop = true,
+		ResetOnSpawn = false,
+		LightInfluence = 0,
+		Enabled = false,
+	})
+	local main = C.Round(C.New("CanvasGroup", "Main", prompt, {
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = T.Paper,
+		GroupTransparency = 0,
+	}), 14)
+	C.Stroke(main, T.Line).Thickness = 3
+	C.New("UIScale", "PromptScale", main, { Scale = 1 })
+	local accent = C.Round(C.Frame(main, "Accent", UDim2.fromOffset(8, 11), UDim2.fromOffset(5, 54), T.Gold), 3)
+	accent.ZIndex = main.ZIndex + 1
+	local name = C.Label(main, "NPCName", "Friendly face", UDim2.fromOffset(24, 9), UDim2.new(1, -108, 0, 27), true)
+	name.TextColor3 = T.Gold
+	name.TextSize = 16
+	local action = C.Label(main, "Action", "Talk", UDim2.fromOffset(24, 38), UDim2.new(1, -108, 0, 24))
+	action.TextColor3 = T.Muted
+	action.TextSize = 12
+	local key = C.Round(C.Label(main, "Key", "F", UDim2.new(1, -68, 0.5, -23), UDim2.fromOffset(52, 46), true), 10)
+	key.BackgroundColor3 = T.Sky
+	key.BackgroundTransparency = 0
+	key.TextXAlignment = Enum.TextXAlignment.Center
+	key.TextSize = 19
+	C.Stroke(key, T.Ink).Thickness = 2
+	local tap = C.New("TextButton", "Tap", main, {
+		Text = "",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		AutoButtonColor = false,
+		ZIndex = key.ZIndex + 2,
+	})
+	return prompt
+end
+end)()(folder)
 	C.Label(folder, "EmptyTemplate", "", nil, UDim2.new(1, -8, 0, 120)).TextColor3 = T.Muted
 	C.Button(folder, "DialogueChoiceTemplate", "Continue", nil, UDim2.new(1, -8, 0, 52), T.Sky)
 	C.Button(folder, "AdminItemTemplate", "Item", nil, UDim2.new(1, -8, 0, 48), T.Soft)

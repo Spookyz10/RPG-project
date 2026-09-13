@@ -110,6 +110,7 @@ return function(parent)
 	C.Button(quest, "Abandon", "ABANDON QUEST", UDim2.new(0, 12, 1, -60), UDim2.new(1, -24, 0, 48), T.Rose)
 	local toast = require(script.Parent.ToastTemplate)(folder)
 	require(script.Parent.FeedbackTemplates)(folder)
+	require(script.Parent.NPCInteractionTemplate)(folder)
 	C.Label(folder, "EmptyTemplate", "", nil, UDim2.new(1, -8, 0, 120)).TextColor3 = T.Muted
 	C.Button(folder, "DialogueChoiceTemplate", "Continue", nil, UDim2.new(1, -8, 0, 52), T.Sky)
 	C.Button(folder, "AdminItemTemplate", "Item", nil, UDim2.new(1, -8, 0, 48), T.Soft)

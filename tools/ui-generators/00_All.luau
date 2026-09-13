@@ -224,6 +224,11 @@ function C.SaveScale(root)
 			end
 		elseif object:IsA("UICorner") then
 			object.CornerRadius = UDim.new(object.CornerRadius.Scale + object.CornerRadius.Offset / math.min(wideParent.X, wideParent.Y), 0)
+		elseif object:IsA("BillboardGui") then
+			-- Billboard contents are laid out inside the billboard's own pixel canvas,
+			-- not the generic template folder reference.
+			wide = size(object.Size, wideParent)
+			narrow = wide
 		end
 		for _, child in object:GetChildren() do visit(child, wide, narrow) end
 	end
@@ -509,6 +514,48 @@ return function(parent)
 end
 end)()
 buildFeedbackTemplates(folder)
+	(function()
+
+return function(parent)
+	local prompt = C.New("BillboardGui", "NPCInteractionTemplate", parent, {
+		Size = UDim2.fromOffset(300, 76),
+		StudsOffsetWorldSpace = Vector3.new(0, 3.5, 0),
+		AlwaysOnTop = true,
+		ResetOnSpawn = false,
+		LightInfluence = 0,
+		Enabled = false,
+	})
+	local main = C.Round(C.New("CanvasGroup", "Main", prompt, {
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = T.Paper,
+		GroupTransparency = 0,
+	}), 14)
+	C.Stroke(main, T.Line).Thickness = 3
+	C.New("UIScale", "PromptScale", main, { Scale = 1 })
+	local accent = C.Round(C.Frame(main, "Accent", UDim2.fromOffset(8, 11), UDim2.fromOffset(5, 54), T.Gold), 3)
+	accent.ZIndex = main.ZIndex + 1
+	local name = C.Label(main, "NPCName", "Friendly face", UDim2.fromOffset(24, 9), UDim2.new(1, -108, 0, 27), true)
+	name.TextColor3 = T.Gold
+	name.TextSize = 16
+	local action = C.Label(main, "Action", "Talk", UDim2.fromOffset(24, 38), UDim2.new(1, -108, 0, 24))
+	action.TextColor3 = T.Muted
+	action.TextSize = 12
+	local key = C.Round(C.Label(main, "Key", "F", UDim2.new(1, -68, 0.5, -23), UDim2.fromOffset(52, 46), true), 10)
+	key.BackgroundColor3 = T.Sky
+	key.BackgroundTransparency = 0
+	key.TextXAlignment = Enum.TextXAlignment.Center
+	key.TextSize = 19
+	C.Stroke(key, T.Ink).Thickness = 2
+	local tap = C.New("TextButton", "Tap", main, {
+		Text = "",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		AutoButtonColor = false,
+		ZIndex = key.ZIndex + 2,
+	})
+	return prompt
+end
+end)()(folder)
 	C.Label(folder, "EmptyTemplate", "", nil, UDim2.new(1, -8, 0, 120)).TextColor3 = T.Muted
 	C.Button(folder, "DialogueChoiceTemplate", "Continue", nil, UDim2.new(1, -8, 0, 52), T.Sky)
 	C.Button(folder, "AdminItemTemplate", "Item", nil, UDim2.new(1, -8, 0, 48), T.Soft)
@@ -605,6 +652,18 @@ end)()
 
 builders.Navigation = (function()
 
+local function notification(button)
+	local badge = C.Round(C.Label(button, "Notification", "1", UDim2.new(0.76, 0, -0.16, 0), UDim2.fromScale(0.32, 0.48), true), 10)
+	badge.BackgroundTransparency = 0
+	badge.BackgroundColor3 = T.Rose
+	badge.TextXAlignment = Enum.TextXAlignment.Center
+	badge.TextSize = 11
+	badge.Visible = false
+	badge.ZIndex = button.ZIndex + 3
+	C.Stroke(badge, T.Ink).Thickness = 2
+	return badge
+end
+
 return function(parent)
 	local screen = C.Screen(parent, "Buttons", 15)
 	local main = C.Frame(screen, "Main", UDim2.new(1, -92, 0, 10), UDim2.fromOffset(80, 280))
@@ -623,13 +682,18 @@ return function(parent)
 		local button = C.Button(list, entry[1], entry[2])
 		button.LayoutOrder = index
 		button:SetAttribute("OpenScreen", entry[3])
-		if entry[1] == "Admin" or entry[1] == "Raids" or entry[1] == "Journal" then button.Visible = false end
+		if entry[1] == "Admin" or entry[1] == "Raids" then button.Visible = false end
+		if entry[1] == "Journal" then notification(button) end
 	end
+	notification(toggle)
 	local bag = C.Button(main, "Backpack", "Bag", UDim2.fromOffset(0, 56), UDim2.fromOffset(80, 48), T.Mint)
 	bag:SetAttribute("OpenScreen", "Inventory")
 	local amount = C.Label(bag, "Amount", "0 / 100", UDim2.fromOffset(0, 28), UDim2.new(1, 0, 0, 16))
 	amount.TextSize = 10
 	amount.TextXAlignment = Enum.TextXAlignment.Center
+	local journal = C.Button(main, "Journal", "Quests", UDim2.fromOffset(0, 112), UDim2.fromOffset(80, 48), T.Sky)
+	journal:SetAttribute("OpenScreen", "Journal")
+	notification(journal)
 	C.Responsive(drawer, UDim2.new(1, -184, 0, 56), UDim2.fromOffset(184, 408), UDim2.new(1, -184, 0, 56), UDim2.fromOffset(184, 260))
 	return screen
 end
@@ -1043,11 +1107,58 @@ end)()
 builders.Dialogue = (function()
 
 return function(parent)
-	local screen, _, body = C.Window(parent, "Dialogue", "Main", "A friendly face", "", 540, 540)
-	C.Label(body, "Speaker", "", UDim2.new(), UDim2.new(1, 0, 0, 30), true).TextSize = 21
-	C.Label(body, "Text", "", UDim2.fromOffset(0, 40), UDim2.new(1, 0, 0, 160))
-	local options = C.Frame(body, "Options", UDim2.fromOffset(0, 216), UDim2.new(1, 0, 0, 316))
-	C.List(options)
+	local screen = C.Screen(parent, "Dialogue", 60)
+	local root = C.Round(C.New("CanvasGroup", "Main", screen, {
+		Position = UDim2.new(0.5, 0, 1, -16),
+		Size = UDim2.new(1, -24, 0, 286),
+		BackgroundColor3 = T.Paper,
+		GroupTransparency = 0,
+	}), 18)
+	root.AnchorPoint = Vector2.new(0.5, 1)
+	root.Visible = false
+	root.Active = true
+	root:SetAttribute("Window", true)
+	C.New("UISizeConstraint", "Bounds", root, { MaxSize = Vector2.new(760, 286) })
+	C.New("UIScale", "DialogScale", root, { Scale = 1 })
+	C.Stroke(root, T.Line).Thickness = 4
+	C.Frame(root, "Accent", UDim2.fromOffset(14, 0), UDim2.new(1, -28, 0, 5), T.Gold)
+
+	local header = C.Frame(root, "Header", UDim2.fromOffset(16, 12), UDim2.new(1, -82, 0, 38))
+	local speaker = C.Label(header, "Speaker", "A friendly face", UDim2.new(), UDim2.fromScale(1, 1), true)
+	speaker.TextSize = 22
+	speaker.TextColor3 = T.Gold
+	local close = C.Button(root, "Close", "X", UDim2.new(1, -56, 0, 10), UDim2.fromOffset(42, 42), T.Rose)
+	close:SetAttribute("CloseDialogue", true)
+
+	local body = C.Frame(root, "Body", UDim2.fromOffset(16, 56), UDim2.new(1, -32, 1, -70))
+	local content = C.Frame(body, "Content")
+	local textPanel = C.Round(C.Frame(content, "TextPanel", UDim2.new(), UDim2.new(1, 0, 0, 104), T.Surface), 10)
+	C.Stroke(textPanel, T.Soft).Thickness = 2
+	local text = C.Label(textPanel, "Text", "", UDim2.fromOffset(14, 10), UDim2.new(1, -28, 1, -20))
+	text.RichText = true
+	text.TextSize = 16
+	text.TextYAlignment = Enum.TextYAlignment.Top
+	C.New("UITextSizeConstraint", "TextBounds", text, { MinTextSize = 13, MaxTextSize = 16 })
+	local skip = C.New("TextButton", "SkipTyping", content, {
+		Text = "",
+		Position = UDim2.new(),
+		Size = UDim2.new(1, 0, 0, 104),
+		BackgroundTransparency = 1,
+		ZIndex = textPanel.ZIndex + 2,
+	})
+	skip:SetAttribute("SkipDialogueTyping", true)
+
+	local options = C.Scroll(content, "Options", UDim2.fromOffset(0, 112), UDim2.new(1, 0, 1, -112))
+	local layout = options:FindFirstChildOfClass("UIListLayout")
+	if layout then layout.Padding = UDim.new(0, 7) end
+
+	local choice = C.Button(root, "ChoiceTemplate", "Continue", UDim2.new(), UDim2.new(1, -8, 0, 48), T.Sky)
+	choice.Visible = false
+	choice.TextSize = 15
+	choice.AutoButtonColor = false
+	C.New("UIScale", "ChoiceScale", choice, { Scale = 1 })
+	local marker = C.Frame(choice, "Marker", UDim2.fromOffset(0, 7), UDim2.fromOffset(4, 34), T.Gold)
+	marker.ZIndex = choice.ZIndex + 1
 	return screen
 end
 end)()
@@ -1341,6 +1452,16 @@ return function(parent)
 	cost.TextWrapped = true
 	cost.TextSize = 13
 	C.Button(row, "Craft", "CRAFT", UDim2.new(0, 12, 1, -42), UDim2.new(1, -24, 0, 32), T.Mint)
+	local tip = C.Round(C.Frame(screen, "ItemTooltip", UDim2.new(), UDim2.fromOffset(252, 286), T.Paper), 8)
+	tip.Visible = false
+	tip.ZIndex = 50
+	C.Stroke(tip)
+	C.Frame(tip, "RarityBar", UDim2.fromOffset(4, 4), UDim2.new(1, -8, 0, 4), T.Sky)
+	C.Label(tip, "ItemName", "", UDim2.fromOffset(12, 14), UDim2.new(1, -24, 0, 46), true).TextSize = 18
+	C.Label(tip, "Meta", "", UDim2.fromOffset(12, 62), UDim2.new(1, -24, 0, 26)).TextSize = 12
+	C.Label(tip, "Description", "", UDim2.fromOffset(12, 94), UDim2.new(1, -24, 0, 78)).TextSize = 13
+	C.Label(tip, "Stats", "", UDim2.fromOffset(12, 180), UDim2.new(1, -24, 0, 68)).TextSize = 13
+	C.Label(tip, "Footer", "", UDim2.new(0, 12, 1, -30), UDim2.new(1, -24, 0, 22)).TextColor3 = T.Gold
 	return screen
 end
 end)()

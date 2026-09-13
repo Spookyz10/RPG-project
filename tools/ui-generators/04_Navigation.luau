@@ -224,6 +224,11 @@ function C.SaveScale(root)
 			end
 		elseif object:IsA("UICorner") then
 			object.CornerRadius = UDim.new(object.CornerRadius.Scale + object.CornerRadius.Offset / math.min(wideParent.X, wideParent.Y), 0)
+		elseif object:IsA("BillboardGui") then
+			-- Billboard contents are laid out inside the billboard's own pixel canvas,
+			-- not the generic template folder reference.
+			wide = size(object.Size, wideParent)
+			narrow = wide
 		end
 		for _, child in object:GetChildren() do visit(child, wide, narrow) end
 	end
@@ -237,6 +242,18 @@ end)()
 local builders = {}
 
 builders.Navigation = (function()
+
+local function notification(button)
+	local badge = C.Round(C.Label(button, "Notification", "1", UDim2.new(0.76, 0, -0.16, 0), UDim2.fromScale(0.32, 0.48), true), 10)
+	badge.BackgroundTransparency = 0
+	badge.BackgroundColor3 = T.Rose
+	badge.TextXAlignment = Enum.TextXAlignment.Center
+	badge.TextSize = 11
+	badge.Visible = false
+	badge.ZIndex = button.ZIndex + 3
+	C.Stroke(badge, T.Ink).Thickness = 2
+	return badge
+end
 
 return function(parent)
 	local screen = C.Screen(parent, "Buttons", 15)
@@ -256,13 +273,18 @@ return function(parent)
 		local button = C.Button(list, entry[1], entry[2])
 		button.LayoutOrder = index
 		button:SetAttribute("OpenScreen", entry[3])
-		if entry[1] == "Admin" or entry[1] == "Raids" or entry[1] == "Journal" then button.Visible = false end
+		if entry[1] == "Admin" or entry[1] == "Raids" then button.Visible = false end
+		if entry[1] == "Journal" then notification(button) end
 	end
+	notification(toggle)
 	local bag = C.Button(main, "Backpack", "Bag", UDim2.fromOffset(0, 56), UDim2.fromOffset(80, 48), T.Mint)
 	bag:SetAttribute("OpenScreen", "Inventory")
 	local amount = C.Label(bag, "Amount", "0 / 100", UDim2.fromOffset(0, 28), UDim2.new(1, 0, 0, 16))
 	amount.TextSize = 10
 	amount.TextXAlignment = Enum.TextXAlignment.Center
+	local journal = C.Button(main, "Journal", "Quests", UDim2.fromOffset(0, 112), UDim2.fromOffset(80, 48), T.Sky)
+	journal:SetAttribute("OpenScreen", "Journal")
+	notification(journal)
 	C.Responsive(drawer, UDim2.new(1, -184, 0, 56), UDim2.fromOffset(184, 408), UDim2.new(1, -184, 0, 56), UDim2.fromOffset(184, 260))
 	return screen
 end

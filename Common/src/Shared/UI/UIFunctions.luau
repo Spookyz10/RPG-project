@@ -64,7 +64,8 @@ function UIFunctions:TypeText(
 	end
 
 	task.spawn(function()
-		local GraphemeCount = utf8.len(text) or #text
+		local visibleText = label.RichText and string.gsub(text, "<.->", "") or text
+		local GraphemeCount = utf8.len(visibleText) or #visibleText
 
 		for index = 1, GraphemeCount do
 			if TypingSessions[label] ~= Session or Completed then

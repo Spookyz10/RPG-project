@@ -10,6 +10,11 @@ local Crafting = {}
 function Crafting.Init()
 	local screen = Constants.PlayerGui:FindFirstChild("Crafting")
 	if not screen then return end
+	local Tooltip
+	if screen:FindFirstChild("ItemTooltip") then
+		Tooltip = require(script.Parent.Parent.ItemTooltip).new()
+		Tooltip.Init(screen)
+	end
 	local data = Constants.Data
 	local rows = {}
 	local keys = {}
@@ -22,11 +27,17 @@ function Crafting.Init()
 		row.Title.Text = info.Data.Name .. "  |  Lv. " .. Abbreviation:Number(Recipes[id].Level)
 		row.Description.Text = info.Data.Description or ""
 		row.Parent = screen.Main.Body.Content.Container
+		if Tooltip then
+			Tooltip.Bind(row, function()
+				return { ID = info.Data.ID, Name = info.Data.Name, Amount = 1 }
+			end)
+		end
 		rows[id] = row
 		local pending = false
 		row.Craft.Activated:Connect(function()
 			if pending or not row.Craft:GetAttribute("CanCraft") then return end
 			pending = true
+			if Tooltip then Tooltip.Hide() end
 			Remote.SendServerEvent("CraftItem", id)
 			task.delay(0.5, function() pending = false end)
 		end)

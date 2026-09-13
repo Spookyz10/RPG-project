@@ -386,6 +386,8 @@ command()
 assert(services.StarterGui.Inventory ~= original, "Generator did not replace the selected screens")
 assert(original:GetAttribute("UserEdit") == "preserve this" and original.Parent.Parent == services.ServerStorage.RPGUIBackups, "Regeneration lost the user's editable UI")
 assert(rs.RPGUITemplates and not services.StarterGui:FindFirstChild("RPGUITemplates"), "Templates placed in wrong service")
+assert(rs.RPGUITemplates.NPCInteractionTemplate and rs.RPGUITemplates.NPCInteractionTemplate:IsA("BillboardGui"), "Missing NPC interaction template")
+assert(services.StarterGui.Dialogue.Main:IsA("CanvasGroup"), "Dialogue must support panel fading")
 for _, screen in services.StarterGui:GetChildren() do screen.Parent = gui end
 local bootstrap = loadModule(modules["UI/Bootstrap"])
 gui.Inventory.Main.Position = UDim2.fromScale(0.48, 0.49)
@@ -422,6 +424,14 @@ local function rightClick(button) assert(button:IsA("GuiButton"), "Not a button"
 
 local recipeRow = gui.Crafting.Main.Body.Content.Container["Fang Dagger"]
 assert(recipeRow and recipeRow.Craft:GetAttribute("CanCraft") == false)
+windows.Open("Crafting")
+recipeRow.MouseEnter:Fire()
+assert(gui.Crafting.ItemTooltip.Visible, "Crafting hover did not show item details")
+assert(gui.Crafting.ItemTooltip.ItemName.Text == "Fang Daggers")
+assert(string.find(gui.Crafting.ItemTooltip.Description.Text, "Fury"), "Crafting tooltip did not show the passive")
+recipeRow.MouseLeave:Fire()
+assert(not gui.Crafting.ItemTooltip.Visible, "Crafting tooltip did not close")
+windows.Close()
 local previousInventory = state.Inventory
 state.Inventory = { fang = { ID = "Wolf's Fang", Amount = 8 }, bone = { ID = "Wilderbone", Amount = 5 }, ivy = { ID = "Dark Ivy", Amount = 3 } }
 changes.Inventory:Fire(state.Inventory)
@@ -572,8 +582,16 @@ players.PlayerRemoving:Fire(veteran); veteran.Parent = nil
 players.PlayerRemoving:Fire(novice); novice.Parent = nil
 assert(not roster:FindFirstChild("Veteran"))
 local dialogues = loadModule(modules.Dialogues)
-logic.Dialog.Open(dialogues["Tutorial Guy"], "Tutorial Guy")
+local dialogueCount = 0
+for _ in dialogues do dialogueCount += 1 end
+assert(dialogueCount == 2 and dialogues.Blacksmith and dialogues["Weakened Knight"], "Only the two current NPC dialogues should be registered")
+local quests = loadModule(modules.QuestsData)
+assert(quests["Weakened Knight"].Objectives[1].Target == "Dire Bear", "The knight quest must target the Dire Bear")
+logic.Dialog.Open(dialogues["Weakened Knight"], "Weakened Knight")
 assert(logic.Dialog.IsOpen())
+assert(gui.Dialogue.Main.AbsoluteSize.Y <= 286, "Dialogue panel is larger than its compact design")
+assert(gui.Dialogue.Main:FindFirstChild("Speaker", true).Text == "Weakened Knight")
+assert(gui.Dialogue.Main:FindFirstChild("Text", true).RichText, "Dialogue text must support RichText")
 logic.Dialog.Close()
 data.Quests({ Tutorial1 = { Objectives = { 2 } } })
 assert(gui.Journal.Main.Body.Content.Container.Tutorial1.Objective1.Text == "Bushling  2 / 3")

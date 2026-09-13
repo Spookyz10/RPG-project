@@ -8,18 +8,12 @@ Não execute `00_All` em um place que já recebeu ajustes manuais. Ele é soment
 
 Execute, nesta ordem:
 
-1. `06_Inventory.luau`
-2. `19_PlayerCard.luau`
-3. `29_FeedbackTemplates.luau`
-4. `31_PartyHUD.luau`
+1. `12_Dialogue.luau`
+2. `32_JournalIndicators.luau`
+3. `33_CraftingTooltip.luau`
+4. `34_NPCInteractionTemplate.luau`
 
-Isso substitui somente `StarterGui.Inventory`, `StarterGui.PlayerCard` e `ReplicatedStorage.RPGUITemplates.FeedbackTemplates`. A PlayerList e os demais templates não são alterados.
-
-O Inventory foi reconstruído a partir do dump atual do Studio. Inventory e PlayerCard exibem valor total, progresso ganho por poções, limite e quantidade restante. O PlayerCard usa um avatar novo criado pela descrição do usuário, nunca uma cópia do personagem vivo, equipa a aparência da arma e toca o idle adequado.
-
-`29_FeedbackTemplates` instala os efeitos de uso de skill, passiva, buff e debuff. A lógica apenas clona e anima esses objetos; posições, tamanhos, cores, camadas e demais propriedades visuais permanecem editáveis no Studio.
-
-`31_PartyHUD` instala somente a party abaixo de `HUD.Main`; ele não substitui a HUD inteira nem recria a antiga `Partylist`.
+`12_Dialogue` substitui somente `StarterGui.Dialogue` pela caixa compacta. `32_JournalIndicators` preserva `StarterGui.Buttons` e apenas completa o atalho Journal e os badges de quest. `33_CraftingTooltip` preserva a tela de Crafting e clona nela o tooltip visual do Inventory. `34_NPCInteractionTemplate` instala o visual da interação customizada dos NPCs.
 
 ## Índice
 
@@ -55,6 +49,9 @@ O Inventory foi reconstruído a partir do dump atual do Studio. Inventory e Play
 | `29_FeedbackTemplates.luau` | somente `FeedbackTemplates` |
 | `30_LevelUpFeedback.luau` | somente o template `LevelUpFeedback` |
 | `31_PartyHUD.luau` | somente `StarterGui.HUD.Main.PartyOverlay` |
+| `32_JournalIndicators.luau` | somente atalho Journal e badges em `StarterGui.Buttons` |
+| `33_CraftingTooltip.luau` | somente `StarterGui.Crafting.ItemTooltip` |
+| `34_NPCInteractionTemplate.luau` | somente `ReplicatedStorage.RPGUITemplates.NPCInteractionTemplate` |
 
 ## Manutenção
 

@@ -24,6 +24,7 @@ def inline(path):
     if path.name == "Templates.luau":
         text = text.replace("require(script.Parent.MobOverhead)(folder)", "(function()\n" + inline(SOURCE / "MobOverhead.luau") + "\nend)()(folder)")
         text = text.replace("require(script.Parent.ToastTemplate)(folder)", "(function()\n" + inline(SOURCE / "ToastTemplate.luau") + "\nend)()(folder)")
+        text = text.replace("require(script.Parent.NPCInteractionTemplate)(folder)", "(function()\n" + inline(SOURCE / "NPCInteractionTemplate.luau") + "\nend)()(folder)")
         text = text.replace(
             "require(script.Parent.FeedbackTemplates)(folder)",
             "local buildFeedbackTemplates = (function()\n"
@@ -32,6 +33,7 @@ def inline(path):
         )
     return "\n".join(line for line in text.splitlines() if line not in {
         "local C = require(script.Parent.Parent.Components)",
+        "local C = require(script.Parent.Parent.ScaleComponents)",
         "local T = require(script.Parent.Parent.Theme)",
         "local T = require(script.Parent.Theme)",
     })
@@ -205,3 +207,25 @@ print("Party HUD installed below StarterGui.HUD.Main. The prior PartyOverlay is 
 (OUTPUT / "29_FeedbackTemplates.luau").write_text(incremental_template("FeedbackTemplates", "FeedbackTemplates", True), encoding="utf-8")
 (OUTPUT / "30_LevelUpFeedback.luau").write_text(incremental_template("LevelUpFeedback", "LevelUpFeedback", True), encoding="utf-8")
 (OUTPUT / "31_PartyHUD.luau").write_text(incremental_hud_child("PartyHUD", "PartyOverlay"), encoding="utf-8")
+(OUTPUT / "34_NPCInteractionTemplate.luau").write_text(incremental_template("NPCInteractionTemplate", "NPCInteractionTemplate", True), encoding="utf-8")
+
+
+def incremental_patch(source_name, include_ui):
+    output = HEADER
+    if include_ui:
+        output += "local T = (function()\n" + inline(ROOT / "Common/src/Shared/UI/Theme.luau") + "\nend)()\n"
+        output += "local C = (function()\n" + inline(SOURCE / "ScaleComponents.luau") + "\nend)()\n"
+    output += "local build = (function()\n" + inline(SOURCE / (source_name + ".luau")) + "\nend)()\n"
+    output += '''local recording
+pcall(function() recording = History:TryBeginRecording("ApplyRPGUIPatch", "Apply RPG UI patch") end)
+local ok, reason = pcall(build)
+if recording then
+    History:FinishRecording(recording, ok and Enum.FinishRecordingOperation.Commit or Enum.FinishRecordingOperation.Cancel)
+end
+if not ok then error("UI patch failed: " .. tostring(reason)) end
+'''
+    return output
+
+
+(OUTPUT / "32_JournalIndicators.luau").write_text(incremental_patch("JournalIndicators", True), encoding="utf-8")
+(OUTPUT / "33_CraftingTooltip.luau").write_text(incremental_patch("CraftingTooltipPatch", False), encoding="utf-8")

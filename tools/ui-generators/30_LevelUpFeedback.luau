@@ -222,6 +222,11 @@ function C.SaveScale(root)
 			end
 		elseif object:IsA("UICorner") then
 			object.CornerRadius = UDim.new(object.CornerRadius.Scale + object.CornerRadius.Offset / math.min(wideParent.X, wideParent.Y), 0)
+		elseif object:IsA("BillboardGui") then
+			-- Billboard contents are laid out inside the billboard's own pixel canvas,
+			-- not the generic template folder reference.
+			wide = size(object.Size, wideParent)
+			narrow = wide
 		end
 		for _, child in object:GetChildren() do visit(child, wide, narrow) end
 	end
