@@ -32,7 +32,6 @@ end
 
 local function updateOverlayVisibility()
 	Overlay.Visible = PartyPanel.Visible or next(Invites) ~= nil
-	PartyPanel.Position = next(Invites) and UDim2.fromScale(0, 0.28) or UDim2.fromScale(0, 0)
 end
 
 local function clearEntries()

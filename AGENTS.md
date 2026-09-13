@@ -418,6 +418,14 @@ Keep UI behavior responsive.
 
 Do not create continuous RenderStepped updates for static UI.
 
+## Edit Mode layout is authoritative
+
+Treat UI geometry authored in Studio Edit Mode as the source of truth. Runtime UI logic must not overwrite the `Position`, `Size`, `AnchorPoint`, layout constraints, grid dimensions, padding, or other static geometry of screens, panels, buttons, entries, or templates.
+
+Runtime code may change content and state, such as text, icons, quantities, colors, visibility, enabled state, selection state, and `LayoutOrder`. Geometry may change only when geometry itself represents live state or is the explicit behavior of the component, such as health/progress bar fill, a tooltip following the pointer, a deliberately collapsible panel, or an authored animation.
+
+Do not add resolution-based or device-based layout adjustment code to UI logic. Build responsive/static layouts with Studio-authored constraints and layout objects instead. When cloned content needs arrangement, put the arrangement in the authored template or container using `UIListLayout`, `UIGridLayout`, constraints, and padding rather than assigning clone positions or sizes at runtime.
+
 ---
 
 # 13. Performance

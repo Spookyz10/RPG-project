@@ -20,8 +20,6 @@ function Journal.Init()
 			count += 1
 			local card = Templates.QuestTemplate:Clone()
 			card.Name = name
-			local height = 194 + #info.Objectives * 28
-			card.Size = UDim2.fromScale(0.98, height / 470)
 			card.QuestName.Text = info.Name or name
 			card.Description.Text = info.Description
 			card.Parent = container
@@ -30,7 +28,6 @@ function Journal.Init()
 				local label = card.ObjectiveTemplate:Clone()
 				label.Name = "Objective" .. index
 				label.Text = objective.Target .. "  " .. Abbreviation:Number(math.min(amount, objective.Amount)) .. " / " .. Abbreviation:Number(objective.Amount)
-				label.Position = UDim2.fromScale(0.03, (110 + (index - 1) * 28) / height)
 				label.Visible = true
 				label.Parent = card
 			end

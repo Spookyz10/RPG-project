@@ -104,7 +104,6 @@ local function refreshSelection(side: string)
 		local button = OfferItemTemplate:Clone()
 		button.Name = key
 		button.LayoutOrder = index
-		button.Size = UDim2.new(1, -4, 0, 44)
 		button.Visible = true
 		button.Icon.Image = item.Icon or ""
 		button.ItemName.Text = item.Name
@@ -407,12 +406,6 @@ function Trading.Init()
 			setTab(side, "Storage")
 		end)
 	end
-	Composer.MobileTabs.Give.Activated:Connect(function()
-		MobileSide = "Give"
-	end)
-	Composer.MobileTabs.Receive.Activated:Connect(function()
-		MobileSide = "Receive"
-	end)
 	Composer.Review.Activated:Connect(reviewOffer)
 	Composer.Mine.Gold:GetPropertyChangedSignal("Text"):Connect(function()
 		updateOfferGold("Give")
