@@ -73,7 +73,39 @@ local function playHealthLoss(main: Frame, previousPercentage: number, percentag
 	pulse(main, 1.045, 0.1)
 end
 
-local function playLevelUpVFX(hud: ScreenGui)
+local function playLevelUpShine(main: Frame)
+	local shine = main:FindFirstChild("LevelUpShine") :: Frame?
+	if not shine then
+		shine = Instance.new("Frame")
+		shine.Name = "LevelUpShine"
+		shine.BackgroundColor3 = Color3.fromRGB(255, 208, 81)
+		shine.BackgroundTransparency = 1
+		shine.BorderSizePixel = 0
+		shine.Size = UDim2.fromScale(1, 1)
+		shine.ZIndex = main.ZIndex + 2
+		shine.Parent = main
+		local gradient = Instance.new("UIGradient")
+		gradient.Color = ColorSequence.new(Color3.fromRGB(255, 241, 174), Color3.fromRGB(255, 184, 56))
+		gradient.Rotation = 35
+		gradient.Parent = shine
+	end
+
+	shine.BackgroundTransparency = 0.82
+	local stroke = main:FindFirstChild("LevelUpStroke") :: UIStroke?
+	if not stroke then
+		stroke = Instance.new("UIStroke")
+		stroke.Name = "LevelUpStroke"
+		stroke.Color = Color3.fromRGB(255, 215, 91)
+		stroke.Thickness = 3
+		stroke.Parent = main
+	end
+	stroke.Transparency = 0.05
+	TweenService:Create(shine, TweenInfo.new(0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { BackgroundTransparency = 1 }):Play()
+	TweenService:Create(stroke, TweenInfo.new(0.65, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Transparency = 1 }):Play()
+	pulse(main, 1.035, 0.16)
+end
+
+local function playLevelUpFeedback(hud: ScreenGui)
 	local source = Bootstrap.GetTemplates():FindFirstChild("LevelUpFeedback")
 	if not source or not source:IsA("CanvasGroup") then return end
 	local effect = source:Clone()
@@ -179,9 +211,8 @@ function UI.UpdateBar(value: number, maxValue: number, bar: string, isInitial: b
 	end
 end
 
-function UI.PlayLevelUp()
-	local hudScreen = UIConstants.PlayerGui:WaitForChild("HUD") :: ScreenGui
-	local hud = hudScreen.Main
+function UI.PlayLevelUp(hud: Frame?)
+	hud = hud or UIConstants.PlayerGui:WaitForChild("HUD").Main
 	local level = hud:FindFirstChild("Level")
 	if level and level:IsA("TextLabel") then
 		local originalColor = level.TextColor3
@@ -198,7 +229,8 @@ function UI.PlayLevelUp()
 	if main and main:IsA("Frame") then
 		playXPGain(main)
 	end
-	playLevelUpVFX(hudScreen)
+	playLevelUpShine(hud)
+	playLevelUpFeedback(hud.Parent :: ScreenGui)
 end
 
 return UI

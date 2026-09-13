@@ -13,6 +13,7 @@ function Preview.Bind(root, data)
 	local world, camera = ViewportCache.EnsureViewport(viewport, "PreviewCamera", 32)
 	local model: Model?
 	local idle: AnimationTrack?
+	local defaultIdle: AnimationTrack?
 	local weaponKey = ""
 	local idleKey = ""
 	local bodyBounds: CFrame?
@@ -72,7 +73,10 @@ function Preview.Bind(root, data)
 				idle:Stop(0.15)
 				idle:Destroy()
 			end
-			idle = ViewportCache.PlayIdle(model, weaponType)
+			idle = ViewportCache.PlayIdle(model, weaponType, false)
+		end
+		if not defaultIdle then
+			defaultIdle = ViewportCache.PlayDefaultIdle(model)
 		end
 	end
 
@@ -109,6 +113,7 @@ function Preview.Bind(root, data)
 		if idle then
 			idle:AdjustSpeed(1)
 		end
+		if defaultIdle then defaultIdle:AdjustSpeed(1) end
 	end
 
 	local function schedule()
@@ -128,6 +133,7 @@ function Preview.Bind(root, data)
 		if idle then
 			idle:AdjustSpeed(root.Visible and hero.Visible and 1 or 0)
 		end
+		if defaultIdle then defaultIdle:AdjustSpeed(root.Visible and hero.Visible and 1 or 0) end
 		schedule()
 	end
 
@@ -139,6 +145,11 @@ function Preview.Bind(root, data)
 			idle:Stop(0)
 			idle:Destroy()
 			idle = nil
+		end
+		if defaultIdle then
+			defaultIdle:Stop(0)
+			defaultIdle:Destroy()
+			defaultIdle = nil
 		end
 		if model then
 			model:Destroy()
@@ -161,6 +172,10 @@ function Preview.Bind(root, data)
 		if idle then
 			idle:Stop()
 			idle:Destroy()
+		end
+		if defaultIdle then
+			defaultIdle:Stop()
+			defaultIdle:Destroy()
 		end
 		if model then
 			model:Destroy()

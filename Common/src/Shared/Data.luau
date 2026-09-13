@@ -67,4 +67,4 @@ local template: Types.PlayerData = {
 	RaidAutoDelete = {},
 }
 
-return DataService({ template = template, profileStoreIndex = "PlayersData2" })
+return DataService({ template = template, profileStoreIndex = "PlayersData" })

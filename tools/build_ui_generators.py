@@ -7,7 +7,7 @@ ENTRIES = [
     ("Templates", "RPGUITemplates"), ("Loading", "LoadingScreen"),
     ("HUD", "HUD"), ("Navigation", "Buttons"), ("Combat", "Attack"),
     ("Inventory", "Inventory"), ("Skills", "SkillSelector"), ("Zones", "ZoneSelector"),
-    ("Raids", "RaidsGUI"), ("Players", "Playerlist"), ("Party", "Partylist"),
+    ("Raids", "RaidsGUI"), ("Players", "Playerlist"),
     ("Dialogue", "Dialogue"), ("Shop", "Shop"), ("Journal", "Journal"),
     ("Notifications", "Notifications"), ("Tutorial", "Tutorial"), ("StylePreview", "UIStylePreview"),
     ("ZoneTransition", "ZoneTransition"), ("DeathScreen", "DeathScreen"),
@@ -52,6 +52,8 @@ def bundle(entries):
     output.append("local builders = {}\n")
     for module, _ in entries:
         output.append(f'builders.{module} = (function()\n{inline(SOURCE / (module + ".luau"))}\nend)()\n')
+    if len(entries) > 1:
+        output.append("builders.PartyHUD = (function()\n" + inline(SOURCE / "PartyHUD.luau") + "\nend)()\n")
     output.append('''local staging = Instance.new("Folder")
 local generated = {}
 local ok, reason = pcall(function()
@@ -59,8 +61,15 @@ local ok, reason = pcall(function()
     for module, screen in entries:
         target = "ReplicatedStorage" if module == "Templates" else "StarterGui"
         output.append(f'    table.insert(generated, {{ Object = builders.{module}(staging), Target = {target} }})\n')
-    output.append('''for _, entry in generated do C.SaveScale(entry.Object) end
-end)
+    output.append('''for _, entry in generated do C.SaveScale(entry.Object) end''')
+    if len(entries) > 1:
+        output.append('''for _, entry in generated do
+    if entry.Object.Name == "HUD" then
+        builders.PartyHUD(entry.Object.Main)
+        break
+    end
+end''')
+    output.append('''end)
 if not ok then staging:Destroy(); error("UI generation failed; existing screens were preserved: " .. tostring(reason)) end
 local recording
 pcall(function() recording = History:TryBeginRecording("GenerateRPGUI", "Generate RPG interface") end)
@@ -113,7 +122,7 @@ for index, entry in enumerate(ENTRIES, 1):
     number = {
         "Templates": 1, "Loading": 2, "HUD": 3, "Navigation": 4,
         "Combat": 5, "Inventory": 6, "Skills": 7, "Zones": 8,
-        "Raids": 9, "Players": 10, "Party": 11, "Dialogue": 12,
+        "Raids": 9, "Players": 10, "Dialogue": 12,
         "Shop": 13, "Journal": 14, "Notifications": 15, "Tutorial": 16,
         "StylePreview": 17, "Admin": 18, "PlayerCard": 19, "Crafting": 20,
         "Leaderboards": 22, "LootRewards": 24, "ZoneTransition": 25,
@@ -158,7 +167,39 @@ print(targetName .. " upgraded. Only this template changed; the prior version is
     return output
 
 
+def incremental_hud_child(source_name, target_name):
+    output = HEADER
+    output += "local T = (function()\n" + inline(ROOT / "Common/src/Shared/UI/Theme.luau") + "\nend)()\n"
+    output += "local C = (function()\n" + inline(SOURCE / "ScaleComponents.luau") + "\nend)()\n"
+    output += "local build = (function()\n" + inline(SOURCE / (source_name + ".luau")) + "\nend)()\n"
+    output += '''local hud = StarterGui:FindFirstChild("HUD")
+assert(hud and hud:IsA("ScreenGui"), "StarterGui.HUD must exist before generating the party HUD.")
+local main = hud:FindFirstChild("Main")
+assert(main and main:IsA("Frame"), "StarterGui.HUD.Main must exist before generating the party HUD.")
+
+local replacement = build(nil)
+local old = main:FindFirstChild("''' + target_name + '''")
+if old then
+    local backups = ServerStorage:FindFirstChild("RPGUIBackups")
+    if not backups then
+        backups = Instance.new("Folder")
+        backups.Name = "RPGUIBackups"
+        backups.Parent = ServerStorage
+    end
+    local backup = Instance.new("Folder")
+    backup.Name = "''' + target_name + '''_" .. os.date("%Y-%m-%d_%H-%M-%S")
+    backup.Parent = backups
+    old.Parent = backup
+end
+replacement.Parent = main
+Selection:Set({ replacement })
+print("Party HUD installed below StarterGui.HUD.Main. The prior PartyOverlay is in ServerStorage.RPGUIBackups.")
+'''
+    return output
+
+
 (OUTPUT / "21_MobOverhead.luau").write_text(incremental_template("MobOverhead", "MobOverhead", False), encoding="utf-8")
 (OUTPUT / "23_ToastTemplate.luau").write_text(incremental_template("ToastTemplate", "ToastTemplate", True), encoding="utf-8")
 (OUTPUT / "29_FeedbackTemplates.luau").write_text(incremental_template("FeedbackTemplates", "FeedbackTemplates", True), encoding="utf-8")
 (OUTPUT / "30_LevelUpFeedback.luau").write_text(incremental_template("LevelUpFeedback", "LevelUpFeedback", True), encoding="utf-8")
+(OUTPUT / "31_PartyHUD.luau").write_text(incremental_hud_child("PartyHUD", "PartyOverlay"), encoding="utf-8")

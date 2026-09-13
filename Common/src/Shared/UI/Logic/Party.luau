@@ -1,116 +1,199 @@
-local Theme = require(script.Parent.Parent.Theme)
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 
+local Theme = require(script.Parent.Parent.Theme)
 local UIConstants = require(ReplicatedStorage.Shared.UI.UIConstants)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Abbreviation = require(ReplicatedStorage.Shared.Utils.Abbreviation)
 
 local PartyUI = {}
 
-local LEADER_COLOR = Theme.Gold
 local INVITE_TIMEOUT_FALLBACK = 10
+local PartyPanel: Frame
+local Members: ScrollingFrame
+local EntryTemplate: Frame
+local InviteQueue: Frame
+local InviteTemplate: CanvasGroup
+local Overlay: Frame
+type EntryState = {
+	Connections: { RBXScriptConnection },
+	CharacterConnections: { RBXScriptConnection },
+}
 
-local Partylist: ScreenGui = nil
-local Frame: Frame = nil
-local LeaveButton: TextButton = nil
-local Template: Frame = nil
+local Entries: { [Frame]: EntryState } = {}
+local Invites: { [string]: CanvasGroup } = {}
+local inviteOrder = 0
 
-local function ClearEntries()
-	for _, child in Frame:GetChildren() do
-		if child:IsA("Frame") and child.Name ~= "HP" then
-			child:Destroy()
-		end
-	end
+local function disconnect(connections: { RBXScriptConnection })
+	for _, connection in connections do connection:Disconnect() end
+	table.clear(connections)
 end
 
-local function GetMemberLevel(memberName: string): number
-	local Member = Players:FindFirstChild(memberName)
-	local Stats = Member and Member:FindFirstChild("PublicStats")
-	local LevelValue = Stats and Stats:FindFirstChild("Level") :: NumberValue?
-	return LevelValue and LevelValue.Value or 0
+local function updateOverlayVisibility()
+	Overlay.Visible = PartyPanel.Visible or next(Invites) ~= nil
+	PartyPanel.Position = next(Invites) and UDim2.fromScale(0, 0.28) or UDim2.fromScale(0, 0)
+end
+
+local function clearEntries()
+	for entry, state in Entries do
+		disconnect(state.Connections)
+		disconnect(state.CharacterConnections)
+		entry:Destroy()
+	end
+	table.clear(Entries)
+end
+
+local function clearInvites()
+	for _, prompt in Invites do
+		prompt:Destroy()
+	end
+	table.clear(Invites)
+end
+
+local function memberLevel(player: Player): number
+	local stats = player:FindFirstChild("PublicStats")
+	local level = stats and stats:FindFirstChild("Level")
+	return level and level:IsA("NumberValue") and level.Value or 0
+end
+
+local function bindMember(entry: Frame, memberName: string)
+	local state: EntryState = { Connections = {}, CharacterConnections = {} }
+	Entries[entry] = state
+	local player = Players:FindFirstChild(memberName)
+	if not player then return end
+
+	local function refresh()
+		if not entry.Parent then return end
+		entry.Level.Text = "LV. " .. Abbreviation:Number(memberLevel(player))
+		local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+		local health = humanoid and math.max(0, humanoid.Health) or 0
+		local maxHealth = humanoid and math.max(1, humanoid.MaxHealth) or 1
+		entry.Health.Amount.Text = Abbreviation:Number(health) .. " / " .. Abbreviation:Number(maxHealth)
+		entry.Health.Main.Bar.Size = UDim2.fromScale(math.clamp(health / maxHealth, 0, 1), 1)
+	end
+	local function bindCharacter(character: Model)
+		disconnect(state.CharacterConnections)
+		local humanoid = character:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			table.insert(state.CharacterConnections, humanoid.HealthChanged:Connect(refresh))
+			table.insert(state.CharacterConnections, humanoid:GetPropertyChangedSignal("MaxHealth"):Connect(refresh))
+		end
+		refresh()
+	end
+
+	local function bindLevel(stats: Instance?)
+		local level = stats and stats:FindFirstChild("Level")
+		if level and level:IsA("NumberValue") then
+			table.insert(state.Connections, level.Changed:Connect(refresh))
+		end
+		refresh()
+	end
+	bindLevel(player:FindFirstChild("PublicStats"))
+	table.insert(state.Connections, player.ChildAdded:Connect(function(child)
+		if child.Name == "PublicStats" then bindLevel(child) end
+	end))
+	table.insert(state.Connections, player.CharacterAdded:Connect(bindCharacter))
+	if player.Character then bindCharacter(player.Character) else refresh() end
 end
 
 function PartyUI.OnUpdate(members: { [string]: boolean }, leaderName: string)
-	ClearEntries()
+	clearEntries()
+	clearInvites()
+	PartyPanel.Visible = true
+	updateOverlayVisibility()
 
-	LeaveButton.Visible = true
-	Frame.Visible = true
-	Frame.Parent.Empty.Visible = false
+	local names = {}
+	for memberName in members do table.insert(names, memberName) end
+	table.sort(names, function(a, b)
+		if a == leaderName then return true end
+		if b == leaderName then return false end
+		return a < b
+	end)
 
-	for memberName in members do
-
-		local Entry = Template:Clone()
-		Entry.Name = memberName
-		Entry.Visible = true
-		Entry.Parent = Frame
-
-		Entry.User.Text = memberName .. " (Lv. " .. Abbreviation:Number(GetMemberLevel(memberName)) .. ")"
-
-		if memberName == leaderName then
-			Entry.User.TextColor3 = LEADER_COLOR
-		end
-
-		if leaderName == UIConstants.Player.Name and memberName ~= UIConstants.Player.Name then
-			Entry.Kick.Visible = true
-			Entry.Kick.Activated:Connect(function()
+	for index, memberName in names do
+		local entry = EntryTemplate:Clone()
+		entry.Name = memberName
+		entry.LayoutOrder = index
+		entry.Visible = true
+		entry.Parent = Members
+		entry.NameLabel.Text = memberName
+		entry.NameLabel.TextColor3 = memberName == leaderName and Theme.Gold or Theme.Ink
+		entry.Leader.Visible = memberName == leaderName
+		entry.Kick.Visible = leaderName == UIConstants.Player.Name and memberName ~= UIConstants.Player.Name
+		if entry.Kick.Visible then
+			entry.Kick.Activated:Connect(function()
 				RemoteManager.SendServerEvent("KickFromParty", memberName)
 			end)
-		else
-			Entry.Kick:Destroy()
 		end
+		bindMember(entry, memberName)
 	end
 end
 
 function PartyUI.OnLeave()
-	ClearEntries()
-	Frame.Visible = false
-	Frame.Parent.Empty.Visible = true
-	LeaveButton.Visible = false
+	clearEntries()
+	PartyPanel.Visible = false
+	updateOverlayVisibility()
 end
 
 function PartyUI.OnInvite(inviterName: string, duration: number?)
-	local Template2 = require(ReplicatedStorage.Shared.UI.Bootstrap).GetTemplates():WaitForChild("PartyInvite") :: Frame
-	local Prompt = Template2:Clone()
-	Prompt.Visible = true
-	Prompt.TextLabel.Text = inviterName .. " has invited you to a raid"
-	local old = Partylist:FindFirstChild("PartyInvite")
+	local old = Invites[inviterName]
 	if old then old:Destroy() end
-	Prompt.Parent = Partylist
 
-	local Answered = false
-	local function Cleanup()
-		if Answered then
-			return
+	inviteOrder += 1
+	local prompt = InviteTemplate:Clone()
+	prompt.Name = "Invite_" .. inviterName
+	prompt.LayoutOrder = -inviteOrder
+	prompt.Visible = true
+	prompt.GroupTransparency = 1
+	prompt.Inviter.Text = inviterName .. " invited you to join their party"
+	prompt.Parent = InviteQueue
+	Invites[inviterName] = prompt
+	updateOverlayVisibility()
+
+	local scale = prompt:FindFirstChild("Pop") :: UIScale
+	scale.Scale = 0.88
+	TweenService:Create(prompt, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { GroupTransparency = 0 }):Play()
+	TweenService:Create(scale, TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+
+	local answered = false
+	local function cleanup()
+		if answered then return end
+		answered = true
+		if Invites[inviterName] == prompt then Invites[inviterName] = nil end
+		if prompt.Parent then
+			TweenService:Create(prompt, TweenInfo.new(0.16, Enum.EasingStyle.Quad), { GroupTransparency = 1 }):Play()
+			task.delay(0.17, function()
+				if prompt.Parent then prompt:Destroy() end
+			end)
 		end
-		Answered = true
-		Prompt:Destroy()
+		updateOverlayVisibility()
 	end
 
-	Prompt.YES.Activated:Connect(function()
+	prompt.Accept.Activated:Connect(function()
 		RemoteManager.SendServerEvent("AcceptPartyInvite", inviterName)
-		Cleanup()
+		cleanup()
 	end)
-
-	Prompt.NO.Activated:Connect(function()
+	prompt.Decline.Activated:Connect(function()
 		RemoteManager.SendServerEvent("DeclinePartyInvite", inviterName)
-		Cleanup()
+		cleanup()
 	end)
-
-	task.delay(duration or INVITE_TIMEOUT_FALLBACK, Cleanup)
+	task.delay(duration or INVITE_TIMEOUT_FALLBACK, cleanup)
 end
 
 function PartyUI.Init()
-	Partylist = UIConstants.PlayerGui:WaitForChild("Partylist") :: ScreenGui
-	Frame = Partylist.Panel.Body.Content:WaitForChild("Frame") :: Frame
-	LeaveButton = Partylist.Panel.Body.Content:WaitForChild("Leave") :: TextButton
-	Template = require(ReplicatedStorage.Shared.UI.Bootstrap).GetTemplates():WaitForChild("PartyEntry") :: Frame
+	local hud = UIConstants.PlayerGui:WaitForChild("HUD")
+	Overlay = hud.Main:WaitForChild("PartyOverlay") :: Frame
+	PartyPanel = Overlay:WaitForChild("PartyPanel") :: Frame
+	Members = PartyPanel:WaitForChild("Members") :: ScrollingFrame
+	EntryTemplate = Members:WaitForChild("EntryTemplate") :: Frame
+	InviteQueue = Overlay:WaitForChild("InviteQueue") :: Frame
+	InviteTemplate = InviteQueue:WaitForChild("InviteTemplate") :: CanvasGroup
 
-	Frame.Visible = false
-	Frame.Parent.Empty.Visible = true
-	LeaveButton.Visible = false
-
-	LeaveButton.Activated:Connect(function()
+	PartyPanel.Visible = false
+	InviteTemplate.Visible = false
+	Overlay.Visible = false
+	PartyPanel.Leave.Activated:Connect(function()
 		RemoteManager.SendServerEvent("LeaveParty")
 	end)
 end

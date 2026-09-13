@@ -183,6 +183,8 @@ function PartySystem:AcceptInvite(target: Player, inviterName: string): (boolean
 		return false, "Party is full"
 	end
 
+	-- Joining one party invalidates every other invitation that was shown at once.
+	PendingInvites[target] = nil
 	Party.Members[target] = true
 	PlayerToLeader[target] = Party.Leader
 

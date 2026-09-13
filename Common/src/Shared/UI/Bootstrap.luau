@@ -7,7 +7,7 @@ local ready = false
 
 local screenNames = {
 	"LoadingScreen", "HUD", "Buttons", "Attack", "Inventory", "SkillSelector",
-	"ZoneSelector", "RaidsGUI", "Playerlist", "Partylist", "Dialogue", "Shop",
+	"ZoneSelector", "RaidsGUI", "Playerlist", "Dialogue", "Shop",
 	"Journal", "Notifications", "Tutorial", "Main", "PlayerCard",
 	"ZoneTransition", "DeathScreen",
 }

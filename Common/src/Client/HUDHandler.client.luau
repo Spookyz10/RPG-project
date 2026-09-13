@@ -60,7 +60,7 @@ local function UpdateLevel(newLevel, previousLevel)
 	HUD.Level.Text = "Lv. " .. Abbreviation:Number(Data.Level())
 	Logic.Bars.UpdateBar(Data.XP(), Functions:GetXPNeeded(Data.Level()), "XP")
 	if typeof(newLevel) == "number" and typeof(previousLevel) == "number" and newLevel > previousLevel then
-		Logic.Bars.PlayLevelUp()
+		Logic.Bars.PlayLevelUp(HUD)
 	end
 end
 

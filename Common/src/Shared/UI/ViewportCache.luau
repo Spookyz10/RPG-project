@@ -181,29 +181,35 @@ function ViewportCache.AttachWeapon(character: Model, weaponName: string?, weapo
 	return rightWeapon
 end
 
-function ViewportCache.PlayIdle(character: Model, weaponType: string?): AnimationTrack?
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	if not humanoid then
-		return nil
-	end
-	local animation = weaponType and ReplicatedStorage.Resources.Animations:FindFirstChild(weaponType, true)
-	local fallback
-	if not animation or not animation:IsA("Animation") then
-		fallback = Instance.new("Animation")
-		fallback.AnimationId = humanoid.RigType == Enum.HumanoidRigType.R6 and "rbxassetid://180435571" or "rbxassetid://507766388"
-		animation = fallback
-	end
+local function playIdleTrack(humanoid: Humanoid, animation: Animation, priority: Enum.AnimationPriority): AnimationTrack?
 	local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator")
 	animator.Parent = humanoid
-	local ok, track = pcall(function() return animator:LoadAnimation(animation :: Animation) end)
-	if fallback then fallback:Destroy() end
-	if not ok then
-		return nil
-	end
+	local ok, track = pcall(function() return animator:LoadAnimation(animation) end)
+	if not ok then return nil end
 	track.Looped = true
-	track.Priority = Enum.AnimationPriority.Idle
+	track.Priority = priority
 	track:Play(0.15)
 	return track
+end
+
+function ViewportCache.PlayDefaultIdle(character: Model, priority: Enum.AnimationPriority?): AnimationTrack?
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid then return nil end
+	local animation = Instance.new("Animation")
+	animation.AnimationId = humanoid.RigType == Enum.HumanoidRigType.R6 and "rbxassetid://180435571" or "rbxassetid://507766388"
+	local track = playIdleTrack(humanoid, animation, priority or Enum.AnimationPriority.Core)
+	animation:Destroy()
+	return track
+end
+
+function ViewportCache.PlayIdle(character: Model, weaponType: string?, allowDefaultFallback: boolean?): AnimationTrack?
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid then return nil end
+	local animation = weaponType and ReplicatedStorage.Resources.Animations:FindFirstChild(weaponType, true)
+	if not animation or not animation:IsA("Animation") then
+		return allowDefaultFallback == false and nil or ViewportCache.PlayDefaultIdle(character, Enum.AnimationPriority.Idle)
+	end
+	return playIdleTrack(humanoid, animation, Enum.AnimationPriority.Idle)
 end
 
 function ViewportCache.Fit(
