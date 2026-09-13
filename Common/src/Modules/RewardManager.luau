@@ -4,6 +4,7 @@ local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Events = require(script.Parent.Events)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local getCappedInfo = require(ReplicatedStorage.Shared.getCappedInfo)
+local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 
 local RewardManager = {}
 
@@ -104,6 +105,7 @@ function RewardManager:AddXP(player: Player, amount: number, params: XPParams?)
 			PlayerData.Level(function(currentLevel)
 				return currentLevel + 1
 			end)
+			RemoteManager.SendClientEvent("LevelUpVFX", { All = true }, player.Character)
 
 			if PlayerData.Level() >= getCappedInfo.Level then
 				IsMaxLevel = true

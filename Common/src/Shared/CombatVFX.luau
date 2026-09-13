@@ -48,12 +48,15 @@ function VFX:Play(group, name, cf, options)
  for _, e in active do if not e.Destroyed and not e.Status then bursts += 1 end end
  if not options.Status and bursts >= MAX_BURSTS then return end
  local model = template:Clone()
+ local preserveParticles = options.PreserveParticles == true
  local duration = options.Duration or template:GetAttribute("Duration") or 1
  local entry = {Model = model, Origin = cf, Entity = options.Entity, Follow = options.Follow,
   Status = options.Status, Started = os.clock(), Expires = os.clock() + duration,
   Duration = duration, Offset = options.Offset or CFrame.identity, Parts = {}, Beams = {}, Emitters = {},
-  Spin = template:GetAttribute("SpinSpeed") or 0, Rise = template:GetAttribute("RiseDistance") or 0,
-  Expand = template:GetAttribute("ExpandFrom"), Scale = model:GetScale(), Destroyed = false,
+  Spin = preserveParticles and 0 or template:GetAttribute("SpinSpeed") or 0,
+  Rise = preserveParticles and 0 or template:GetAttribute("RiseDistance") or 0,
+  Expand = not preserveParticles and template:GetAttribute("ExpandFrom") or nil,
+  Scale = model:GetScale(), Destroyed = false,
   Attack = options.Attack}
  for _, v in model:GetDescendants() do
   if v:IsA("BasePart") then
@@ -63,9 +66,11 @@ function VFX:Play(group, name, cf, options)
    v.Enabled = true
    table.insert(entry.Beams, {Beam = v, Until = os.clock() + (entry.Status and duration or v:GetAttribute("PreviewDuration") or duration)})
   elseif v:IsA("ParticleEmitter") then
-   v.Enabled = false
-   if options.Follow then v.LockedToPart = true end
-   table.insert(entry.Emitters, v)
+   if not preserveParticles then
+    v.Enabled = false
+    if options.Follow then v.LockedToPart = true end
+    table.insert(entry.Emitters, v)
+   end
   end
  end
  if entry.Expand then model:ScaleTo(entry.Scale * entry.Expand) end
@@ -109,9 +114,8 @@ function VFX:Skill(name, entity)
  local root = rootOf(entity)
  if not root or not living(entity) then return end
  local cf, offset = root.CFrame, CFrame.identity
- local follow = name == "Cyclone" or name == "Basic" or name == "Lure Jab"
+ local follow = name == "Cyclone" or name == "Blessing" or name == "Basic" or name == "Lure Jab"
  if name == "Ground Break" then cf = self:Ground(cf * CFrame.new(0, 0, -3), entity)
- elseif name == "Blessing" then cf = self:Ground(cf, entity)
  elseif name == "Basic" then offset = CFrame.new(0, 0, -1); cf *= offset end
  local effectName = name
  if name == "Basic" then
@@ -119,7 +123,12 @@ function VFX:Skill(name, entity)
   basicVariants[entity] = index
   effectName = "Basic" .. index
  end
- self:Play("Skills", effectName, cf, {Entity = entity, Follow = follow, Offset = offset})
+ return self:Play("Skills", effectName, cf, {
+  Entity = entity,
+  Follow = follow,
+  Offset = offset,
+  PreserveParticles = name == "Cyclone",
+ })
 end
 if RunService:IsClient() then
  RunService.Heartbeat:Connect(function()

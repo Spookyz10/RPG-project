@@ -7,7 +7,7 @@ for _, module in script:GetDescendants() do
 	end
 end
 
-for _, name in { "Bars", "Buffs", "Currencies", "Buttons", "Inventory", "SkillSelector", "ZoneSelector", "Raids", "PlayerList", "Party", "Dialog", "Journal", "Crafting", "DeathScreen" } do
+for _, name in { "Bars", "Buffs", "Currencies", "Buttons", "Inventory", "SkillSelector", "ZoneSelector", "Raids", "PlayerList", "Party", "Dialog", "Journal", "Crafting", "Trading", "DeathScreen" } do
 	local module = Modules[name]
 	if module and module.Init then module.Init() end
 end

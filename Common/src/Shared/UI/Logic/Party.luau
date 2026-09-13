@@ -69,7 +69,7 @@ local function bindMember(entry: Frame, memberName: string)
 		local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 		local health = humanoid and math.max(0, humanoid.Health) or 0
 		local maxHealth = humanoid and math.max(1, humanoid.MaxHealth) or 1
-		entry.Health.Amount.Text = Abbreviation:Number(health) .. " / " .. Abbreviation:Number(maxHealth)
+		entry.Health.Main.Amount.Text = Abbreviation:Number(health) .. " / " .. Abbreviation:Number(maxHealth)
 		entry.Health.Main.Bar.Size = UDim2.fromScale(math.clamp(health / maxHealth, 0, 1), 1)
 	end
 	local function bindCharacter(character: Model)
@@ -178,7 +178,23 @@ function PartyUI.OnInvite(inviterName: string, duration: number?)
 		RemoteManager.SendServerEvent("DeclinePartyInvite", inviterName)
 		cleanup()
 	end)
-	task.delay(duration or INVITE_TIMEOUT_FALLBACK, cleanup)
+	local timeout = math.max(duration or INVITE_TIMEOUT_FALLBACK, 0)
+	local expiresAt = os.clock() + timeout
+	local expiresLabel = prompt:FindFirstChild("Expires") :: TextLabel?
+
+	task.spawn(function()
+		while prompt.Parent and not answered do
+			local remaining = math.max(0, math.ceil(expiresAt - os.clock()))
+			if expiresLabel then
+				expiresLabel.Text = "Expires in " .. remaining .. "s"
+			end
+			if remaining <= 0 then
+				cleanup()
+				break
+			end
+			task.wait(math.min(1, expiresAt - os.clock()))
+		end
+	end)
 end
 
 function PartyUI.Init()

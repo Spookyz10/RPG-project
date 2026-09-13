@@ -67,8 +67,9 @@ function PlayerCardController.new(card: GuiObject)
 		end
 	end))
 	table.insert(self.Connections, self.Actions.Trade.Activated:Connect(function()
-		if self.Viewed and self.Viewed ~= Constants.Player then
-			self.Actions.Status.Text = "Trading will be available soon."
+		local player = self.Viewed
+		if player and player.Parent and player ~= Constants.Player then
+			require(script.Parent.Logic.Trading).Open(player)
 		end
 	end))
 	return self

@@ -15,6 +15,7 @@ ENTRIES = [
     ("Crafting", "Crafting"),
     ("Leaderboards", "Leaderboards"),
     ("LootRewards", "LootRewards"),
+    ("Trading", "Trading"),
 ]
 
 
@@ -127,6 +128,7 @@ for index, entry in enumerate(ENTRIES, 1):
         "StylePreview": 17, "Admin": 18, "PlayerCard": 19, "Crafting": 20,
         "Leaderboards": 22, "LootRewards": 24, "ZoneTransition": 25,
         "DeathScreen": 26,
+        "Trading": 28,
     }[entry[0]]
     (OUTPUT / f"{number:02d}_{entry[0]}.luau").write_text(bundle([entry]), encoding="utf-8")
 (OUTPUT / "00_All.luau").write_text(bundle(ENTRIES), encoding="utf-8")

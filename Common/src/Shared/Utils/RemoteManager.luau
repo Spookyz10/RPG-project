@@ -38,6 +38,8 @@ local Remotes: { [string]: string } = {
 	DeclinePartyInvite = "Server",
 	KickFromParty = "Server",
 	ItemToggle = "Server",
+	CreateTradeOffer = "Server",
+	RespondTradeOffer = "Server",
 
 	RaidStarted = "Client",
 	RaidCompleted = "Client",
@@ -53,13 +55,17 @@ local Remotes: { [string]: string } = {
 	BuffVFX = "Client",
 	Notification = "Client",
 	LootReward = "Client",
+	LevelUpVFX = "Client",
 	ZoneTransition = "Client",
 	AdminResult = "Client",
 	AttackSound = "Client",
+	TradeOfferReceived = "Client",
+	TradeOfferStatus = "Client",
 }
 
 local RemoteFunctions: { [string]: string } = {
 	GetPlayerInfo = "Server",
+	GetTradeCatalog = "Server",
 }
 
 local RemoteCache: { [string]: Instance } = {}

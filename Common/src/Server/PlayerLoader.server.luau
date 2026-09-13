@@ -17,6 +17,7 @@ local PartySystem = require(ServerStorage.Modules.PartySystem)
 local SpeedManager = require(ServerStorage.Modules.SpeedManager)
 local StatsReplicator = require(ServerStorage.Modules.StatsReplicator)
 local StunManager = require(ServerStorage.Modules.StunManager)
+local TradeSystem = require(ServerStorage.Modules.TradeSystem)
 
 local RESPAWN_TIME = 6
 local LEGACY_STARTER_WEAPON = "Paper Sword"
@@ -104,5 +105,6 @@ Players.PlayerRemoving:Connect(function(Player)
 	SpeedManager.OnPlayerRemoved(Player)
 	StatsReplicator.OnPlayerRemoved(Player)
 	PartySystem:OnPlayerRemoved(Player)
+	TradeSystem:OnPlayerRemoved(Player)
 	StunManager.OnPlayerRemoved(Player)
 end)

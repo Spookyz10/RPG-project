@@ -9,7 +9,7 @@ local screenNames = {
 	"LoadingScreen", "HUD", "Buttons", "Attack", "Inventory", "SkillSelector",
 	"ZoneSelector", "RaidsGUI", "Playerlist", "Dialogue", "Shop",
 	"Journal", "Notifications", "Tutorial", "Main", "PlayerCard",
-	"ZoneTransition", "DeathScreen",
+	"ZoneTransition", "DeathScreen", "Trading",
 }
 
 function Bootstrap.Ensure()

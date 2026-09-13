@@ -187,8 +187,19 @@ function Instance.new(class)
 		object.AnchorPoint = Vector2.new(0, 0); object.BackgroundTransparency = 0; object.LayoutOrder = 0; object.ZIndex = 1
 	end
 	if class == "TextLabel" or class == "TextBox" or class == "TextButton" then object.Text = "" end
-	if class == "ImageLabel" or class == "ImageButton" then object.Image = "" end
+	if class == "ImageLabel" or class == "ImageButton" then
+		object.Image = ""
+		object.ImageColor3 = Color3.fromRGB(255, 255, 255)
+		object.ImageTransparency = 0
+		object.ImageRectOffset = Vector2.new(0, 0)
+		object.ImageRectSize = Vector2.new(0, 0)
+	end
+	if class == "UIStroke" then object.Transparency = 0 end
 	if object:IsA("LayerCollector") then object.Enabled = true end
+	if class == "BindableEvent" then
+		object.Event = signal()
+		object.Fire = function(_, ...) object.Event:Fire(...) end
+	end
 	return object
 end
 
@@ -249,7 +260,14 @@ services.ServerStorage = folder(nil, "ServerStorage")
 services.Selection = { Set = function() end }
 services.ChangeHistoryService = { TryBeginRecording = function() return "test-recording" end, FinishRecording = function() end }
 services.GuiService = { GetGuiInset = function() return Vector2.new(0, 36) end }
-services.UserInputService = { TouchEnabled = false, MouseEnabled = true, InputBegan = signal(), GetMouseLocation = function() return Vector2.new(400, 200) end }
+services.UserInputService = {
+	TouchEnabled = false,
+	MouseEnabled = true,
+	InputBegan = signal(),
+	LastInputTypeChanged = signal(),
+	GetMouseLocation = function() return Vector2.new(400, 200) end,
+	GetLastInputType = function() return Enum.UserInputType.MouseMovement end,
+}
 services.Debris = { AddItem = function() end }
 services.TweenService = { Create = function(_, object, _, properties)
 	return {
@@ -259,6 +277,7 @@ services.TweenService = { Create = function(_, object, _, properties)
 	}
 end }
 local workspace = folder(nil, "Workspace")
+workspace.GetServerTimeNow = function() return 1000 end
 local modules = {}
 for name in sources do
 	local parts = string.split(name, "/")
@@ -312,6 +331,7 @@ local calls = {}
 local remotes = { SendServerEvent = function(...) table.insert(calls, { ... }) end, InvokeServerFunction = function() return nil end }
 local overrides = {
 	[modules.Data] = { client = data },
+	[modules["Utils/Types"]] = {},
 	[modules["Utils/RemoteManager"]] = remotes,
 	[modules.LightingManager] = { Apply = function() end, ResetToDefault = function() end },
 	[modules.MusicManager] = { PlayZone = function() end, PlayLobby = function() end },

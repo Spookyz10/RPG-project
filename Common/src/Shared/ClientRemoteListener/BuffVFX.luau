@@ -15,6 +15,15 @@ for _, effectId in CombatVFX.StatusNames do
 end
 
 local function updateWorldEffect(effectId: string, entity: Model, action: string, duration: number?)
+	local legacy = BuffEffects[effectId]
+	if legacy then
+		if action == "Start" or action == "Update" then
+			legacy.Apply(entity)
+		elseif action == "End" then
+			legacy.Stop(entity)
+		end
+		return
+	end
 	if worldEffects[effectId] then
 		if action == "Start" or action == "Update" then
 			CombatVFX:Status(entity, effectId, duration)
@@ -22,13 +31,6 @@ local function updateWorldEffect(effectId: string, entity: Model, action: string
 			CombatVFX:StopStatus(entity, effectId)
 		end
 		return
-	end
-	local legacy = BuffEffects[effectId]
-	if not legacy then return end
-	if action == "Start" or action == "Update" then
-		legacy.Apply(entity)
-	elseif action == "End" then
-		legacy.Stop(entity)
 	end
 end
 
