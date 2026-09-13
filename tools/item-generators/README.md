@@ -8,8 +8,8 @@ Joias e materiais foram ampliados para inspeção; estas não são escalas de eq
 
 Este arquivo é somente um estudo visual. Não instala assets em Resources, não altera
 itens, inventário, UI, drops ou equipamento e não cria scripts de runtime.
-Wooden Sword é apenas o nome da escultura nesta galeria; Paper Sword continua sendo
-o item original do jogo.
+Wooden Sword é o item inicial do jogo. A galeria continua sendo apenas uma referência
+visual e não instala seu modelo em `Resources.Weapons`.
 
 ## Construção
 

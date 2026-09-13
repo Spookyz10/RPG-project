@@ -1,6 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
+
 local Item = {
 	Kind = "Equipment" :: "Equipment",
 	Stats = {
@@ -22,9 +23,9 @@ local Item = {
 		Icon = "rbxassetid://3383616038",
 		Rarity = "Common",
 		Level = 1,
-		Description = "Made with paper and glue. I would feel bad for whoever gets killed by this",
+		Description = "A simple wooden sword, sturdy enough for an adventurer's first steps.",
 		ActionName = "Equip",
-		ID = "Paper Sword",
+		ID = "Wooden Sword",
 	},
 }
 

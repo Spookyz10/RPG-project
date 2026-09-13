@@ -32,6 +32,7 @@ function PlayerCardController.new(card: GuiObject)
 	self.Viewed = nil
 	self.Avatar = nil
 	self.Idle = nil
+	self.DefaultIdle = nil
 	self.AvatarBounds = nil
 	self.AvatarSize = nil
 	self.PlayTime = 0
@@ -84,6 +85,11 @@ function PlayerCardController:_clearAvatar()
 		self.Idle:Stop(0)
 		self.Idle:Destroy()
 		self.Idle = nil
+	end
+	if self.DefaultIdle then
+		self.DefaultIdle:Stop(0)
+		self.DefaultIdle:Destroy()
+		self.DefaultIdle = nil
 	end
 	if self.Avatar then
 		self.Avatar:Destroy()
@@ -205,7 +211,8 @@ function PlayerCardController:Open(player: Player, publicLevel: number)
 	if weapon then
 		ViewportCache.AttachWeapon(self.Avatar, weapon.Name, weapon.WeaponType)
 	end
-	self.Idle = ViewportCache.PlayIdle(self.Avatar, weapon and weapon.WeaponType)
+	self.Idle = ViewportCache.PlayIdle(self.Avatar, weapon and weapon.WeaponType, false)
+	self.DefaultIdle = ViewportCache.PlayDefaultIdle(self.Avatar)
 	self:_fit()
 	self.AvatarViewport.Status.Visible = false
 end

@@ -275,7 +275,7 @@ local state = {
 	Level = 25, XP = 50, Equipment = { Weapon = "", Armor = "", Ring = "", Necklace = "", Aura = "", Rune = "" },
 	Vanity = { Weapon = "", Aura = "" }, Skills = { Q = "", E = "", R = "" },
 	Inventory = {
-		sword = { ID = "Paper Sword", Name = "Paper Sword", Amount = 1 },
+		sword = { ID = "Wooden Sword", Name = "Wooden Sword", Amount = 1 },
 		potions = { ID = "Small Health Potion", Name = "Small Health Potion", Amount = 8 },
 	},
 	Storage = { stored = { ID = "Small Health Potion", Name = "Small Health Potion", Amount = 3 } },
@@ -415,7 +415,7 @@ windows.Open("Inventory")
 assert(gui.Inventory.Main.Visible and gui:GetAttribute("UIWindowOpen"))
 local content = gui.Inventory.Main.Body.Content
 local inv = content.Items
-assert(inv.Container.sword.ItemName.Text == "Paper Sword")
+assert(inv.Container.sword.ItemName.Text == "Wooden Sword")
 for _, job in jobs do job() end
 table.clear(jobs)
 assert(content.Hero.Stats.Attack.Value.Text == "12", "Hero stats did not update")
@@ -435,7 +435,7 @@ local tooltipPosition = gui.Inventory.ItemTooltip.AbsolutePosition
 assert(math.abs(tooltipPosition.X - 412) < 0.01 and math.abs(tooltipPosition.Y - 176) < 0.01, "Tooltip is not beside mouse after topbar inset")
 services.RunService.RenderStepped:Fire()
 assert(math.abs(gui.Inventory.ItemTooltip.AbsolutePosition.Y - 176) < 0.01, "Tooltip drifts each frame")
-assert(gui.Inventory.ItemTooltip.ItemName.Text == "Paper Sword")
+assert(gui.Inventory.ItemTooltip.ItemName.Text == "Wooden Sword")
 inv.Container.sword.MouseLeave:Fire()
 assert(not gui.Inventory.ItemTooltip.Visible, "Item tooltip did not close")
 click(inv.Container.sword)

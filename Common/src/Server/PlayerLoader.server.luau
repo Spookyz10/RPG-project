@@ -19,6 +19,17 @@ local StatsReplicator = require(ServerStorage.Modules.StatsReplicator)
 local StunManager = require(ServerStorage.Modules.StunManager)
 
 local RESPAWN_TIME = 6
+local LEGACY_STARTER_WEAPON = "Paper Sword"
+local STARTER_WEAPON = "Wooden Sword"
+
+local function MigrateStarterWeapon(PlayerData: Types.PlayerData)
+	for UUID, item in PlayerData.Inventory() do
+		if item.ID == LEGACY_STARTER_WEAPON then
+			PlayerData.Inventory[UUID].ID(STARTER_WEAPON)
+			PlayerData.Inventory[UUID].Name(STARTER_WEAPON)
+		end
+	end
+end
 
 local function LoadPlayer(Player: Player)
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
@@ -26,10 +37,11 @@ local function LoadPlayer(Player: Player)
 		warn("Failed to load data for player: " .. Player.Name)
 		return
 	end
+	MigrateStarterWeapon(PlayerData)
 
 	Player:SetAttribute("ShowTutorial", PlayerData.FirstTimeJoined())
 	if PlayerData.FirstTimeJoined() then
-		local _, UUID = InventoryManager:AddItem(Player, "Paper Sword", 1)
+		local _, UUID = InventoryManager:AddItem(Player, STARTER_WEAPON, 1)
 		if UUID then
 			InventoryManager:ItemAction(Player, UUID)
 		end
