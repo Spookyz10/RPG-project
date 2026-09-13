@@ -15,7 +15,7 @@ local Dialogue: Types.Dialogue = {
 
 	Nodes = {
 		Start = {
-			Text = "Hold on. You look like you can handle yourself. I need a favor, if you are willing to hear me out.",
+			Text = "Stop for a moment. The cave behind me is not safe, and I would rather not watch another traveler walk in without knowing why.",
 			Options = {
 				{ Text = "What happened to you?", Next = "Story" },
 				{ Text = "What do you need?", Next = "Mission" },
@@ -24,12 +24,12 @@ local Dialogue: Types.Dialogue = {
 		},
 
 		Story = {
-			Text = "A Dire Bear caught my patrol near the end of the Village Outskirts. I survived, but the others were not as lucky. The beast is still there.",
+			Text = "My patrol came here to clear the cave. A <shake><font color=\"#FF6F76\"><b>Dire Bear</b></font></shake> rushed us from the dark before we could form a line. I made it back outside, but the others did not.",
 			Next = "Mission",
 		},
 
 		Mission = {
-			Text = "Kill the <font color=\"#FF6F76\"><b>Dire Bear</b></font> before it reaches another patrol. I cannot fight in this condition, but I can pay you for finishing the job.",
+			Text = "The <shake><font color=\"#FF6F76\"><b>Dire Bear</b></font></shake> is still inside. Kill it before it leaves this cave and finds the road. I cannot fight in this condition, but I can pay you for finishing the job.",
 			Options = {
 				{
 					Text = "I will take care of it",
@@ -44,16 +44,16 @@ local Dialogue: Types.Dialogue = {
 		},
 
 		Location = {
-			Text = "Enter the Village Outskirts and follow the path to the cave at the far end. You will know you are close when the smaller animals stop making noise.",
+			Text = "You are standing at the entrance. Go inside and stay alert. The deeper tunnels are quiet, but that does not mean they are empty.",
 			Next = "Mission",
 		},
 
 		InProgress = {
-			Text = "The Dire Bear is still near the cave at the end of the Village Outskirts. Be patient, watch its attacks, and come back alive.",
+			Text = "The <shake><font color=\"#FF6F76\"><b>Dire Bear</b></font></shake> is still in the cave behind me. Be patient, watch its attacks, and come back alive.",
 		},
 
 		Completed = {
-			Text = "I heard the Dire Bear is dead. You did what I could not. Thank you. The road is safer because of you.",
+			Text = "The cave is quiet at last. You did what I could not. Thank you. The road is safer because of you.",
 		},
 
 		Leave = {

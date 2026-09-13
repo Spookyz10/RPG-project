@@ -3,7 +3,7 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local Quest: Types.QuestInfo = {
 	Name = "The Wounded Knight's Request",
-	Description = "Defeat the Dire Bear near the cave at the end of the Village Outskirts.",
+	Description = "Defeat the Dire Bear inside the cave beside the Weakened Knight.",
 	Repeatable = false,
 	RequiredLevel = 1,
 	RequiredQuest = nil,

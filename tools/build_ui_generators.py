@@ -229,3 +229,4 @@ if not ok then error("UI patch failed: " .. tostring(reason)) end
 
 (OUTPUT / "32_JournalIndicators.luau").write_text(incremental_patch("JournalIndicators", True), encoding="utf-8")
 (OUTPUT / "33_CraftingTooltip.luau").write_text(incremental_patch("CraftingTooltipPatch", False), encoding="utf-8")
+(OUTPUT / "35_CraftingRecipeTemplate.luau").write_text(incremental_patch("CraftingRecipeTemplatePatch", True), encoding="utf-8")

@@ -518,7 +518,7 @@ buildFeedbackTemplates(folder)
 
 return function(parent)
 	local prompt = C.New("BillboardGui", "NPCInteractionTemplate", parent, {
-		Size = UDim2.fromOffset(300, 76),
+		Size = UDim2.fromScale(4.6, 1.18),
 		StudsOffsetWorldSpace = Vector3.new(0, 3.5, 0),
 		AlwaysOnTop = true,
 		ResetOnSpawn = false,
@@ -532,15 +532,15 @@ return function(parent)
 	}), 14)
 	C.Stroke(main, T.Line).Thickness = 3
 	C.New("UIScale", "PromptScale", main, { Scale = 1 })
-	local accent = C.Round(C.Frame(main, "Accent", UDim2.fromOffset(8, 11), UDim2.fromOffset(5, 54), T.Gold), 3)
+	local accent = C.Round(C.Frame(main, "Accent", UDim2.fromScale(0.027, 0.145), UDim2.fromScale(0.017, 0.711), T.Gold), 3)
 	accent.ZIndex = main.ZIndex + 1
-	local name = C.Label(main, "NPCName", "Friendly face", UDim2.fromOffset(24, 9), UDim2.new(1, -108, 0, 27), true)
+	local name = C.Label(main, "NPCName", "Friendly face", UDim2.fromScale(0.08, 0.118), UDim2.fromScale(0.64, 0.355), true)
 	name.TextColor3 = T.Gold
 	name.TextSize = 16
-	local action = C.Label(main, "Action", "Talk", UDim2.fromOffset(24, 38), UDim2.new(1, -108, 0, 24))
+	local action = C.Label(main, "Action", "Talk", UDim2.fromScale(0.08, 0.5), UDim2.fromScale(0.64, 0.316))
 	action.TextColor3 = T.Muted
 	action.TextSize = 12
-	local key = C.Round(C.Label(main, "Key", "F", UDim2.new(1, -68, 0.5, -23), UDim2.fromOffset(52, 46), true), 10)
+	local key = C.Round(C.Label(main, "Key", "F", UDim2.fromScale(0.773, 0.197), UDim2.fromScale(0.173, 0.605), true), 10)
 	key.BackgroundColor3 = T.Sky
 	key.BackgroundTransparency = 0
 	key.TextXAlignment = Enum.TextXAlignment.Center
@@ -1441,17 +1441,61 @@ builders.Crafting = (function()
 return function(parent)
 	local screen, _, body = C.Window(parent, "Crafting", "Main", "Blacksmith crafting", "Turn trophies from the wild into equipment. Craft one at a time.", 600, 560)
 	local container = C.Scroll(body, "Container", UDim2.new(), UDim2.fromScale(1, 1))
-	local row = C.Frame(screen, "RecipeTemplate", UDim2.new(), UDim2.new(1, -12, 0, 210), T.Paper)
+	local row = C.Round(C.Frame(screen, "RecipeTemplate", UDim2.fromScale(0, 0), UDim2.fromScale(0.985, 0.36), T.Paper), 12)
 	row.Visible = false
-	C.Stroke(row)
-	C.Label(row, "Title", "Recipe", UDim2.fromOffset(12, 8), UDim2.new(1, -24, 0, 24), true)
-	local description = C.Label(row, "Description", "", UDim2.fromOffset(12, 36), UDim2.new(1, -24, 0, 68))
-	description.TextWrapped = true
-	description.TextSize = 13
-	local cost = C.Label(row, "Cost", "", UDim2.fromOffset(12, 106), UDim2.new(1, -24, 0, 52))
-	cost.TextWrapped = true
-	cost.TextSize = 13
-	C.Button(row, "Craft", "CRAFT", UDim2.new(0, 12, 1, -42), UDim2.new(1, -24, 0, 32), T.Mint)
+	C.Stroke(row, T.Line).Thickness = 2
+	local result = C.Round(C.Frame(row, "Result", UDim2.fromScale(0.025, 0.09), UDim2.fromScale(0.19, 0.82), T.Surface), 10)
+	C.Stroke(result, T.Soft).Thickness = 2
+	local resultLabel = C.Label(result, "Label", "RESULT", UDim2.fromScale(0.08, 0.05), UDim2.fromScale(0.84, 0.14), true)
+	resultLabel.TextColor3 = T.Gold
+	resultLabel.TextXAlignment = Enum.TextXAlignment.Center
+	C.New("ImageLabel", "ResultIcon", result, {
+		Position = UDim2.fromScale(0.14, 0.23),
+		Size = UDim2.fromScale(0.72, 0.58),
+		BackgroundTransparency = 1,
+		ScaleType = Enum.ScaleType.Fit,
+	})
+	local resultName = C.Label(result, "ResultName", "Item", UDim2.fromScale(0.08, 0.82), UDim2.fromScale(0.84, 0.12), true)
+	resultName.TextXAlignment = Enum.TextXAlignment.Center
+	local title = C.Label(row, "Title", "Recipe", UDim2.fromScale(0.24, 0.08), UDim2.fromScale(0.5, 0.14), true)
+	title.TextColor3 = T.Ink
+	local level = C.Round(C.Label(row, "Level", "LV. 1", UDim2.fromScale(0.75, 0.08), UDim2.fromScale(0.2, 0.14), true), 8)
+	level.BackgroundColor3 = T.Soft
+	level.BackgroundTransparency = 0
+	level.TextColor3 = T.Gold
+	level.TextXAlignment = Enum.TextXAlignment.Center
+	local description = C.Label(row, "Description", "", UDim2.fromScale(0.24, 0.24), UDim2.fromScale(0.71, 0.22))
+	description.TextColor3 = T.Muted
+	description.TextYAlignment = Enum.TextYAlignment.Top
+	local materialsLabel = C.Label(row, "MaterialsLabel", "MATERIALS", UDim2.fromScale(0.24, 0.48), UDim2.fromScale(0.36, 0.09), true)
+	materialsLabel.TextColor3 = T.Muted
+	local ingredients = C.New("Frame", "Ingredients", row, {
+		Position = UDim2.fromScale(0.24, 0.58),
+		Size = UDim2.fromScale(0.71, 0.18),
+		BackgroundTransparency = 1,
+	})
+	C.New("UIGridLayout", "Layout", ingredients, {
+		CellSize = UDim2.fromScale(0.32, 1),
+		CellPadding = UDim2.fromScale(0.02, 0),
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	})
+	local ingredient = C.Round(C.Frame(row, "IngredientTemplate", UDim2.fromScale(0, 0), UDim2.fromScale(0.32, 1), T.Surface), 8)
+	ingredient.Visible = false
+	C.Stroke(ingredient, T.Soft).Thickness = 1
+	C.New("ImageLabel", "Icon", ingredient, {
+		Position = UDim2.fromScale(0.05, 0.16),
+		Size = UDim2.fromScale(0.24, 0.68),
+		BackgroundTransparency = 1,
+		ScaleType = Enum.ScaleType.Fit,
+	})
+	local ingredientName = C.Label(ingredient, "ItemName", "Material", UDim2.fromScale(0.34, 0.12), UDim2.fromScale(0.6, 0.42), true)
+	ingredientName.TextTruncate = Enum.TextTruncate.AtEnd
+	local count = C.Label(ingredient, "Count", "0 / 0", UDim2.fromScale(0.34, 0.55), UDim2.fromScale(0.6, 0.3), true)
+	count.TextColor3 = T.Muted
+	local gold = C.Label(row, "Gold", "0 GOLD", UDim2.fromScale(0.24, 0.84), UDim2.fromScale(0.38, 0.1), true)
+	gold.TextColor3 = T.Gold
+	local craft = C.Button(row, "Craft", "CRAFT", UDim2.fromScale(0.68, 0.81), UDim2.fromScale(0.27, 0.13), T.Mint)
+	craft.TextXAlignment = Enum.TextXAlignment.Center
 	local tip = C.Round(C.Frame(screen, "ItemTooltip", UDim2.new(), UDim2.fromOffset(252, 286), T.Paper), 8)
 	tip.Visible = false
 	tip.ZIndex = 50

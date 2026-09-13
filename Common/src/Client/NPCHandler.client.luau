@@ -16,7 +16,9 @@ local Templates = ReplicatedStorage:WaitForChild("RPGUITemplates")
 local PromptTemplate = Templates:FindFirstChild("NPCInteractionTemplate")
 
 if not PromptTemplate or not PromptTemplate:IsA("BillboardGui") then
-	warn("NPC interactions require RPGUITemplates.NPCInteractionTemplate. Run tools/ui-generators/34_NPCInteractionTemplate.luau in Studio.")
+	warn(
+		"NPC interactions require RPGUITemplates.NPCInteractionTemplate. Run tools/ui-generators/34_NPCInteractionTemplate.luau in Studio."
+	)
 	return
 end
 
@@ -61,8 +63,12 @@ end
 
 local function inputLabel(npc: Model): string
 	local custom = npc:GetAttribute("InteractionKeyLabel")
-	if type(custom) == "string" and custom ~= "" then return custom end
-	if UserInputService.TouchEnabled then return "TAP" end
+	if type(custom) == "string" and custom ~= "" then
+		return custom
+	end
+	if UserInputService.TouchEnabled then
+		return "TAP"
+	end
 	if UserInputService.GamepadEnabled then
 		return getStringAttribute(npc, "InteractionGamepadLabel", "X")
 	end
@@ -80,7 +86,6 @@ local function applyAppearance(interaction: NPCInteraction)
 	main.Action.Text = getStringAttribute(npc, "InteractionAction", "Talk")
 	main.Key.Text = inputLabel(npc)
 	main.Key.BackgroundColor3 = color
-	main.Accent.BackgroundColor3 = color
 	interaction.Highlight.FillColor = highlightColor
 	interaction.Highlight.OutlineColor = highlightColor
 	interaction.Highlight.FillTransparency = getNumberAttribute(npc, "InteractionHighlightFillTransparency", 0.82)
@@ -93,10 +98,16 @@ local function hide(interaction: NPCInteraction)
 end
 
 local function setFocused(nextFocused: NPCInteraction?)
-	if focused == nextFocused then return end
-	if focused then hide(focused) end
+	if focused == nextFocused then
+		return
+	end
+	if focused then
+		hide(focused)
+	end
 	focused = nextFocused
-	if not focused then return end
+	if not focused then
+		return
+	end
 	applyAppearance(focused)
 	local prompt = focused.Prompt
 	local main = prompt.Main
@@ -114,18 +125,29 @@ end
 
 local function openFocused()
 	local interaction = focused
-	if not interaction or not isAvailable(interaction) then return end
-	Logic.Dialog.Open(Dialogues[interaction.NPC.Name], getStringAttribute(interaction.NPC, "InteractionName", interaction.NPC.Name))
+	if not interaction or not isAvailable(interaction) then
+		return
+	end
+	Logic.Dialog.Open(
+		Dialogues[interaction.NPC.Name],
+		getStringAttribute(interaction.NPC, "InteractionName", interaction.NPC.Name)
+	)
 	setFocused(nil)
 end
 
 local function setup(npc: Instance)
-	if not npc:IsA("Model") or not Dialogues[npc.Name] or registered[npc] then return end
+	if not npc:IsA("Model") or not Dialogues[npc.Name] or registered[npc] then
+		return
+	end
 	local part = npc.PrimaryPart or npc:FindFirstChild("HumanoidRootPart") or npc:FindFirstChildWhichIsA("BasePart")
-	if not part or not part:IsA("BasePart") then return end
+	if not part or not part:IsA("BasePart") then
+		return
+	end
 
 	for _, oldPrompt in npc:GetDescendants() do
-		if oldPrompt:IsA("ProximityPrompt") and oldPrompt.Name == "RPGTalk" then oldPrompt:Destroy() end
+		if oldPrompt:IsA("ProximityPrompt") and oldPrompt.Name == "RPGTalk" then
+			oldPrompt:Destroy()
+		end
 	end
 	local highlight = Instance.new("Highlight")
 	highlight.Name = "NPCInteractionHighlight"
@@ -150,36 +172,55 @@ local function setup(npc: Instance)
 	}
 	registered[npc] = interaction
 	table.insert(interaction.Connections, prompt.Main.Tap.Activated:Connect(openFocused))
-	table.insert(interaction.Connections, npc.Destroying:Connect(function()
-		if focused == interaction then setFocused(nil) end
-		for _, connection in interaction.Connections do connection:Disconnect() end
-		prompt:Destroy()
-		registered[npc] = nil
-	end))
+	table.insert(
+		interaction.Connections,
+		npc.Destroying:Connect(function()
+			if focused == interaction then
+				setFocused(nil)
+			end
+			for _, connection in interaction.Connections do
+				connection:Disconnect()
+			end
+			prompt:Destroy()
+			registered[npc] = nil
+		end)
+	)
 end
 
-for _, npc in NPCs:GetChildren() do setup(npc) end
+for _, npc in NPCs:GetChildren() do
+	setup(npc)
+end
 NPCs.ChildAdded:Connect(setup)
 NPCs.DescendantAdded:Connect(function(part)
 	if part:IsA("BasePart") then
 		local npc = part:FindFirstAncestorWhichIsA("Model")
-		if npc and npc.Parent == NPCs then setup(npc) end
+		if npc and npc.Parent == NPCs then
+			setup(npc)
+		end
 	end
 end)
 
 UserInputService.InputBegan:Connect(function(input, processed)
-	if processed or UserInputService:GetFocusedTextBox() then return end
+	if processed or UserInputService:GetFocusedTextBox() then
+		return
+	end
 	local interaction = focused
-	if not interaction then return end
+	if not interaction then
+		return
+	end
 	local npc = interaction.NPC
 	local key = Enum.KeyCode[getStringAttribute(npc, "InteractionKey", "F")]
 	local gamepadKey = Enum.KeyCode[getStringAttribute(npc, "InteractionGamepadKey", "ButtonX")]
-	if input.KeyCode == key or input.KeyCode == gamepadKey then openFocused() end
+	if input.KeyCode == key or input.KeyCode == gamepadKey then
+		openFocused()
+	end
 end)
 
 RunService.Heartbeat:Connect(function(deltaTime)
 	elapsed += deltaTime
-	if elapsed < 0.12 then return end
+	if elapsed < 0.12 then
+		return
+	end
 	elapsed = 0
 	if Windows.IsOpen() or PlayerGui:GetAttribute("UIBlocking") then
 		setFocused(nil)
@@ -196,7 +237,10 @@ RunService.Heartbeat:Connect(function(deltaTime)
 	for _, interaction in registered do
 		if isAvailable(interaction) then
 			local distance = (interaction.Part.Position - root.Position).Magnitude
-			if distance <= getNumberAttribute(interaction.NPC, "InteractionDistance", 18) and distance < nearestDistance then
+			if
+				distance <= getNumberAttribute(interaction.NPC, "InteractionDistance", 18)
+				and distance < nearestDistance
+			then
 				nearest = interaction
 				nearestDistance = distance
 			end

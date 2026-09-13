@@ -5,6 +5,7 @@ local Items = require(RS.Shared.ItemsData)
 local Functions = require(RS.Shared.Utils.Functions)
 local Remote = require(RS.Shared.Utils.RemoteManager)
 local Abbreviation = require(RS.Shared.Utils.Abbreviation)
+local Theme = require(script.Parent.Parent.Theme)
 local Crafting = {}
 
 function Crafting.Init()
@@ -17,6 +18,7 @@ function Crafting.Init()
 	end
 	local data = Constants.Data
 	local rows = {}
+	local ingredientRows = {}
 	local keys = {}
 	for id in Recipes do table.insert(keys, id) end
 	table.sort(keys, function(a,b) return Recipes[a].Level < Recipes[b].Level end)
@@ -24,8 +26,26 @@ function Crafting.Init()
 		local info = Items[id]
 		local row = screen.RecipeTemplate:Clone()
 		row.Name, row.LayoutOrder, row.Visible = id, index, true
-		row.Title.Text = info.Data.Name .. "  |  Lv. " .. Abbreviation:Number(Recipes[id].Level)
+		row.ResultIcon.Image = info.Data.Icon or ""
+		row.ResultName.Text = info.Data.Name
+		row.Title.Text = info.Data.Name
+		row.Level.Text = "LV. " .. Abbreviation:Number(Recipes[id].Level)
 		row.Description.Text = info.Data.Description or ""
+		ingredientRows[id] = {}
+		local ingredients = {}
+		for material in Recipes[id].Ingredients do table.insert(ingredients, material) end
+		table.sort(ingredients)
+		for ingredientIndex, material in ingredients do
+			local materialInfo = Items[material]
+			local ingredient = row.IngredientTemplate:Clone()
+			ingredient.Name = material
+			ingredient.LayoutOrder = ingredientIndex
+			ingredient.Visible = true
+			ingredient.Icon.Image = materialInfo and materialInfo.Data.Icon or ""
+			ingredient.ItemName.Text = materialInfo and materialInfo.Data.Name or material
+			ingredient.Parent = row.Ingredients
+			ingredientRows[id][material] = ingredient
+		end
 		row.Parent = screen.Main.Body.Content.Container
 		if Tooltip then
 			Tooltip.Bind(row, function()
@@ -51,14 +71,14 @@ function Crafting.Init()
 		for id, row in rows do
 			local recipe = Recipes[id]
 			local enough = data.Level() >= recipe.Level and (data.Currencies().Gold or 0) >= recipe.Gold
-			local costs = { Abbreviation:Number(recipe.Gold) .. " Gold" }
+			row.Gold.Text = Abbreviation:Number(recipe.Gold) .. " GOLD"
 			for material, amount in recipe.Ingredients do
 				local owned = counts[material] or 0
-				table.insert(costs, material .. " " .. Abbreviation:Number(owned) .. "/" .. Abbreviation:Number(amount))
+				local ingredient = ingredientRows[id][material]
+				ingredient.Count.Text = Abbreviation:Number(owned) .. " / " .. Abbreviation:Number(amount)
+				ingredient.Count.TextColor3 = owned >= amount and Theme.Mint or Theme.Red
 				if owned < amount then enough = false end
 			end
-			table.sort(costs)
-			row.Cost.Text = table.concat(costs, "  |  ")
 			row.Craft.Text = enough and "CRAFT" or "Requirements not met"
 			row.Craft:SetAttribute("CanCraft", enough)
 		end

@@ -414,6 +414,8 @@ UI should communicate server state, not become the authoritative source of gamep
 
 Avoid embedding important gameplay logic directly into UI scripts when it belongs in reusable systems.
 
+All authored UI geometry must use scale-based `UDim2` and `UDim` values. Do not use offset-based positions, sizes, padding, grid cell dimensions, or canvas dimensions for new UI. Keep an explicit exception only for Roblox properties that have no scale representation, such as `UIStroke.Thickness` and `UICorner.CornerRadius`.
+
 Keep UI behavior responsive.
 
 Do not create continuous RenderStepped updates for static UI.

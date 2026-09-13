@@ -12,8 +12,9 @@ Execute, nesta ordem:
 2. `32_JournalIndicators.luau`
 3. `33_CraftingTooltip.luau`
 4. `34_NPCInteractionTemplate.luau`
+5. `35_CraftingRecipeTemplate.luau`
 
-`12_Dialogue` substitui somente `StarterGui.Dialogue` pela caixa compacta. `32_JournalIndicators` preserva `StarterGui.Buttons` e apenas completa o atalho Journal e os badges de quest. `33_CraftingTooltip` preserva a tela de Crafting e clona nela o tooltip visual do Inventory. `34_NPCInteractionTemplate` instala o visual da interação customizada dos NPCs.
+`12_Dialogue` substitui somente `StarterGui.Dialogue` pela caixa compacta. `32_JournalIndicators` preserva `StarterGui.Buttons` e apenas completa o atalho Journal e os badges de quest. `33_CraftingTooltip` preserva a tela de Crafting e clona nela o tooltip visual do Inventory. `34_NPCInteractionTemplate` instala o visual da interação customizada dos NPCs. `35_CraftingRecipeTemplate` troca somente `StarterGui.Crafting.RecipeTemplate`.
 
 ## Índice
 
@@ -52,6 +53,7 @@ Execute, nesta ordem:
 | `32_JournalIndicators.luau` | somente atalho Journal e badges em `StarterGui.Buttons` |
 | `33_CraftingTooltip.luau` | somente `StarterGui.Crafting.ItemTooltip` |
 | `34_NPCInteractionTemplate.luau` | somente `ReplicatedStorage.RPGUITemplates.NPCInteractionTemplate` |
+| `35_CraftingRecipeTemplate.luau` | somente `StarterGui.Crafting.RecipeTemplate` |
 
 ## Manutenção
 
