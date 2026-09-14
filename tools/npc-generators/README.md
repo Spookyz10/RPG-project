@@ -4,10 +4,11 @@ With Play stopped, paste each complete `.luau` file into Roblox Studio's Command
 
 1. `01_Blacksmith.luau`
 2. `02_WeakenedKnight.luau`
+3. `03_Shopkeeper.luau`: teal merchant cap, apron, beard and coin pouch; editable R15 rig.
 
 The scripts create R15 avatar NPCs in `Workspace.NPCs` from Roblox catalog accessories. They select the generated model so it can be positioned immediately. On a rerun, the old NPC is moved to `ServerStorage.NPCGeneratorBackups`, and the replacement keeps its ground position and rotation.
 
-The runtime already watches `Workspace.NPCs` and adds the interaction prompt when the NPC's exact name has a module in `ReplicatedStorage.Shared.Dialogues`. Both generated names have dialogue definitions: `Blacksmith` and `Weakened Knight`.
+The runtime already watches `Workspace.NPCs` and adds the interaction prompt when the NPC's exact name has a module in `ReplicatedStorage.Shared.Dialogues`. All three generated names have dialogue definitions. Shopkeeper opens `Shop`, which sells the current potion catalog.
 
 Catalog loading requires Studio to have network access. Save the place after positioning the selected NPCs.
 

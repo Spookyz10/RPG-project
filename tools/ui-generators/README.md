@@ -54,6 +54,12 @@ Execute, nesta ordem:
 | `33_CraftingTooltip.luau` | somente `StarterGui.Crafting.ItemTooltip` |
 | `34_NPCInteractionTemplate.luau` | somente `ReplicatedStorage.RPGUITemplates.NPCInteractionTemplate` |
 | `35_CraftingRecipeTemplate.luau` | somente `StarterGui.Crafting.RecipeTemplate` |
+| `36_DailyRewards.luau` | `StarterGui.DailyRewards` |
+| `37_ShopTemplate.luau` | somente `ReplicatedStorage.RPGUITemplates.ShopTemplate` |
+
+## Shop de poções
+
+Execute `37_ShopTemplate.luau` e depois `13_Shop.luau` na Command Bar, em Edit, e sincronize Common pelo Rojo. O Shopkeeper abre `Shop`, que vende apenas as cinco Small Potions: Health (35 Gold), Attack (60), Defense (60), Speed (180) e Critical (240). Os controles menos/mais permitem comprar de 1 a 25 poções empilháveis; o preço total é exibido antes de comprar. O servidor calcula o custo novamente, limita a quantidade e desconta somente as unidades que realmente couberem no inventário.
 
 ## Manutenção
 
@@ -74,3 +80,10 @@ python tools/verify_ui.py --luau CAMINHO/luau.exe
 ```
 
 O teste automatizado verifica contratos e hierarquia, mas não renderiza a interface. No Studio, confira desktop e mobile, troca de aparência/arma, respawn, abertura repetida do PlayerCard e vários buffs ou passivas disparados em sequência.
+# Daily rewards
+
+Execute `36_DailyRewards.luau` inteiro na Command Bar em Edit e sincronize Common pelo Rojo. Cria `StarterGui.DailyRewards`, incluido tambem em `00_All.luau`. Para visualizar/editar o card no Studio, habilite temporariamente `Card.Visible`; mantenha-o falso antes de salvar para Play.
+
+Entre no alcance de `Workspace.Touchies.Daily` (Part com nome exato `Daily`, como os outros Touchies). A entrada solicita claim uma vez; o servidor valida personagem vivo, proximidade, limite de pedidos e cooldown de 24 horas. Sucesso mostra ouro, XP e streak com animacao de entrada; fecha pelo botao ou depois de 8 segundos. Cooldown usa apenas a Notification/Toast existente. A UI nao altera posicoes ou tamanhos salvos; apenas o UIScale da animacao.
+
+Verifique em Studio: primeiro claim, sair/reentrar durante cooldown, ficar parado no Touchie sem novos pedidos, respawn, e dois jogadores com cooldowns independentes. O gerador nao modifica os dados persistidos para forcar um teste.

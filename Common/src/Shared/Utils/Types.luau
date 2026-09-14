@@ -219,7 +219,7 @@ export type Dialogue = {
 }
 
 export type Shop = {
-	[string]: { Cost: { [string]: number }, itemType: string },
+	[string]: { Cost: { [string]: number }, itemType: string, MaxPurchase: number? },
 }
 
 export type QuestObjectiveType = "KillMob" | "CraftItem"

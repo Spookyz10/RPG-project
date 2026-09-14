@@ -16,6 +16,7 @@ ENTRIES = [
     ("Leaderboards", "Leaderboards"),
     ("LootRewards", "LootRewards"),
     ("Trading", "Trading"),
+    ("DailyRewards", "DailyRewards"),
 ]
 
 
@@ -131,6 +132,7 @@ for index, entry in enumerate(ENTRIES, 1):
         "Leaderboards": 22, "LootRewards": 24, "ZoneTransition": 25,
         "DeathScreen": 26,
         "Trading": 28,
+        "DailyRewards": 36,
     }[entry[0]]
     (OUTPUT / f"{number:02d}_{entry[0]}.luau").write_text(bundle([entry]), encoding="utf-8")
 (OUTPUT / "00_All.luau").write_text(bundle(ENTRIES), encoding="utf-8")
@@ -230,3 +232,4 @@ if not ok then error("UI patch failed: " .. tostring(reason)) end
 (OUTPUT / "32_JournalIndicators.luau").write_text(incremental_patch("JournalIndicators", True), encoding="utf-8")
 (OUTPUT / "33_CraftingTooltip.luau").write_text(incremental_patch("CraftingTooltipPatch", False), encoding="utf-8")
 (OUTPUT / "35_CraftingRecipeTemplate.luau").write_text(incremental_patch("CraftingRecipeTemplatePatch", True), encoding="utf-8")
+(OUTPUT / "37_ShopTemplate.luau").write_text(incremental_patch("ShopTemplatePatch", True), encoding="utf-8")

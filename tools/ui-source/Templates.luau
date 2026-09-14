@@ -97,10 +97,17 @@ return function(parent)
 		C.New("UIStroke", "UIStroke", label, { Color = T.Ink, Thickness = 2 })
 	end
 
-	local shop = C.Card(folder, "ShopTemplate", 158)
+	local shop = C.Card(folder, "ShopTemplate", 206)
 	C.Label(shop, "Name", "Item", UDim2.fromOffset(12, 8), UDim2.new(1, -24, 0, 30), true)
 	C.Label(shop, "Price", "", UDim2.fromOffset(12, 42), UDim2.new(1, -24, 0, 36)).TextColor3 = T.Gold
-	C.Button(shop, "Buy", "BUY", UDim2.fromOffset(12, 94), UDim2.new(1, -24, 0, 48))
+	local quantity = C.Round(C.Frame(shop, "Quantity", UDim2.fromScale(0.06, 0.47), UDim2.fromScale(0.88, 0.2), T.Soft), 8)
+	C.Stroke(quantity)
+	C.Button(quantity, "Minus", "-", UDim2.fromScale(0.02, 0.12), UDim2.fromScale(0.2, 0.76), T.Rose)
+	local amount = C.Label(quantity, "Amount", "1", UDim2.fromScale(0.26, 0.12), UDim2.fromScale(0.48, 0.76), true)
+	amount.TextXAlignment = Enum.TextXAlignment.Center
+	C.Button(quantity, "Plus", "+", UDim2.fromScale(0.78, 0.12), UDim2.fromScale(0.2, 0.76), T.Mint)
+	C.Label(shop, "Total", "Total: 0 Gold", UDim2.fromScale(0.07, 0.7), UDim2.fromScale(0.86, 0.1)).TextColor3 = T.Muted
+	C.Button(shop, "Buy", "BUY", UDim2.fromScale(0.06, 0.82), UDim2.fromScale(0.88, 0.15))
 	local quest = C.Card(folder, "QuestTemplate", 260)
 	C.Label(quest, "QuestName", "", UDim2.fromOffset(12, 8), UDim2.new(1, -24, 0, 28), true)
 	C.Label(quest, "Description", "", UDim2.fromOffset(12, 42), UDim2.new(1, -24, 0, 64))

@@ -49,6 +49,7 @@ function RewardManager:AddCurrency(player: Player, currency: string, amount: num
 	else
 		PlayerData.Currencies[currency](amount)
 	end
+	return amount
 end
 
 type XPParams = {
@@ -117,6 +118,7 @@ function RewardManager:AddXP(player: Player, amount: number, params: XPParams?)
 			end
 		end
 	end
+	return amount
 end
 
 function RewardManager:AddMisc(player: Player, misc: string, amount: number)

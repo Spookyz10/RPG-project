@@ -55,6 +55,7 @@ local Remotes: { [string]: string } = {
 	BuffVFX = "Client",
 	Notification = "Client",
 	LootReward = "Client",
+	DailyRewardClaimed = "Client",
 	LevelUpVFX = "Client",
 	ZoneTransition = "Client",
 	AdminResult = "Client",

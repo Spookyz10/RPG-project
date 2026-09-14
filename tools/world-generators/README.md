@@ -1,4 +1,24 @@
-# Grasslands
+# World generators
+
+## Portal billboards
+
+Execute `03_PortalBillboards.luau` inteiro na Command Bar em Edit. Cria `Workspace.PortalSigns.Zones` (azul) e `Raids` (vermelho), com BillboardGui sobre uma Part invisivel. Mova os Models para posicionar as placas. Nao cria Touchies nem altera portais ou leaderboards. Ao reexecutar, preserva as posicoes dos dois Models e arquiva os anteriores em `ServerStorage.WorldGeneratorBackups`.
+
+## Lobby
+
+Com o Play parado, execute `00_Lobby.luau` inteiro na Command Bar do Roblox Studio em modo **Edit**. O gerador cria `Workspace.Maps.Lobby` no mesmo estilo low-poly da Grasslands, seleciona o mapa pronto e preserva uma versao anterior em `ServerStorage.WorldGeneratorBackups` quando for executado novamente.
+
+O lobby v2 foi reconstruido com praca circular, fonte, jardins, bancos, loja aberta com toldo, blacksmith com forja e chamine (sem NPC), portais azul e vermelho com silhuetas distintas e pavilhao com bau de daily reward. Os telhados usam uma inclinacao calculada em comum para as duas aguas, empenas e cumeeira. Nao ha portao nem placa "Adventurers' Lobby".
+
+`Workspace.Maps.Lobby.LobbySpawn` e um SpawnLocation real, neutro, habilitado e invisivel sobre a praca. Outros spawns ja existentes fora do lobby sao preservados e podem continuar participando da escolha de respawn do Roblox.
+
+Os quatro modelos em `Workspace.Maps.Lobby.Landmarks.Leaderboards` sao apenas construcoes: `Gold` tem colunas, moedas e coroa; `Kills` tem presas, escudo e espadas; `Donations` tem cristais e louros; `PlayTime` tem um relogio ornamental. Cada modelo tem uma Part `DisplaySurface` de 20 x 21 studs; use a face **Front** ao configurar sua UI manualmente. Ficam dentro do mapa, sem substituir `Workspace.Leaderboards` nem disparar a vinculacao automatica por `IMG` do cliente existente. O gerador nao cria/edita SurfaceGuis, Adornees ou logica de UI. O relogio e estatico.
+
+Portais e daily reward sao visuais, sem Touchies, prompts, scripts, destinos ou entrega de recompensas. Conecte as interacoes manualmente. Reexecutar arquiva o lobby anterior inteiro (incluindo seu spawn e eventuais edicoes manuais) em `ServerStorage.WorldGeneratorBackups`.
+
+Por padrao o centro fica em `ORIGIN = Vector3.new(0, 0, 0)`. Altere essa constante antes de executar se o lobby precisar nascer em outro lugar. Depois de gerar, salve o place e adicione manualmente as interacoes desejadas. Em Play, confira colisao dos edificios, leitura das placas, caminhos livres e enquadramento dos portais.
+
+## Grasslands
 
 Execute cada arquivo inteiro na Command Bar do Roblox Studio, em **Edit**, nesta ordem:
 

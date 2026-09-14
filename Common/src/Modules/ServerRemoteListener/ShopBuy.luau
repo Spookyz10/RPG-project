@@ -4,8 +4,8 @@ local Remotes = require(game:GetService("ReplicatedStorage").Shared.Utils.Remote
 
 local Remote = {}
 
-function Remote:Activate(player: Player, shopName: string, itemName: string)
-	local message = ShopHandler:Buy(player, shopName, itemName)
+function Remote:Activate(player: Player, shopName: string, itemName: string, amount: number?)
+	local message = ShopHandler:Buy(player, shopName, itemName, amount)
 	Remotes.SendClientEvent("Notification", { Player = player }, message)
 end
 
