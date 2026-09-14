@@ -59,7 +59,13 @@ Execute, nesta ordem:
 
 ## Shop de poções
 
-Execute `37_ShopTemplate.luau` e depois `13_Shop.luau` na Command Bar, em Edit, e sincronize Common pelo Rojo. O Shopkeeper abre `Shop`, que vende apenas as cinco Small Potions: Health (35 Gold), Attack (60), Defense (60), Speed (180) e Critical (240). Os controles menos/mais permitem comprar de 1 a 25 poções empilháveis; o preço total é exibido antes de comprar. O servidor calcula o custo novamente, limita a quantidade e desconta somente as unidades que realmente couberem no inventário.
+Execute `37_ShopTemplate.luau` e depois `13_Shop.luau` na Command Bar, em Edit, e sincronize Common pelo Rojo. A loja usa uma janela própria de mercador e cards com ícone grande, categoria, raridade, descrição completa e um bloco separado para preço, quantidade, total e compra. O Shopkeeper abre `Shop`, que vende apenas as cinco Small Potions: Health (35 Gold), Attack (60), Defense (60), Speed (180) e Critical (240). Os controles menos/mais permitem comprar de 1 a 25 poções empilháveis; o preço total é exibido antes de comprar. O servidor calcula o custo novamente, limita a quantidade e desconta somente as unidades que realmente couberem no inventário.
+
+## Tutorial interativo
+
+Execute `16_Tutorial.luau` inteiro na Command Bar em Edit para instalar `StarterGui.Tutorial`; use `00_All.luau` apenas em um place novo. O fluxo inicia depois que o loading fecha e ensina apenas mecânicas próprias do jogo: abrir a mochila, inspecionar e equipar a Wooden Sword, fechar a mochila, equipar e usar Cyclone, usar o atlas, entrar em Grasslands, concluir o primeiro contrato de Bushlings com contador ao vivo e retornar pelo botão `Return to village`. Não depende de `Workspace.Cameras` e não oferece opção de pular.
+
+A conclusão é persistida pelo servidor somente depois que o jogador retorna ao vilarejo. Se um jogador novo sair antes, o tutorial volta na próxima sessão sem duplicar a Wooden Sword inicial nem a missão. No Studio, verifique a sequência completa em desktop, gamepad e emulação mobile, incluindo reconexão antes/depois da conclusão.
 
 ## Manutenção
 

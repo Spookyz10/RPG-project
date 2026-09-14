@@ -23,18 +23,15 @@ end
 local function renderDialogueMarkup(text: string, shakeSize: number?): string
 	return string.gsub(text, "<shake>(.-)</shake>", function(content)
 		if shakeSize then
-			return string.format("<font size=\"%d\">%s</font>", shakeSize, content)
+			return string.format('<font size="%d">%s</font>', shakeSize, content)
 		end
 		return content
 	end)
 end
 
 function UIFunctions:ApplyRarity(container: Instance, rarity: string)
-	if container:IsA("GuiObject") then container.BackgroundColor3 = RarityColors[rarity] or Theme.Soft end
-	local RarityTag = container:FindFirstChild("RarityTag") :: ImageLabel
-	if RarityTag then
-		RarityTag.ImageColor3 = RarityColors[rarity] or Theme.Soft
-		RarityTag.BackgroundColor3 = RarityTag.ImageColor3
+	if container:IsA("GuiObject") then
+		container.BackgroundColor3 = RarityColors[rarity] or Theme.Soft
 	end
 end
 
@@ -72,11 +69,15 @@ function UIFunctions:TypeText(
 	label.MaxVisibleGraphemes = 0
 
 	local function startShake()
-		if ShakeStarted or not ShakeStart then return end
+		if ShakeStarted or not ShakeStart then
+			return
+		end
 		ShakeStarted = true
 		task.spawn(function()
 			for _, size in ShakeSizes do
-				if TypingSessions[label] ~= Session then return end
+				if TypingSessions[label] ~= Session then
+					return
+				end
 				label.Text = renderDialogueMarkup(text, size)
 				task.wait(0.055)
 			end
@@ -115,7 +116,9 @@ function UIFunctions:TypeText(
 			end
 
 			label.MaxVisibleGraphemes = index
-			if ShakeStart and index >= ShakeStart then startShake() end
+			if ShakeStart and index >= ShakeStart then
+				startShake()
+			end
 			task.wait(Delay)
 		end
 

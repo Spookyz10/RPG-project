@@ -398,17 +398,92 @@ end)()(folder)
 		C.New("UIStroke", "UIStroke", label, { Color = T.Ink, Thickness = 2 })
 	end
 
-	local shop = C.Card(folder, "ShopTemplate", 206)
-	C.Label(shop, "Name", "Item", UDim2.fromOffset(12, 8), UDim2.new(1, -24, 0, 30), true)
-	C.Label(shop, "Price", "", UDim2.fromOffset(12, 42), UDim2.new(1, -24, 0, 36)).TextColor3 = T.Gold
-	local quantity = C.Round(C.Frame(shop, "Quantity", UDim2.fromScale(0.06, 0.47), UDim2.fromScale(0.88, 0.2), T.Soft), 8)
-	C.Stroke(quantity)
-	C.Button(quantity, "Minus", "-", UDim2.fromScale(0.02, 0.12), UDim2.fromScale(0.2, 0.76), T.Rose)
-	local amount = C.Label(quantity, "Amount", "1", UDim2.fromScale(0.26, 0.12), UDim2.fromScale(0.48, 0.76), true)
+	local shop = C.Round(C.Frame(folder, "ShopTemplate", UDim2.new(), UDim2.fromScale(1, 0.4), Color3.fromRGB(38, 40, 50)), 18)
+	shop.ClipsDescendants = true
+	C.Stroke(shop, Color3.fromRGB(18, 20, 27)).Thickness = 3
+
+	local shopAccent = C.Frame(shop, "Accent", UDim2.new(), UDim2.fromScale(0.012, 1), T.Mint)
+	shopAccent.ZIndex = 2
+
+	local iconPanel = C.Round(C.Frame(shop, "IconPanel", UDim2.fromScale(0.03, 0.1), UDim2.fromScale(0.205, 0.8), Color3.fromRGB(25, 27, 35)), 16)
+	C.Stroke(iconPanel, T.Soft).Thickness = 2
+	local iconGlow = C.Round(C.Frame(iconPanel, "Glow", UDim2.fromScale(0.15, 0.15), UDim2.fromScale(0.7, 0.7), T.Soft), 100)
+	iconGlow.BackgroundTransparency = 0.45
+	local iconPlaceholder = C.Label(iconPanel, "Placeholder", "?", UDim2.fromScale(0.25, 0.2), UDim2.fromScale(0.5, 0.6), true)
+	iconPlaceholder.TextColor3 = T.Muted
+	iconPlaceholder.TextStrokeTransparency = 1
+	iconPlaceholder.TextXAlignment = Enum.TextXAlignment.Center
+	iconPlaceholder.TextSize = 30
+	local shopIcon = C.New("ImageLabel", "Icon", iconPanel, {
+		Position = UDim2.fromScale(0.1, 0.1),
+		Size = UDim2.fromScale(0.8, 0.8),
+		BackgroundTransparency = 1,
+		Image = "",
+		ScaleType = Enum.ScaleType.Fit,
+		ZIndex = 3,
+	})
+
+	local shopCategory = C.Round(C.Label(shop, "Category", "POTION", UDim2.fromScale(0.26, 0.1), UDim2.fromScale(0.125, 0.12), true), 7)
+	shopCategory.BackgroundTransparency = 0
+	shopCategory.BackgroundColor3 = T.Soft
+	shopCategory.TextColor3 = T.Muted
+	shopCategory.TextStrokeTransparency = 1
+	shopCategory.TextXAlignment = Enum.TextXAlignment.Center
+	shopCategory.TextSize = 10
+
+	local shopRarity = C.Round(C.Label(shop, "Rarity", "COMMON", UDim2.fromScale(0.395, 0.1), UDim2.fromScale(0.125, 0.12), true), 7)
+	shopRarity.BackgroundTransparency = 0
+	shopRarity.BackgroundColor3 = T.Rarities.Common
+	shopRarity.TextStrokeTransparency = 1
+	shopRarity.TextXAlignment = Enum.TextXAlignment.Center
+	shopRarity.TextSize = 10
+
+	local shopName = C.Label(shop, "Name", "Item", UDim2.fromScale(0.26, 0.25), UDim2.fromScale(0.425, 0.18), true)
+	shopName.TextSize = 22
+	shopName.TextWrapped = false
+	shopName.TextTruncate = Enum.TextTruncate.AtEnd
+	C.New("UITextSizeConstraint", "TextBounds", shopName, { MinTextSize = 13, MaxTextSize = 22 })
+
+	local shopDescription = C.Label(shop, "Description", "Item description.", UDim2.fromScale(0.26, 0.47), UDim2.fromScale(0.425, 0.4))
+	shopDescription.TextColor3 = T.Muted
+	shopDescription.TextSize = 13
+	shopDescription.TextYAlignment = Enum.TextYAlignment.Top
+	shopDescription.TextTruncate = Enum.TextTruncate.AtEnd
+	C.New("UITextSizeConstraint", "TextBounds", shopDescription, { MinTextSize = 10, MaxTextSize = 14 })
+
+	local shopDivider = C.Frame(shop, "Divider", UDim2.fromScale(0.705, 0.12), UDim2.fromScale(0.0025, 0.76), T.Soft)
+	shopDivider.BackgroundTransparency = 0.25
+
+	local purchase = C.Round(C.Frame(shop, "Purchase", UDim2.fromScale(0.725, 0.08), UDim2.fromScale(0.25, 0.84), Color3.fromRGB(48, 51, 63)), 14)
+	C.Stroke(purchase, T.Soft).Thickness = 2
+	local unitLabel = C.Label(purchase, "UnitLabel", "PRICE / ITEM", UDim2.fromScale(0.08, 0.06), UDim2.fromScale(0.84, 0.11), true)
+	unitLabel.TextColor3 = T.Muted
+	unitLabel.TextStrokeTransparency = 1
+	unitLabel.TextSize = 9
+	unitLabel.TextWrapped = false
+	local shopPrice = C.Label(purchase, "Price", "0 Gold", UDim2.fromScale(0.08, 0.16), UDim2.fromScale(0.84, 0.16), true)
+	shopPrice.TextColor3 = T.Gold
+	shopPrice.TextSize = 17
+	shopPrice.TextWrapped = false
+	shopPrice.TextTruncate = Enum.TextTruncate.AtEnd
+	C.New("UITextSizeConstraint", "TextBounds", shopPrice, { MinTextSize = 10, MaxTextSize = 17 })
+
+	local quantity = C.Round(C.Frame(purchase, "Quantity", UDim2.fromScale(0.08, 0.36), UDim2.fromScale(0.84, 0.2), T.Paper), 9)
+	C.Stroke(quantity, T.Line).Thickness = 2
+	local minus = C.Button(quantity, "Minus", "-", UDim2.fromScale(0.025, 0.12), UDim2.fromScale(0.25, 0.76), T.Rose)
+	minus.TextSize = 18
+	local amount = C.Label(quantity, "Amount", "1", UDim2.fromScale(0.3, 0.12), UDim2.fromScale(0.4, 0.76), true)
 	amount.TextXAlignment = Enum.TextXAlignment.Center
-	C.Button(quantity, "Plus", "+", UDim2.fromScale(0.78, 0.12), UDim2.fromScale(0.2, 0.76), T.Mint)
-	C.Label(shop, "Total", "Total: 0 Gold", UDim2.fromScale(0.07, 0.7), UDim2.fromScale(0.86, 0.1)).TextColor3 = T.Muted
-	C.Button(shop, "Buy", "BUY", UDim2.fromScale(0.06, 0.82), UDim2.fromScale(0.88, 0.15))
+	amount.TextSize = 16
+	local plus = C.Button(quantity, "Plus", "+", UDim2.fromScale(0.725, 0.12), UDim2.fromScale(0.25, 0.76), T.Mint)
+	plus.TextSize = 18
+	local shopTotal = C.Label(purchase, "Total", "TOTAL  0 GOLD", UDim2.fromScale(0.08, 0.59), UDim2.fromScale(0.84, 0.11), true)
+	shopTotal.TextColor3 = T.Muted
+	shopTotal.TextSize = 10
+	shopTotal.TextWrapped = false
+	shopTotal.TextTruncate = Enum.TextTruncate.AtEnd
+	local shopBuy = C.Button(purchase, "Buy", "BUY 1", UDim2.fromScale(0.08, 0.73), UDim2.fromScale(0.84, 0.2), T.Mint)
+	shopBuy.TextSize = 14
 	local quest = C.Card(folder, "QuestTemplate", 260)
 	C.Label(quest, "QuestName", "", UDim2.fromOffset(12, 8), UDim2.new(1, -24, 0, 28), true)
 	C.Label(quest, "Description", "", UDim2.fromOffset(12, 42), UDim2.new(1, -24, 0, 64))
@@ -1173,8 +1248,119 @@ end)()
 builders.Shop = (function()
 
 return function(parent)
-	local screen, _, body = C.Window(parent, "Shop", "Main", "Village shop", "Choose something for your next adventure.", 470, 470)
-	C.Scroll(body, "Container", UDim2.new(), UDim2.fromScale(1, 1))
+	local screen = C.Screen(parent, "Shop", 30)
+
+	local backdrop = C.New("TextButton", "Backdrop", screen, {
+		Text = "",
+		Position = UDim2.new(),
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = T.Line,
+		BackgroundTransparency = 0.28,
+		AutoButtonColor = false,
+		Active = true,
+		Modal = true,
+		Visible = false,
+	})
+
+	local shadow = C.Round(C.Frame(screen, "Shadow", UDim2.fromScale(0.507, 0.51), UDim2.fromScale(0.94, 0.84), T.Line), 18)
+	shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+	shadow.BackgroundTransparency = 0.35
+	shadow.Visible = false
+	C.New("UISizeConstraint", "Bounds", shadow, {
+		MinSize = Vector2.new(300, 400),
+		MaxSize = Vector2.new(980, 640),
+	})
+
+	local root = C.Round(C.Frame(screen, "Main", UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.94, 0.84), T.Paper), 18)
+	root.AnchorPoint = Vector2.new(0.5, 0.5)
+	root.Visible = false
+	root.Active = true
+	root.ClipsDescendants = true
+	root:SetAttribute("Window", true)
+	C.Stroke(root, T.Line).Thickness = 4
+	C.New("UISizeConstraint", "Bounds", root, {
+		MinSize = Vector2.new(300, 400),
+		MaxSize = Vector2.new(980, 640),
+	})
+
+	local header = C.Frame(root, "Header", UDim2.new(), UDim2.fromScale(1, 0.19), Color3.fromRGB(38, 43, 55))
+	local headerGradient = C.New("UIGradient", "HeaderGradient", header, { Rotation = 18 })
+	headerGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 114, 92)),
+		ColorSequenceKeypoint.new(0.55, Color3.fromRGB(37, 67, 83)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(37, 40, 51)),
+	})
+
+	local crest = C.Round(C.Frame(root, "Crest", UDim2.fromScale(0.03, 0.045), UDim2.fromScale(0.075, 0.1), T.Gold), 12)
+	C.Stroke(crest, T.Line).Thickness = 2
+	local crestText = C.Label(crest, "Mark", "$", UDim2.fromScale(0.18, 0.08), UDim2.fromScale(0.64, 0.84), true)
+	crestText.TextColor3 = T.Line
+	crestText.TextStrokeTransparency = 1
+	crestText.TextXAlignment = Enum.TextXAlignment.Center
+	crestText.TextSize = 24
+
+	local eyebrow = C.Label(root, "Eyebrow", "TRAVELER'S SUPPLY", UDim2.fromScale(0.125, 0.04), UDim2.fromScale(0.34, 0.035), true)
+	eyebrow.TextColor3 = T.Gold
+	eyebrow.TextSize = 11
+	eyebrow.TextWrapped = false
+
+	local heading = C.Label(root, "Heading", "Village Shop", UDim2.fromScale(0.125, 0.073), UDim2.fromScale(0.62, 0.055), true)
+	heading.TextSize = 30
+	heading.TextWrapped = false
+	heading.TextTruncate = Enum.TextTruncate.AtEnd
+	C.New("UITextSizeConstraint", "TextBounds", heading, { MinTextSize = 17, MaxTextSize = 30 })
+
+	local subtitle = C.Label(root, "Subtitle", "Stock up before your next adventure.", UDim2.fromScale(0.125, 0.128), UDim2.fromScale(0.7, 0.035))
+	subtitle.TextColor3 = T.Muted
+	subtitle.TextSize = 13
+	subtitle.TextWrapped = false
+	subtitle.TextTruncate = Enum.TextTruncate.AtEnd
+
+	local close = C.Button(root, "Close", "X", UDim2.fromScale(0.92, 0.055), UDim2.fromScale(0.055, 0.085), T.Rose)
+	close:SetAttribute("CloseWindow", true)
+	close.TextSize = 18
+	close.ZIndex = 3
+
+	local body = C.Frame(root, "Body", UDim2.fromScale(0.025, 0.215), UDim2.fromScale(0.95, 0.75))
+	local content = C.Frame(body, "Content", UDim2.new(), UDim2.fromScale(1, 1))
+
+	local sectionTitle = C.Label(content, "SectionTitle", "AVAILABLE STOCK", UDim2.fromScale(0.008, 0), UDim2.fromScale(0.45, 0.06), true)
+	sectionTitle.TextColor3 = T.Muted
+	sectionTitle.TextSize = 12
+	sectionTitle.TextWrapped = false
+
+	local stockCount = C.Round(C.Label(content, "StockCount", "0 ITEMS", UDim2.fromScale(0.84, 0.005), UDim2.fromScale(0.145, 0.05), true), 8)
+	stockCount.BackgroundTransparency = 0
+	stockCount.BackgroundColor3 = T.Soft
+	stockCount.TextColor3 = T.Muted
+	stockCount.TextStrokeTransparency = 1
+	stockCount.TextXAlignment = Enum.TextXAlignment.Center
+	stockCount.TextSize = 11
+
+	local rule = C.Frame(content, "Rule", UDim2.fromScale(0.008, 0.065), UDim2.fromScale(0.977, 0.005), T.Soft)
+	rule.BackgroundTransparency = 0.35
+
+	local container = C.New("ScrollingFrame", "Container", content, {
+		Position = UDim2.fromScale(0, 0.09),
+		Size = UDim2.fromScale(1, 0.91),
+		BackgroundTransparency = 1,
+		CanvasSize = UDim2.new(),
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		ScrollBarThickness = 5,
+		ScrollBarImageColor3 = T.Mint,
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+	})
+	C.New("UIPadding", "Padding", container, {
+		PaddingTop = UDim.new(0.012, 0),
+		PaddingLeft = UDim.new(0.008, 0),
+		PaddingRight = UDim.new(0.018, 0),
+		PaddingBottom = UDim.new(0.025, 0),
+	})
+	C.New("UIListLayout", "UIListLayout", container, {
+		Padding = UDim.new(0.025, 0),
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	})
+
 	return screen
 end
 end)()
@@ -1204,19 +1390,127 @@ end)()
 builders.Tutorial = (function()
 
 return function(parent)
-	local screen = C.Screen(parent, "Tutorial", 90)
+	local screen = C.Screen(parent, "Tutorial", 200)
 	screen.Enabled = false
-	local panel = C.Round(C.Frame(screen, "ImageLabel", UDim2.new(0.5, 0, 1, -12), UDim2.new(1, -24, 0, 220), T.Paper), 18)
-	panel.AnchorPoint = Vector2.new(0.5, 1)
-	C.New("UISizeConstraint", "Bounds", panel, { MaxSize = Vector2.new(740, 220) })
-	C.Stroke(panel)
-	local info = C.Frame(panel, "Info", UDim2.fromOffset(16, 12), UDim2.new(1, -32, 1, -24))
-	C.Label(info, "Title", "Welcome, adventurer", UDim2.new(), UDim2.new(1, -120, 0, 24), true).TextColor3 = T.Green
-	C.Label(info, "TextLabel", "", UDim2.fromOffset(0, 28), UDim2.new(1, 0, 1, -88))
-	C.Button(info, "Next", "Continue", UDim2.new(1, -144, 1, -48), UDim2.fromOffset(144, 48))
-	C.Button(info, "Skip", "Skip tour", UDim2.new(0, 0, 1, -48), UDim2.fromOffset(112, 48), T.Soft)
-	C.Frame(screen, "Open", UDim2.new(), UDim2.new())
-	C.Frame(screen, "Closed", UDim2.new(), UDim2.new())
+
+	local overlay = C.Frame(screen, "Overlay", UDim2.new(), UDim2.fromScale(1, 1))
+	overlay.ZIndex = 80
+
+	C.New("TextButton", "Scrim", overlay, {
+		Text = "",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = Color3.fromRGB(10, 12, 19),
+		BackgroundTransparency = 0.28,
+		AutoButtonColor = false,
+		Active = true,
+		Modal = true,
+		ZIndex = 80,
+	})
+
+	local focus = C.Frame(overlay, "FocusRing", UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.12, 0.1))
+	focus.AnchorPoint = Vector2.new(0.5, 0.5)
+	focus.BackgroundTransparency = 1
+	focus.Visible = false
+	focus.ZIndex = 84
+	C.Round(focus, 14)
+	local focusStroke = C.Stroke(focus, T.Gold)
+	focusStroke.Name = "Glow"
+	focusStroke.Thickness = 5
+	C.New("UIScale", "Pulse", focus, { Scale = 1 })
+	local marker = C.Round(C.Label(focus, "Marker", "NEXT", UDim2.fromScale(0.5, -0.28), UDim2.fromScale(0.56, 0.28), true), 10)
+	marker.AnchorPoint = Vector2.new(0.5, 0)
+	marker.BackgroundTransparency = 0
+	marker.BackgroundColor3 = T.Gold
+	marker.TextColor3 = T.Line
+	marker.TextStrokeTransparency = 1
+	marker.TextXAlignment = Enum.TextXAlignment.Center
+	marker.TextSize = 11
+	marker.ZIndex = 85
+	C.Stroke(marker, T.Line).Thickness = 2
+
+	local coach = C.New("Frame", "Coach", overlay, {
+		Position = UDim2.new(0.5, 0, 1, -16),
+		Size = UDim2.fromScale(0.9, 0.245),
+		AnchorPoint = Vector2.new(0.5, 1),
+		BackgroundColor3 = T.Paper,
+		ZIndex = 90,
+	})
+	C.Round(coach, 18)
+	C.Stroke(coach, T.Line).Thickness = 4
+	C.New("UISizeConstraint", "Bounds", coach, { MaxSize = Vector2.new(650, 176) })
+	C.New("UIScale", "MotionScale", coach, { Scale = 1 })
+	local accent = C.Frame(coach, "Accent", UDim2.new(), UDim2.new(0.018, 0, 1, 0), T.Sky)
+	accent.ZIndex = 91
+	C.Round(accent, 18)
+
+	local step = C.Round(C.Label(coach, "Step", "WELCOME", UDim2.fromOffset(24, 15), UDim2.fromOffset(108, 26), true), 10)
+	step.BackgroundTransparency = 0
+	step.BackgroundColor3 = T.Sky
+	step.TextXAlignment = Enum.TextXAlignment.Center
+	step.TextSize = 11
+	step.ZIndex = 92
+
+	local title = C.Label(coach, "Title", "Ready for your first adventure?", UDim2.fromOffset(144, 11), UDim2.new(1, -280, 0, 34), true)
+	title.TextSize = 24
+	title.TextWrapped = false
+	title.TextTruncate = Enum.TextTruncate.AtEnd
+	title.ZIndex = 92
+	local prompt = C.Label(coach, "Prompt", "We will prepare your first weapon and complete your first contract together.", UDim2.fromOffset(24, 52), UDim2.new(1, -48, 0, 42))
+	prompt.TextSize = 15
+	prompt.TextColor3 = T.Ink
+	prompt.ZIndex = 92
+
+	local objective = C.Round(C.Frame(coach, "Objective", UDim2.fromOffset(24, 100), UDim2.new(1, -48, 0, 40), T.Surface), 10)
+	objective.Visible = false
+	objective.ZIndex = 92
+	C.Stroke(objective, T.Gold).Thickness = 2
+	local objectiveIcon = C.Round(C.Label(objective, "Icon", "!", UDim2.fromOffset(4, 4), UDim2.fromOffset(32, 32), true), 8)
+	objectiveIcon.BackgroundTransparency = 0
+	objectiveIcon.BackgroundColor3 = T.Gold
+	objectiveIcon.TextColor3 = T.Line
+	objectiveIcon.TextStrokeTransparency = 1
+	objectiveIcon.TextXAlignment = Enum.TextXAlignment.Center
+	objectiveIcon.ZIndex = 93
+	local objectiveText = C.Label(objective, "Text", "Open your Backpack", UDim2.fromOffset(46, 4), UDim2.new(1, -142, 0, 32), true)
+	objectiveText.TextSize = 13
+	objectiveText.ZIndex = 93
+	local counter = C.Label(objective, "Counter", "", UDim2.new(1, -92, 0, 4), UDim2.fromOffset(82, 32), true)
+	counter.TextXAlignment = Enum.TextXAlignment.Right
+	counter.TextColor3 = T.Gold
+	counter.TextSize = 13
+	counter.ZIndex = 93
+
+	local progress = C.Round(C.Frame(coach, "Progress", UDim2.fromOffset(24, 149), UDim2.new(1, -48, 0, 10), T.Soft), 5)
+	progress.ClipsDescendants = true
+	progress.ZIndex = 92
+	local fill = C.Round(C.Frame(progress, "Fill", UDim2.new(), UDim2.fromScale(0, 1), T.Green), 5)
+	fill:SetAttribute("DynamicProgress", true)
+	fill.ZIndex = 93
+
+	local continue = C.Button(coach, "Continue", "LET'S GO", UDim2.fromOffset(325, 100), UDim2.fromOffset(190, 40), T.Mint)
+	continue.AnchorPoint = Vector2.new(0.5, 0)
+	continue.Visible = true
+	continue.ZIndex = 94
+	local status = C.Round(C.Label(coach, "Status", "DONE!", UDim2.new(1, -112, 0, 14), UDim2.fromOffset(88, 28), true), 10)
+	status.BackgroundTransparency = 0
+	status.BackgroundColor3 = T.Green
+	status.TextColor3 = T.Line
+	status.TextStrokeTransparency = 1
+	status.TextXAlignment = Enum.TextXAlignment.Center
+	status.TextSize = 12
+	status.Visible = false
+	status.ZIndex = 94
+
+	local celebration = C.Frame(overlay, "Celebration", UDim2.new(), UDim2.fromScale(1, 1))
+	celebration.ZIndex = 100
+	local colors = { T.Green, T.Gold, T.Sky, T.Rose, T.Purple }
+	for index = 1, 14 do
+		local particle = C.Round(C.Frame(celebration, "Confetti" .. index, UDim2.fromScale(0.5, 0.5), UDim2.fromOffset(10 + index % 3 * 3, 10 + (index + 1) % 3 * 3), colors[(index - 1) % #colors + 1]), 3)
+		particle.AnchorPoint = Vector2.new(0.5, 0.5)
+		particle.Visible = false
+		particle.ZIndex = 101
+	end
+
 	return screen
 end
 end)()

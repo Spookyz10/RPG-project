@@ -14,6 +14,7 @@ local HealthManager = require(ServerStorage.Modules.HealthManager)
 local Data = require(ReplicatedStorage.Shared.Data).server
 local InventoryManager = require(ServerStorage.Modules.InventoryManager)
 local PartySystem = require(ServerStorage.Modules.PartySystem)
+local QuestManager = require(ServerStorage.Modules.QuestManager)
 local SpeedManager = require(ServerStorage.Modules.SpeedManager)
 local StatsReplicator = require(ServerStorage.Modules.StatsReplicator)
 local StunManager = require(ServerStorage.Modules.StunManager)
@@ -22,6 +23,15 @@ local TradeSystem = require(ServerStorage.Modules.TradeSystem)
 local RESPAWN_TIME = 6
 local LEGACY_STARTER_WEAPON = "Paper Sword"
 local STARTER_WEAPON = "Wooden Sword"
+
+local function FindStarterWeapon(PlayerData: Types.PlayerData): string?
+	for UUID, item in PlayerData.Inventory() do
+		if item.ID == STARTER_WEAPON or item.Name == STARTER_WEAPON then
+			return UUID
+		end
+	end
+	return nil
+end
 
 local function MigrateStarterWeapon(PlayerData: Types.PlayerData)
 	for UUID, item in PlayerData.Inventory() do
@@ -42,11 +52,20 @@ local function LoadPlayer(Player: Player)
 
 	Player:SetAttribute("ShowTutorial", PlayerData.FirstTimeJoined())
 	if PlayerData.FirstTimeJoined() then
-		local _, UUID = InventoryManager:AddItem(Player, STARTER_WEAPON, 1)
-		if UUID then
-			InventoryManager:ItemAction(Player, UUID)
+		local UUID = FindStarterWeapon(PlayerData)
+		if not UUID then
+			local _, addedUUID = InventoryManager:AddItem(Player, STARTER_WEAPON, 1)
+			UUID = addedUUID
 		end
-		PlayerData.FirstTimeJoined(false)
+		if UUID and PlayerData.Equipment.Weapon() == UUID then
+			InventoryManager:UnequipItem(Player, UUID)
+		end
+		for slot, skill in PlayerData.Skills() do
+			if skill == "Cyclone" then
+				PlayerData.Skills[slot]("")
+			end
+		end
+		QuestManager:AcceptQuest(Player, "Tutorial1")
 	end
 
 	WeaponLoader:Listen(Player)

@@ -40,6 +40,7 @@ local Remotes: { [string]: string } = {
 	ItemToggle = "Server",
 	CreateTradeOffer = "Server",
 	RespondTradeOffer = "Server",
+	CompleteTutorial = "Server",
 
 	RaidStarted = "Client",
 	RaidCompleted = "Client",
