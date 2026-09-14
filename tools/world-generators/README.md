@@ -1,5 +1,9 @@
 # World generators
 
+## Forest (zona 2, somente modelos)
+
+Execute `04_Forest.luau` e `05_ForestMobModels.luau` completos na Command Bar em Edit. Criam o mapa em `Workspace.Maps.Forest` e quatro rigs em `ReplicatedStorage.Mobs.Forest`, com backup da versÃ£o anterior. NÃ£o instalam gameplay. Consulte `Info/Forest.md` para instalaÃ§Ã£o, balanceamento proposto, itens, crafting futuro e verificaÃ§Ãµes pendentes no Studio.
+
 ## Portal billboards
 
 Execute `03_PortalBillboards.luau` inteiro na Command Bar em Edit. Cria `Workspace.PortalSigns.Zones` (azul) e `Raids` (vermelho), com BillboardGui sobre uma Part invisivel. Mova os Models para posicionar as placas. Nao cria Touchies nem altera portais ou leaderboards. Ao reexecutar, preserva as posicoes dos dois Models e arquiva os anteriores em `ServerStorage.WorldGeneratorBackups`.
@@ -28,17 +32,17 @@ Execute cada arquivo inteiro na Command Bar do Roblox Studio, em **Edit**, nesta
 
 Salve o place antes de Play e sincronize os scripts Common pelo Rojo. O gerador de UI geral deve ser executado antes do gerador de boss bar, pois substitui a pasta de templates.
 
-O mapa comeÃ§a em `ORIGIN = Vector3.new(0, 0, 1000)`, configurÃ¡vel no primeiro arquivo. Bushlings aparecem no inÃ­cio, Wolves no meio e Boars no fim. O portal final leva a uma arena fechada de 230 Ã— 260 studs; o portal no fundo da entrada retorna Ã  Grasslands. A iluminaÃ§Ã£o da caverna Ã© local e nÃ£o interrompe a mÃºsica atual.
+O mapa comeÃƒÂ§a em `ORIGIN = Vector3.new(0, 0, 1000)`, configurÃƒÂ¡vel no primeiro arquivo. Bushlings aparecem no inÃƒÂ­cio, Wolves no meio e Boars no fim. O portal final leva a uma arena fechada de 230 Ãƒâ€” 260 studs; o portal no fundo da entrada retorna ÃƒÂ  Grasslands. A iluminaÃƒÂ§ÃƒÂ£o da caverna ÃƒÂ© local e nÃƒÂ£o interrompe a mÃƒÂºsica atual.
 
-Estrutura: `Workspace.Maps.Grasslands`, `MobSpawns.Grasslands`, `ZoneTeleportes`, `ZonePortals.Grasslands`, `ZoneRegions.DireBearCave` e `BossRespawns.Grasslands`. Spawns sÃ£o Parts 1Ã—1Ã—1 invisÃ­veis, ancoradas, sem colisÃ£o, nomeadas apenas com o nome do mob. O servidor acrescenta o identificador de ocupaÃ§Ã£o durante Play.
+Estrutura: `Workspace.Maps.Grasslands`, `MobSpawns.Grasslands`, `ZoneTeleportes`, `ZonePortals.Grasslands`, `ZoneRegions.DireBearCave` e `BossRespawns.Grasslands`. Spawns sÃƒÂ£o Parts 1Ãƒâ€”1Ãƒâ€”1 invisÃƒÂ­veis, ancoradas, sem colisÃƒÂ£o, nomeadas apenas com o nome do mob. O servidor acrescenta o identificador de ocupaÃƒÂ§ÃƒÂ£o durante Play.
 
-Os modelos ficam em `ReplicatedStorage.Mobs.Grasslands`, com Humanoid, Animator e membros unidos por Motor6D. SÃ£o rigs procedurais editÃ¡veis; animaÃ§Ãµes publicadas precisam ser compatÃ­veis com suas juntas. O Dire Bear Ã© ajustado para 15 studs pelo sistema existente.
+Os modelos ficam em `ReplicatedStorage.Mobs.Grasslands`, com Humanoid, Animator e membros unidos por Motor6D. SÃƒÂ£o rigs procedurais editÃƒÂ¡veis; animaÃƒÂ§ÃƒÂµes publicadas precisam ser compatÃƒÂ­veis com suas juntas. O Dire Bear ÃƒÂ© ajustado para 15 studs pelo sistema existente.
 
-A boss bar aparece para cada jogador a atÃ© 160 studs de um boss vivo. Mostra nome, nÃ­vel e HP. Ao morrer, o contador flutuante mostra os 30 segundos restantes em `BossRespawns`; a barra comum nÃ£o Ã© criada para o boss.
+A boss bar aparece para cada jogador a atÃƒÂ© 160 studs de um boss vivo. Mostra nome, nÃƒÂ­vel e HP. Ao morrer, o contador flutuante mostra os 30 segundos restantes em `BossRespawns`; a barra comum nÃƒÂ£o ÃƒÂ© criada para o boss.
 
-Reexecutar os geradores preserva versÃµes anteriores em `ServerStorage.WorldGeneratorBackups` ou `RPGUIBackups`. Spawns antigos fora de `MobSpawns.Grasslands` sÃ£o preservados: remova ou arquive manualmente os que nÃ£o quiser manter.
+Reexecutar os geradores preserva versÃƒÂµes anteriores em `ServerStorage.WorldGeneratorBackups` ou `RPGUIBackups`. Spawns antigos fora de `MobSpawns.Grasslands` sÃƒÂ£o preservados: remova ou arquive manualmente os que nÃƒÂ£o quiser manter.
 
-ValidaÃ§Ã£o no Studio: entre na Grasslands pelo seletor, percorra os trÃªs grupos, atravesse os portais nos dois sentidos e confira a iluminaÃ§Ã£o; com dois jogadores, verifique alcance da boss bar, morte e respawn. Teste M1 andando e virando. A mÃºsica deve continuar na mesma posiÃ§Ã£o ao entrar na caverna.
+ValidaÃƒÂ§ÃƒÂ£o no Studio: entre na Grasslands pelo seletor, percorra os trÃƒÂªs grupos, atravesse os portais nos dois sentidos e confira a iluminaÃƒÂ§ÃƒÂ£o; com dois jogadores, verifique alcance da boss bar, morte e respawn. Teste M1 andando e virando. A mÃƒÂºsica deve continuar na mesma posiÃƒÂ§ÃƒÂ£o ao entrar na caverna.
 
 ## Revis?o compacta
 

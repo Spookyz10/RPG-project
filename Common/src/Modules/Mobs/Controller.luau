@@ -33,6 +33,7 @@ function Controller:Start(mob, definition)
  end
 	local nextBasic = 0
 	local nextSkills = {}
+	local nextSkillAt = 0
 	local bossIndex = mob:GetAttribute("SkillSequence") or 0
 	local ok, err = xpcall(function()
 		while ctx.Active() do
@@ -58,7 +59,7 @@ function Controller:Start(mob, definition)
 				local index = (bossIndex + offset - 1) % #definition.Skills + 1
 				local candidate = definition.Skills[index]
 				local range = candidate.Range or cfg.SkillRange or math.huge
-				if distance <= range and os.clock() >= (nextSkills[index] or 0) then
+				if distance <= range and os.clock() >= nextSkillAt and os.clock() >= (nextSkills[index] or 0) then
 					skill, bossIndex = candidate, index
 					break
 				end
@@ -74,6 +75,7 @@ function Controller:Start(mob, definition)
 				if skill then
 					mob:SetAttribute("SkillSequence", bossIndex)
 					attack(skill)
+					nextSkillAt = os.clock() + (cfg.SkillRecovery or 0)
 					nextSkills[bossIndex] = os.clock() + (skill.Cooldown or cfg.SkillCooldown or 6)
 					nextBasic = math.min(nextBasic, os.clock() + 0.15)
 				elseif os.clock() >= nextBasic then

@@ -121,9 +121,9 @@ function ZoneSelector.Init()
 			if mob.MaxLevel and mob.MaxLevel ~= mob.Level then
 				level ..= " - " .. Abbreviation:Number(mob.MaxLevel)
 			end
-			card.MobName.Text = mobName .. " - Lv. " .. level .. (mobName == "Dire Bear" and " - BOSS" or "")
 			local stats = mob.Data and mob.Data.Stats or {}
 			local combat = Config[mobName] or {}
+			card.MobName.Text = mobName .. " - Lv. " .. level .. (combat.IsBoss == true and " - BOSS" or "")
 			card.Stats.Text = string.format(
 				"HP: %s - ATK: %s - DEF: %s\nSpeed: %s - Crit: %s%%\nRespawn: %ss",
 				Abbreviation:Number(combat.Health or stats.Health or 0),

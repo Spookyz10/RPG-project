@@ -9,7 +9,7 @@ return function(ctx, attack)
 		if not ctx.Pause(attack.Windup or 0.3) then
 			break
 		end
-		ctx.VFX(attack.Name == "DoubleSwipe" and "DoubleSwipe" or "Melee", cf)
+		ctx.VFX(attack.Effect or (attack.Name == "DoubleSwipe" and "DoubleSwipe" or "Melee"), cf)
 		ctx.Hit(cf, size, nil, attack.Multiplier or 1, nil, attack.Status, {})
 		if not ctx.Pause(0.15) then
 			break

@@ -1,5 +1,5 @@
 return {
-	Level = 15,
+	Level = 30,
 	Health = 50,
 	Attack = 8,
 	Speed = 3,

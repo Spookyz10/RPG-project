@@ -2,7 +2,7 @@ local Types = require(game:GetService("ReplicatedStorage").Shared.Utils.Types)
 
 local Mob: Types.MobInfo = {
 	Level = 8, MaxLevel = 15, XP = 280, RespawnTime = 9, GlobalDrops = false,
-	Data = { Stats = { Attack = 14, Defense = 3, Critical = 0, Health = 190, Speed = 15 } },
+	Data = { Stats = { Attack = 9, Defense = 3, Critical = 0, Health = 190, Speed = 15 } },
 	Currencies = { Gold = 28 },
 	Drops = {
 		["Boar Tusk"] = { Chance = 70, Amount = 1 },

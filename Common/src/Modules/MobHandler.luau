@@ -192,8 +192,8 @@ function MobHandler:AddMob(mobName: string | { string }): Model?
 				Humanoid.WalkSpeed = Config.Speed
 			end
 		end
+		MobModel:SetAttribute("IsBoss", mobName == "Dire Bear" or (Config ~= nil and Config.IsBoss == true))
 		MobModel.Parent = workspace:FindFirstChild("Mobs")
-		MobModel:SetAttribute("IsBoss", mobName == "Dire Bear")
 		MobModel:SetAttribute("Level", MobInfo.Level)
 		humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 		local spawnReference = Instance.new("ObjectValue")
