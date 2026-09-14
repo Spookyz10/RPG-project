@@ -42,8 +42,28 @@ function Remote:Activate(player, recipeID)
 		if count >= data.MaxInventorySpace() then notify("Inventory full."); return end
 		local info = Items[recipeID]
 		if not info then return end
-		inventory[Functions:GenUUID()] = { ID = recipeID, Name = info.Data.Name, Amount = 1, Enchants = {}, Upgrades = 0, UpgradeCap = math.random(3, 10) }
-		data.Inventory(inventory)
+		local craftedUUID = Functions:GenUUID()
+		local craftedItem = {
+			ID = recipeID,
+			Name = info.Data.Name,
+			Amount = 1,
+			Enchants = {},
+			Upgrades = 0,
+			UpgradeCap = math.random(3, 10),
+		}
+		inventory[craftedUUID] = craftedItem
+
+		-- Update individual slots instead of replacing the entire inventory table.
+		-- The client inventory UI listens for slot additions/removals, which are not
+		-- emitted when the parent table itself is replaced.
+		local originalInventory = data.Inventory()
+		for uuid, originalItem in originalInventory do
+			local updatedItem = inventory[uuid]
+			if updatedItem == nil or updatedItem.Amount ~= originalItem.Amount then
+				data.Inventory[uuid](updatedItem)
+			end
+		end
+		data.Inventory[craftedUUID](craftedItem)
 		data.CurrentInventorySpace(count + 1)
 		data.Currencies.Gold(data.Currencies().Gold - recipe.Gold)
 		QuestManager:AddObjectiveProgress(player, "CraftItem", recipeID, 1)

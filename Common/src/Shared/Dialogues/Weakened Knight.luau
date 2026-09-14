@@ -26,7 +26,7 @@ local Dialogue: Types.Dialogue = {
 		},
 
 		Preparation = {
-			Text = "Bring a better weapon and something to keep you alive. The blacksmith can turn ivy, fangs, tusks, and bones into equipment. Learn to read attack indicators before entering the cave.",
+			Text = "Bring a better weapon and something to keep you alive. The blacksmith can turn ivy, fangs, tusks, and bones into equipment. Learn to read attack indicators before entering the cave. (Level 12+)",
 			Next = "Unready",
 		},
 
@@ -40,12 +40,12 @@ local Dialogue: Types.Dialogue = {
 		},
 
 		Story = {
-			Text = "My patrol came here to clear the cave. A <shake><font color=\"#FF6F76\"><b>Dire Bear</b></font></shake> rushed us from the dark before we could form a line. I made it back outside, but the others did not.",
+			Text = 'My patrol came here to clear the cave. A <shake><font color="#FF6F76"><b>Dire Bear</b></font></shake> rushed us from the dark before we could form a line. I made it back outside, but the others did not.',
 			Next = "Mission",
 		},
 
 		Mission = {
-			Text = "The <shake><font color=\"#FF6F76\"><b>Dire Bear</b></font></shake> is still inside. Kill it before it leaves this cave and finds the road. I cannot fight in this condition, but I can pay you for finishing the job.",
+			Text = 'The <shake><font color="#FF6F76"><b>Dire Bear</b></font></shake> is still inside. Kill it before it leaves this cave and finds the road. I cannot fight in this condition, but I can pay you for finishing the job.',
 			Options = {
 				{
 					Text = "I will take care of it",
@@ -65,11 +65,11 @@ local Dialogue: Types.Dialogue = {
 		},
 
 		InProgress = {
-			Text = "The <shake><font color=\"#FF6F76\"><b>Dire Bear</b></font></shake> is still in the cave behind me. Be patient, watch its attacks, and come back alive.",
+			Text = 'The <shake><font color="#FF6F76"><b>Dire Bear</b></font></shake> is still in the cave behind me. Be patient, watch its attacks, and come back alive.',
 		},
 
 		Repeat = {
-			Text = "The cave is quiet for now, but I can hear something moving in the deeper tunnels. If the <shake><font color=\"#FF6F76\"><b>Dire Bear</b></font></shake> returns, will you face it again?",
+			Text = 'The cave is quiet for now, but I can hear something moving in the deeper tunnels. If the <shake><font color="#FF6F76"><b>Dire Bear</b></font></shake> returns, will you face it again?',
 			Options = {
 				{ Text = "I will handle it", Next = "Mission" },
 				{ Text = "Not right now", Next = "Leave" },

@@ -9,7 +9,7 @@ return {
 		SkillRange = 30,
 	},
 	Wolf = {
-		Health = 105,
+		Health = 190,
 		Speed = 18,
 		Range = 6,
 		Size = Vector3.new(10, 7, 9),
@@ -18,7 +18,7 @@ return {
 		SkillRange = 10,
 	},
 	Boar = {
-		Health = 190,
+		Health = 105,
 		Speed = 15,
 		Range = 4,
 		Size = Vector3.new(6, 7, 6),
