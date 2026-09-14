@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local DataService = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("DataServiceTyped"))
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
@@ -67,4 +68,25 @@ local template: Types.PlayerData = {
 	RaidAutoDelete = {},
 }
 
-return DataService({ template = template, profileStoreIndex = "PlayerData" })
+local Data = DataService({ template = template, profileStoreIndex = "PlayerData" })
+
+if RunService:IsServer() then
+	function Data.server.Service:onPlayerInit(_player: Player, data: Types.PlayerData)
+		-- Equipment is authoritative; repair legacy per-item flags before initial replication.
+		local EquippedItems: { [string]: boolean } = {}
+		for _, UUID in data.Equipment do
+			if UUID ~= "" then
+				EquippedItems[UUID] = true
+			end
+		end
+
+		for UUID, ItemEntry in data.Inventory do
+			local IsEquipped = EquippedItems[UUID] == true
+			if IsEquipped or ItemEntry.Equipped ~= nil then
+				ItemEntry.Equipped = IsEquipped
+			end
+		end
+	end
+end
+
+return Data

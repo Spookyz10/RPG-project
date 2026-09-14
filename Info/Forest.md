@@ -1,44 +1,63 @@
-# Forest ? zona 2
+# Forest — low poly v4
 
-## Instala??o
+## Aplicar no Studio
 
-Com Play parado, execute os arquivos completos na Command Bar do Studio:
+Com Play parado, cole o conteúdo completo de `tools/world-generators/09_InstallForest.luau` na Command Bar. O instalador executa 04, 05, 06, 07 e a auditoria 08, nessa ordem. Sincronize Common pelo Rojo, salve o place e entre na Forest pelo seletor de zonas.
 
-1. `tools/world-generators/04_Forest.luau`: mapa Forest v2.
-2. `tools/world-generators/05_ForestMobModels.luau`: quatro rigs edit?veis.
-3. **Reexecute** `tools/world-generators/06_ForestSpawnsAndLighting.luau`: 13 spawns, ilumina??o, regi?o da arena e marcador de respawn do boss.
-4. `tools/world-generators/07_ForestCombatAssets.luau`: 11 templates de ataques e modelos de Thornwood Blade / Heartwood Cleaver.
-5. Sincronize Common pelo Rojo e salve antes de Play. A Forest aparece no seletor automaticamente pelo módulo em `Shared.Zones.Forest`; reexecute 06 para criar seu destino em `Workspace.ZoneTeleporters.Forest`.
+As versões substituídas do mapa, rigs, spawns, regiões, iluminação e assets ficam em `ServerStorage.WorldGeneratorBackups`. O instalador não publica o jogo. Se uma etapa falhar, confira o Output: etapas anteriores podem já ter sido aplicadas, e os backups permanecem disponíveis. Não execute em Play.
 
-Os geradores preservam os objetos substitu?dos em `ServerStorage.WorldGeneratorBackups`. Para atualizar combate em um mapa j? gerado, basta executar 06 e 07. Geradores gerais de VFX podem substituir sua pasta de assets: execute 07 por ?ltimo. N?o h? necessidade de regenerar a UI do Blacksmith; as receitas v?m de CraftingRecipes.
+Os arquivos 04–08 continuam independentes. Após alterar os fontes, execute `python tools/build_forest_installer.py` para atualizar 09. Depois de mover o mapa ou girá-lo em Y, reexecute 06. Alterações de escala ou relevo exigem revisar os marcadores e a altura do chão.
 
-A Forest ainda n?o tem entrada no seletor de zonas nem quests pr?prias. A integra??o desta etapa ? combate no mapa, recompensas e crafting. ?cones continuam ausentes. As passivas de equipamentos listadas no fim continuam propostas, sem efeitos ativos.
+## Direção visual e espaço
 
-## Organiza??o
+Construção low poly com cores chapadas e copas de faces triangulares contínuas. Troncos começam abaixo da superfície, raízes em cunha têm bases enterradas e os galhos terminam dentro das copas. Árvores dos paredões são plantadas na altura da rocha de apoio. Cogumelos têm um chapéu hexagonal único, caule ligado à parte inferior e proporções menores no cenário.
 
-| Conte?do | Local |
+A entrada foi deslocada para o sudoeste. O caminho bifurca entre o jardim de cogumelos e a clareira da árvore ancestral; segue para a ponte, o observatório e o bosque do boss. Uma rota lateral pelo santuário fecha o circuito. O lago é um desvio de exploração, e o mirante tem acesso próprio. Foram removidas as ligações diretas que faziam a árvore central funcionar como um cruzamento de várias trilhas.
+
+O observatório tem uma planta de pavilhão: fundações, colunas e parede posterior seguem os mesmos eixos. As barras luminosas e o círculo de marcas da arena foram removidos. O piso de combate continua nivelado, e água, encontros e caminhos mantêm áreas reservadas antes da colocação da vegetação.
+
+![Plano espacial, não uma renderização do Studio](Forest-layout.png)
+
+![Inspeção offline da geometria da árvore e do cogumelo](Forest-models.png)
+
+O mapa reserva trilhas, água, marcos e áreas de encontro **antes** de distribuir árvores e decoração. A colocação usa rejeição por distância e tamanho de ocupação. Junções deliberadas entre peças de troncos, copas e rochas fazem parte da modelagem; a auditoria procura obstáculos nos espaços jogáveis.
+
+## Spawns e rigs
+
+A população foi reorganizada de 28 para **20 encontros**: 8 Mosscaps, 6 Thornback Stags, 5 Hollow Sentinels e 1 Elderbark. A entrada fica fora dos raios iniciais de aggro. Os espaços de combate têm reserva de vegetação; o boss mantém a região de 112 × 70 × 112 e o combate existente. HP, recompensas, receitas, IDs de itens e persistência não foram alterados.
+
+`Workspace.Maps.Forest.EncounterMarkers` é a fonte das posições de spawn. Cada marcador tem `Species` e `ClearanceRadius`. O gerador 06 usa esses pontos exatos, calcula a altura pelo rig e rejeita chão incorreto, água, obstáculos físicos e pontos muito próximos. Não desloca silenciosamente um encontro para outro lugar. Ao editar encontros manualmente, preserve o espaço da área e atualize as contagens da auditoria se alterar a população.
+
+Os quatro rigs mantêm nomes, pivôs e juntas da infraestrutura existente. Membros e galhos retornam às formas angulares e materiais lisos; Mosscap recebe um chapéu facetado fechado, sem camadas de elipsoides ou manchas soltas. Motor6D articula membros e WeldConstraint acompanha os detalhes. Não foram criadas animações esqueléticas publicadas.
+
+| Conteúdo | Local |
 |---|---|
-| Mapa, nove pontos de interesse e marcadores | Workspace.Maps.Forest |
+| Mapa editável | Workspace.Maps.Forest |
+| Planejamento dos encontros | Workspace.Maps.Forest.EncounterMarkers |
 | Rigs | ReplicatedStorage.Mobs.Forest |
-| 11 Mosscaps, 9 Stags, 7 Sentinels, 1 Elderbark | Workspace.MobSpawns.Forest |
-| Regi?o da ilumina??o | Workspace.ZoneRegions.Forest |
-| Limite do combate do boss | Workspace.ZoneRegions.Elderbark Heartgrove |
+| Spawns instalados | Workspace.MobSpawns.Forest |
+| Região de iluminação | Workspace.ZoneRegions.Forest |
+| Limite do boss | Workspace.ZoneRegions.Elderbark Heartgrove |
 | Contador de respawn | Workspace.BossRespawns.Forest.Elderbark |
-| Lighting edit?vel | ReplicatedStorage.Resources.LightingTemplates.Forest |
-| Templates visuais | ReplicatedStorage.Resources.CombatVFX.Attacks |
-| Armas equip?veis | ReplicatedStorage.Resources.Weapons |
-| Stats, drops e recompensas | Common/src/Shared/MobsData/Forest |
-| Configura??o do combate | Common/src/Shared/MobCombatConfig.luau |
-| Behaviors e ataques | Common/src/Modules/Mobs/Behaviors e Attacks |
-| Receitas do Blacksmith | Common/src/Shared/CraftingRecipes.luau |
+| Iluminação editável | ReplicatedStorage.Resources.LightingTemplates.Forest |
+| VFX de combate | ReplicatedStorage.Resources.CombatVFX.Attacks |
+| Armas equipáveis | ReplicatedStorage.Resources.Weapons |
+| Stats e drops | Common/src/Shared/MobsData/Forest |
 
-## Explora??o e apar?ncia
+## Iluminação e validação
 
-Bacia org?nica de aproximadamente 580 ? 580 studs, com nove destinos e doze trilhas curvas formando quatro circuitos. Pilgrim Gate e Crossroads d?o acesso ao Spore Garden, Moonwater Garden e ? ?rvore central de 105 studs. O jogador encontra acampamento, tronco ca?do sobre a trilha, cachoeira, observat?rio, santu?rio lateral, mirante com rampa e o bosque de Elderbark. ?rvores secund?rias t?m 43?70 studs. Vegeta??o pequena e ra?zes ornamentais n?o colidem; ?gua ? decorativa.
+O template regional usa tarde quente, sombras frias, névoa moderada e bloom discreto. Os efeitos continuam editáveis em `LightingTemplates.Forest`. O sistema existente aplica o template ao entrar na região e restaura o padrão ao sair. A geração não altera o Lighting global em Edit; para avaliar a iluminação final, entre na Forest em Play.
 
-Mosscap tem chap?u em camadas, guelras radiais e mochila de musgo. Stag tem galhadas folhadas e joelhos articulados. Sentinel ? uma ru?na ambulante com rel?quia suspensa. Elderbark tem corpo pr?prio de tronco retorcido, bra?os assim?tricos e coroa de galhos. Motor6D controla articula??es; WeldConstraint prende detalhes.
+- `python tools/verify_forest_world.py --luau <luau.exe>` executa os geradores reais com CFrames e caixas orientadas simuladas. Verifica rotas, água, spawns, chão, conexões dos rigs e integração dos assets.
+- `--reinstall --transform --seed-offset 371` verifica reinstalação com backup e mapa deslocado/girado, com outra distribuição de vegetação.
+- `--plan Info/Forest-layout.png` exporta o plano espacial offline (requer Pillow). Não é uma captura do Studio.
+- `--models-preview Info/Forest-models.png` projeta a geometria real gerada de uma árvore e um cogumelo para inspeção (Pillow e NumPy). Não simula os materiais ou a iluminação do Studio.
+- `python tools/build_forest_installer.py --check` verifica se o instalador está atualizado.
+- `08_ForestAudit.luau` executa consultas reais de geometria no Studio. O gerador aleatório do harness é diferente do Roblox; a auditoria em Edit continua necessária.
+- A auditoria também verifica apoio sob troncos, bases enterradas e conexão das raízes com o tronco.
 
-Lighting: tarde dourada, sombras verde-azuladas, n?voa suave, raios de sol e bloom discreto. Propriedades ficam nos Attributes do template; efeitos s?o filhos edit?veis. O cliente regional aplica o template somente dentro da Forest e restaura o padr?o ao sair/perder o personagem. A caverna mant?m prioridade. N?o altera o Lighting global em Edit. Reexecute 06 depois de mover, regenerar ou redimensionar mapa/rigs.
+Ainda precisam de Studio: aparência em câmera de jogador, gráficos altos/baixos, desempenho com todos os mobs, passagem na ponte e na rampa, perseguição e retorno dos mobs, leitura de avisos sob a iluminação, animações, combate de Elderbark, respawn e transição para outras zonas. Os testes offline não atestam qualidade visual ou física do Roblox.
+
 
 ## Combate ativo
 

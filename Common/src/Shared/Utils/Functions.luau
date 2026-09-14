@@ -73,6 +73,22 @@ function Functions:GetEquippedItemInfo(PlayerData: Types.PlayerData, slot: strin
 	return Functions:GetItemInfo(ItemEntry)
 end
 
+function Functions:IsInventoryItemInUse(PlayerData: Types.PlayerData, UUID: string): boolean
+	for _, EquippedUUID in PlayerData.Equipment() do
+		if EquippedUUID == UUID then
+			return true
+		end
+	end
+
+	for _, VanityUUID in PlayerData.Vanity() do
+		if VanityUUID == UUID then
+			return true
+		end
+	end
+
+	return false
+end
+
 local function getTotalStats(Data: Types.PlayerData, StatName: string)
 	local Stat = 0
 	for _, Item in Data.Equipment do

@@ -217,8 +217,18 @@ function InventoryManager:ItemAction(player: Player, UUID: string)
 	end
 
 	if Info.Data.ItemType == "Equipment" then
+		local PreviousUUID = PlayerData.Equipment[Info.Data.SubType]()
+		if PreviousUUID and PreviousUUID ~= "" and PreviousUUID ~= UUID then
+			local PreviousItem = PlayerData.Inventory[PreviousUUID]()
+			if PreviousItem and PreviousItem.Equipped ~= false then
+				PlayerData.Inventory[PreviousUUID].Equipped(false)
+			end
+		end
+
 		PlayerData.Equipment[Info.Data.SubType](UUID)
-		PlayerData.Inventory[UUID].Equipped(true)
+		if Item.Equipped ~= true then
+			PlayerData.Inventory[UUID].Equipped(true)
+		end
 	elseif Info.Data.ItemType == "Consumable" then
 		InventoryManager:ConsumeItem(player, UUID, false)
 	end
@@ -245,10 +255,15 @@ function InventoryManager:UnequipItem(player: Player, UUID: string)
 	BackfillID(PlayerData, "Inventory", UUID, Item, Info)
 
 	if Info.Data.ItemType == "Equipment" then
-		PlayerData.Equipment[Info.Data.SubType]("")
-		PlayerData.Inventory[UUID].Equipped(false)
+		local IsCurrentlyEquipped = PlayerData.Equipment[Info.Data.SubType]() == UUID
+		if IsCurrentlyEquipped then
+			PlayerData.Equipment[Info.Data.SubType]("")
+		end
+		if Item.Equipped ~= false then
+			PlayerData.Inventory[UUID].Equipped(false)
+		end
 
-		if Info.Data.SubType == "Weapon" then
+		if IsCurrentlyEquipped and Info.Data.SubType == "Weapon" then
 			PlayerData.Vanity.Weapon("")
 		end
 	end

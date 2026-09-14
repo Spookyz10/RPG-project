@@ -657,23 +657,54 @@ Implement the requested feature completely, correctly, and within scope.
 
 # 22. Project-Specific Knowledge
 
-This section is intentionally reserved for project-specific information.
+## DataService Typed
 
-Update it as the project evolves.
+This project uses `leifstout/dataservicetyped@1.0.5` as its authoritative player data and persistence system.
 
-Recommended information to document here:
+Official documentation:
 
-- folder structure
-- architecture overview
-- major systems
-- important modules
-- remote organization
-- data schema
-- item architecture
-- NPC architecture
-- UI architecture
-- naming conventions
-- persistence system
-- important invariants
-- known technical constraints
-- systems that should never be duplicated
+- https://leifstout.github.io/dataServiceTyped/docs/intro/
+- https://leifstout.github.io/dataServiceTyped/docs/service-functions/
+
+The canonical shared data module and template are in `Common/src/Shared/Data.luau`. Shared data types are in `Common/src/Shared/Utils/Types.luau`.
+
+Use the existing data module; do not create a parallel profile, replication, inventory-state, or manual data-refresh system.
+
+Require the correct side:
+
+```luau
+local Data = require(ReplicatedStorage.Shared.Data).server -- server
+local Data = require(ReplicatedStorage.Shared.Data).client -- client
+```
+
+On the server, access a player's data through `Data[player]`. In code that may run before loading finishes, use `Data.Service:waitForData(player)`:
+
+```luau
+local PlayerData = Data.Service:waitForData(player)
+local gold = PlayerData.Currencies.Gold()
+PlayerData.Currencies.Gold(function(current)
+	return current + 10
+end)
+```
+
+On the client, access the automatically replicated local mirror without a player index:
+
+```luau
+local inventory = Data.Inventory()
+Data.Inventory.Changed(function(currentInventory)
+	-- Reconcile client UI from the replicated table.
+end)
+```
+
+Important invariants:
+
+- Server writes save and replicate to that player's client automatically by default.
+- Do not add RemoteEvents whose only purpose is to tell the client to refresh replicated player data or inventory UI. Listen to `.Changed`, `.OnKeyAdded`, or `.OnKeyRemoved` on the client as appropriate.
+- A parent-table `.Changed` listener receives nested changes too and is preferred when a UI must reconcile the complete table, including whole-table replacements.
+- Client writes only change the local mirror. They do not save or replicate to the server and must never be used for authoritative gameplay, inventory, currency, rewards, equipment, or progression changes.
+- Gameplay requests may still use remotes, but the server must validate the request and mutate DataService Typed itself. The replicated mutation then updates the UI.
+- Use `Data.Service:onPlayerInit(player, data)` for migrations, defaults, and cleanup that must run after profile loading but before the initial client replication. Its `data` argument is the raw data table, not `Data[player]`.
+- Use `Data.Service:getProfile` only for ProfileStore-specific features that the normal typed data API does not expose.
+- Preserve compatibility when changing the template or persistent fields. Do not destructively rename or reinterpret saved fields without a migration.
+
+For the inventory UI specifically, `Data.Inventory` and `Data.Storage` are the client-side source of rendered content. `Data.Equipment` and `Data.Vanity` are the canonical sources for whether an inventory UUID is currently in use; a duplicated per-item flag must not be treated as authoritative.

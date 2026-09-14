@@ -99,7 +99,7 @@ export type ItemData = {
 	Amount: number,
 	Name: string,
 	ID: string,
-	Equipped: boolean,
+	Equipped: boolean?,
 	UpgradeCap: number,
 }
 

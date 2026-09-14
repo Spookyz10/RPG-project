@@ -8,16 +8,6 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 
 local SellManager = {}
 
-local function IsInUseAsVanity(PlayerData: Types.PlayerData, UUID: string): boolean
-	for _, VanityUUID in PlayerData.Vanity() do
-		if VanityUUID == UUID then
-			return true
-		end
-	end
-
-	return false
-end
-
 function SellManager:SellItems(player: Player, sellList: { [string]: number })
 	local PlayerData = Data.Service:waitForData(player) :: Types.PlayerData
 	if not PlayerData then
@@ -40,11 +30,7 @@ function SellManager:SellItems(player: Player, sellList: { [string]: number })
 			continue
 		end
 
-		if ItemEntry.Equipped then
-			continue
-		end
-
-		if IsInUseAsVanity(PlayerData, UUID) then
+		if Functions:IsInventoryItemInUse(PlayerData, UUID) then
 			continue
 		end
 

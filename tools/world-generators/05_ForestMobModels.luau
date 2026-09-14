@@ -1,14 +1,15 @@
--- Forest v2 rigs. Static ornaments are welded; anatomical joints use Motor6D.
+-- Forest v4 / Amberwood bestiary. Editable, articulated silhouettes.
+-- Static detail follows its anatomical joint; only the root owns physical mass.
 assert(not game:GetService("RunService"):IsRunning(), "Stop Play before generating Forest mobs")
 local V = Vector3.new
 local C = Color3.fromRGB
-local bark = C(91, 65, 46)
+local bark = C(102, 76, 51)
 local dark = C(43, 43, 37)
-local moss = C(75, 119, 75)
+local moss = C(107, 139, 76)
 local mint = C(128, 203, 167)
 local ivory = C(219, 206, 159)
 local gold = C(202, 160, 82)
-local stone = C(99, 117, 112)
+local stone = C(131, 143, 131)
 local function folder(parent, name)
 	local f = Instance.new("Folder")
 	f.Name = name
@@ -31,6 +32,7 @@ for _, species in { "Mosscap", "Thornback Stag", "Hollow Sentinel", "Elderbark" 
 		p.Massless = true
 		p.CanCollide = false
 		p.CanTouch = false
+		p.CastShadow = size.Magnitude > 1.2
 		p.TopSurface = Enum.SurfaceType.Smooth
 		p.BottomSurface = Enum.SurfaceType.Smooth
 		p.Parent = model
@@ -48,7 +50,8 @@ for _, species in { "Mosscap", "Thornback Stag", "Hollow Sentinel", "Elderbark" 
 		return p
 	end
 	local function limb(name, size, pos, color, parent, pivot, rotation)
-		return joint(shape(name, size, pos, color, nil, rotation), parent, pivot)
+		local p = shape(name, size, pos, color, nil, rotation)
+		return joint(p, parent, pivot)
 	end
 	local function ornament(name, size, pos, color, parent, class, rotation)
 		serial += 1
@@ -65,15 +68,21 @@ for _, species in { "Mosscap", "Thornback Stag", "Hollow Sentinel", "Elderbark" 
 		return p
 	end
 	local function branch(name, a, b, width, color, parent)
-		return ornament(
-			name,
-			V(width, width, (b - a).Magnitude),
-			(a + b) / 2,
-			color,
-			parent,
-			nil,
-			CFrame.lookAt(Vector3.zero, b - a)
-		)
+		return ornament(name, V(width,width,(b-a).Magnitude), (a+b)/2, color, parent,
+			nil, CFrame.lookAt(Vector3.zero,b-a))
+	end
+	local function capFace(a,b,c,color,parent)
+		local ab,ac,bc=b-a,c-a,c-b
+		if ab:Dot(ab)>math.max(ac:Dot(ac),bc:Dot(bc)) then c,a=a,c
+		elseif ac:Dot(ac)>bc:Dot(bc) then a,b=b,a end
+		ab,ac,bc=b-a,c-a,c-b
+		local right=ac:Cross(ab).Unit
+		local back=bc.Unit
+		local up=bc:Cross(right).Unit
+		local height=math.abs(ab:Dot(up))
+		local first,second=math.abs(ab:Dot(back)),math.abs(ac:Dot(back))
+		if first>0.001 then ornament("CapFacet",V(0.04,height,first),(a+b)/2,color,parent,"WedgePart",CFrame.fromMatrix(Vector3.zero,right,up,back)) end
+		if second>0.001 then ornament("CapFacet",V(0.04,height,second),(a+c)/2,color,parent,"WedgePart",CFrame.fromMatrix(Vector3.zero,-right,up,-back)) end
 	end
 	local function leaf(name, pos, size, color, parent, angle)
 		return ornament(name, size, pos, color, parent, "WedgePart", CFrame.Angles(0.15, angle or 0, 0.22))
@@ -93,9 +102,14 @@ for _, species in { "Mosscap", "Thornback Stag", "Hollow Sentinel", "Elderbark" 
 		torso = limb("Torso", V(2.8, 3.2, 2.5), V(0, 0, 0.25), ivory, root, V(0, 0, 0))
 		oval("PearBody", V(3.4, 3.8, 2.9), V(0, -0.15, 0.35), ivory, torso)
 		head = limb("Head", V(2.4, 2, 1.7), V(0, 1.25, -0.8), C(169, 178, 139), torso, V(0, 0.8, -0.3))
-		oval("CapUnderside", V(6.8, 0.7, 5.5), V(-0.25, 2.6, -0.25), C(173, 193, 153), head)
-		oval("VelvetCap", V(7.1, 2.1, 5.8), V(-0.25, 3.15, -0.15), C(62, 123, 111), head, CFrame.Angles(0, 0, -0.09))
-		oval("CapCrown", V(4.6, 1.8, 4), V(-0.65, 3.95, 0.1), C(73, 143, 124), head)
+		for i=0,5 do
+			local a=i*math.pi/3
+			local b=a+math.pi/3
+			local p=V(math.cos(a)*3.4,2.65,math.sin(a)*2.7-0.2)
+			local q=V(math.cos(b)*3.4,2.65,math.sin(b)*2.7-0.2)
+			capFace(V(-0.25,4.2,-0.2),p,q,C(139,91,102),head)
+			capFace(V(0,2.3,-0.2),q,p,ivory,head)
+		end
 		for i = 0, 11 do
 			local a = i * math.pi / 6
 			branch(
@@ -106,9 +120,7 @@ for _, species in { "Mosscap", "Thornback Stag", "Hollow Sentinel", "Elderbark" 
 				ivory,
 				head
 			)
-			if i % 2 == 0 then
-				oval("CapFreckle", V(0.55, 0.18, 0.75), V(math.cos(a) * 2.1, 4, math.sin(a) * 1.6), mint, head)
-			end
+
 		end
 		for _, side in { -1, 1 } do
 			local arm = limb(
@@ -393,6 +405,48 @@ for _, species in { "Mosscap", "Thornback Stag", "Hollow Sentinel", "Elderbark" 
 		end
 		oval("BackMoss", V(4.5, 4.3, 1), V(0, 1.3, 2.8), moss, torso)
 	end
+	-- Species-specific finishing, attached to the body part that owns it.
+	if species == "Mosscap" then
+		for _, side in {-1,1} do
+			oval("CheekBlush", V(0.48,0.23,0.12), V(side*0.83,1.05,-1.65), C(179,130,102), head)
+			branch("SatchelStrap", V(side*0.95,0.8,-0.85), V(side*0.9,-1.2,-1.05), 0.16, bark, torso)
+			oval("EyeGlint", V(0.08,0.12,0.06), V(side*0.53-0.06,1.5,-1.9), ivory, head)
+		end
+		oval("Mouth", V(0.4,0.12,0.1), V(0,0.87,-1.68), dark, head)
+		ornament("SatchelClasp", V(0.4,0.5,0.12), V(0,-0.7,-1.15), gold, torso)
+	elseif species == "Thornback Stag" then
+		for _, side in {-1,1} do
+			oval("InnerEar", V(1.1,0.2,0.55), V(side*1.3,4.66,-2.83), ivory, head, CFrame.Angles(0,side*0.4,0))
+			for i=1,4 do
+				local start=V(side*0.6,1.7,1.7-i*0.8)
+				branch("ThornSpine",start,start+V(side*0.28,0.9,0.35),0.18,ivory,torso)
+			end
+		end
+		oval("ForeheadBlaze",V(0.38,1.2,0.12),V(0,4.25,-4.46),ivory,head)
+	elseif species == "Hollow Sentinel" then
+		for _, side in {-1,1} do
+			local arm=model:FindFirstChild(side==1 and "RightArm" or "LeftArm")
+			for i=1,3 do
+				ornament("CarvedArmBand",V(1.42,0.15,1.62),V(side*2.8,0.75-i*0.8,0),dark,arm)
+			end
+			ornament("ShoulderInset",V(0.85,0.4,0.08),V(side*2.6,1.8,-1.28),gold,arm)
+		end
+		for i=1,3 do
+			ornament("RelicGlyph",V(0.25,0.35,0.1),V(-0.6+i*0.3,2,-1.1),mint,torso).Material=Enum.Material.Neon
+		end
+	else
+		for _, side in {-1,1} do
+			local arm=model:FindFirstChild(side==1 and "RightArm" or "LeftArm")
+			oval("ShoulderMossMass",V(3.5,1.2,3.4),V(side*3.2,3.5,0.3),moss,arm)
+			for i=1,3 do
+				local a=V(side*(0.9+i*0.55),6.8+i*0.8,0.2)
+				oval("CrownLeafCluster",V(2.8,0.8,2.4),a,moss,head,CFrame.Angles(0,i*side,0))
+			end
+		end
+		for i=1,3 do
+			oval("AncientGrowthRing",V(1.1,0.35,0.2),V(0,1.5-i*0.65,-2.69),C(172,128,64),torso)
+		end
+	end
 	-- Feet are authored relative to the root; calculate clearance from the actual rig.
 	local lowest = math.huge
 	for _, p in model:GetChildren() do
@@ -413,8 +467,8 @@ for _, species in { "Mosscap", "Thornback Stag", "Hollow Sentinel", "Elderbark" 
 	hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 	hum.Parent = model
 	Instance.new("Animator").Parent = hum
-	model:SetAttribute("AssetStage", "ModelsOnly")
-	model:SetAttribute("DesignVersion", 2)
+	model:SetAttribute("AssetStage", "AuthoredRig")
+	model:SetAttribute("DesignVersion", 4)
 	model.Parent = staging
 end
 local rs, ss = game:GetService("ReplicatedStorage"), game:GetService("ServerStorage")
@@ -426,4 +480,4 @@ if old then
 end
 staging.Parent = destination
 game:GetService("Selection"):Set({ staging })
-print("Forest v2 rigs: Mosscap forager, Thornback Stag, shrine Sentinel and ancient Elderbark. Models only.")
+print("Forest v4: faceted Mosscap, thorn-crowned Stag, carved Sentinel and old-growth Elderbark. Run 06 to fit spawns to these rigs.")

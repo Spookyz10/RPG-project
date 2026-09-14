@@ -654,13 +654,6 @@ local function CreateEntry(UUID: string, ItemData: Types.ItemData)
 
 	UpdateEquippedLabel(UUID, Button)
 
-	UIConstants.Data.Inventory[UUID].Amount.Changed(function()
-		local CurrentData = UIConstants.Data.Inventory[UUID]()
-		if CurrentData then
-			UpdateEntry(Button, CurrentData)
-		end
-	end)
-
 	ApplySearchFilter()
 end
 
@@ -715,13 +708,6 @@ local function CreateBankEntry(UUID: string, ItemData: Types.ItemData)
 	end)
 
 	BankEntries[UUID] = Button
-
-	UIConstants.Data.Storage[UUID].Amount.Changed(function()
-		local CurrentData = UIConstants.Data.Storage[UUID]()
-		if CurrentData then
-			UpdateEntry(Button, CurrentData)
-		end
-	end)
 end
 
 local function RemoveBankEntry(UUID: string)
@@ -729,6 +715,43 @@ local function RemoveBankEntry(UUID: string)
 	if Button then
 		Button:Destroy()
 		BankEntries[UUID] = nil
+	end
+end
+
+local function ReconcileInventory(CurrentInventory: { [string]: Types.ItemData })
+	for UUID in Entries do
+		if CurrentInventory[UUID] == nil then
+			RemoveEntry(UUID)
+		end
+	end
+
+	for UUID, ItemData in CurrentInventory do
+		local Button = Entries[UUID]
+		if Button then
+			UpdateEntry(Button, ItemData)
+			EntryNames[UUID] = ItemData.Name
+		else
+			CreateEntry(UUID, ItemData)
+		end
+	end
+
+	ApplySearchFilter()
+end
+
+local function ReconcileStorage(CurrentStorage: { [string]: Types.ItemData })
+	for UUID in BankEntries do
+		if CurrentStorage[UUID] == nil then
+			RemoveBankEntry(UUID)
+		end
+	end
+
+	for UUID, ItemData in CurrentStorage do
+		local Button = BankEntries[UUID]
+		if Button then
+			UpdateEntry(Button, ItemData)
+		else
+			CreateBankEntry(UUID, ItemData)
+		end
 	end
 end
 
@@ -955,17 +978,10 @@ function Inventory.Init()
 	AdvancedFrame.Confirm.Visible = false
 	StorageFrame.Cancel.Visible = false
 
-	for UUID, ItemData in UIConstants.Data.Inventory() do
-		CreateEntry(UUID, ItemData)
-	end
+	ReconcileInventory(UIConstants.Data.Inventory())
 
-	UIConstants.Data.Inventory.OnKeyAdded(function(UUID: string, ItemData: Types.ItemData)
-		CreateEntry(UUID, ItemData)
-		UpdateItemLimit()
-	end)
-
-	UIConstants.Data.Inventory.OnKeyRemoved(function(UUID: string)
-		RemoveEntry(UUID)
+	UIConstants.Data.Inventory.Changed(function(CurrentInventory)
+		ReconcileInventory(CurrentInventory)
 		UpdateItemLimit()
 	end)
 
@@ -987,17 +1003,10 @@ function Inventory.Init()
 
 	UpdateItemLimit()
 
-	for UUID, ItemData in UIConstants.Data.Storage() do
-		CreateBankEntry(UUID, ItemData)
-	end
+	ReconcileStorage(UIConstants.Data.Storage())
 
-	UIConstants.Data.Storage.OnKeyAdded(function(UUID: string, ItemData: Types.ItemData)
-		CreateBankEntry(UUID, ItemData)
-		UpdateBankLimit()
-	end)
-
-	UIConstants.Data.Storage.OnKeyRemoved(function(UUID: string)
-		RemoveBankEntry(UUID)
+	UIConstants.Data.Storage.Changed(function(CurrentStorage)
+		ReconcileStorage(CurrentStorage)
 		UpdateBankLimit()
 	end)
 

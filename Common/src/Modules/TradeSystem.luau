@@ -94,25 +94,12 @@ local function getItemInfo(item: Types.ItemData): Types.Item?
 	return ItemsData[item.ID] or ItemsDataByName[item.Name]
 end
 
-local function isUUIDInUse(playerData: Types.PlayerData, container: string, uuid: string, item: Types.ItemData): boolean
-	if item.Equipped == true then
-		return true
-	end
+local function isUUIDInUse(playerData: Types.PlayerData, container: string, uuid: string): boolean
 	if container ~= "Inventory" then
 		return false
 	end
 
-	for _, equippedUUID in playerData.Equipment() do
-		if equippedUUID == uuid then
-			return true
-		end
-	end
-	for _, vanityUUID in playerData.Vanity() do
-		if vanityUUID == uuid then
-			return true
-		end
-	end
-	return false
+	return Functions:IsInventoryItemInUse(playerData, uuid)
 end
 
 local function acceptsOffers(playerData: Types.PlayerData): boolean
@@ -149,7 +136,7 @@ local function catalogFor(player: Player, playerData: Types.PlayerData)
 
 	for _, container in { "Inventory", "Storage" } do
 		for uuid, item in playerData[container]() do
-			if not isUUIDInUse(playerData, container, uuid, item) then
+			if not isUUIDInUse(playerData, container, uuid) then
 				local summary = itemSummary(container, uuid, item)
 				if summary then
 					table.insert(result[container], summary)
@@ -250,7 +237,7 @@ local function sanitizeSelections(raw: any, playerData: Types.PlayerData): ({ Se
 		if not info.Data.Stackable and amount ~= 1 then
 			return nil, "Invalid equipment quantity"
 		end
-		if isUUIDInUse(playerData, container, uuid, item) then
+		if isUUIDInUse(playerData, container, uuid) then
 			return nil, "Equipped items cannot be traded"
 		end
 
@@ -270,7 +257,7 @@ local function selectionsStillValid(playerData: Types.PlayerData, selections: { 
 		if not item or not equalDeep(item, selection.Item) or item.Amount < selection.Amount then
 			return false, "A selected item changed or is no longer available"
 		end
-		if isUUIDInUse(playerData, selection.Container, selection.UUID, item) then
+		if isUUIDInUse(playerData, selection.Container, selection.UUID) then
 			return false, "A selected item was equipped"
 		end
 	end

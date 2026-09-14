@@ -28,7 +28,7 @@ local function MoveEntry(
 		return "Item not found"
 	end
 
-	if SourceEntry.Equipped then
+	if FromKey == "Inventory" and Functions:IsInventoryItemInUse(PlayerData, UUID) then
 		RemoteManager.SendClientEvent("Notification", { Player = Player }, "Unequip the item first")
 		return "Item equipped"
 	end

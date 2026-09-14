@@ -4,7 +4,7 @@ local RS = game:GetService("ReplicatedStorage")
 local SS = game:GetService("ServerStorage")
 local maps = workspace:FindFirstChild("Maps")
 local map = maps and maps:FindFirstChild("Forest")
-assert(map and map:IsA("Model"), "Generate Forest v2 first")
+assert(map and map:IsA("Model"), "Generate Forest v4 first")
 local markers = map:FindFirstChild("PlanningMarkers")
 local ground = map:FindFirstChild("Ground")
 local rigs = RS:FindFirstChild("Mobs") and RS.Mobs:FindFirstChild("Forest")
@@ -22,134 +22,67 @@ local staging = folder(nil, "Forest")
 local ray = RaycastParams.new()
 ray.FilterType = Enum.RaycastFilterType.Include
 ray.FilterDescendantsInstances = { ground }
--- Every hub gets life, while the entry keeps a 50+ stud buffer before the
--- first aggro radius. Offsets follow saved marker orientation, so moving or
--- rotating the map also moves the encounter ecology with it.
-local definitions = {
-	{
-		"Mosscap",
-		"Entry",
-		{ Vector3.new(-34, 0, 48), Vector3.new(34, 0, 54) },
-	},
-	{
-		"Mosscap",
-		"Crossroads",
-		{ Vector3.new(-31, 0, -14), Vector3.new(29, 0, -12), Vector3.new(-4, 0, 34) },
-	},
-	{
-		"Mosscap",
-		"Mosscap",
-		{
-			Vector3.new(-31, 0, -20),
-			Vector3.new(29, 0, -19),
-			Vector3.new(-27, 0, 24),
-			Vector3.new(31, 0, 22),
-		},
-	},
-	{
-		"Mosscap",
-		"Shrine",
-		{ Vector3.new(-25, 0, -14), Vector3.new(27, 0, 18) },
-	},
-	{
-		"Thornback Stag",
-		"Moonwater",
-		{
-			Vector3.new(-46, 0, -18),
-			Vector3.new(45, 0, -19),
-			Vector3.new(-42, 0, 28),
-			Vector3.new(43, 0, 27),
-		},
-	},
-	{
-		"Thornback Stag",
-		"HeartTree",
-		{ Vector3.new(-47, 0, -25), Vector3.new(47, 0, -25), Vector3.new(50, 0, 30) },
-	},
-	{
-		"Thornback Stag",
-		"Lookout",
-		{ Vector3.new(-34, 0, -31), Vector3.new(-18, 0, 25) },
-	},
-	{
-		"Hollow Sentinel",
-		"Ruins",
-		{
-			Vector3.new(-42, 0, -23),
-			Vector3.new(43, 0, -23),
-			Vector3.new(-44, 0, 27),
-			Vector3.new(43, 0, 28),
-			Vector3.new(0, 0, 45),
-		},
-	},
-	{
-		"Hollow Sentinel",
-		"Lookout",
-		{ Vector3.new(-38, 0, 3), Vector3.new(-19, 0, 4) },
-	},
-	{ "Elderbark", "Elderbark", { Vector3.zero } },
-}
-
--- A small local search prevents a single moved cliff edge from cancelling the
--- entire generator. It stays in the anchor's local space, so rotated maps work.
-local groundSearchOffsets = {
-	Vector3.zero,
-	Vector3.new(12, 0, 0),
-	Vector3.new(-12, 0, 0),
-	Vector3.new(0, 0, 12),
-	Vector3.new(0, 0, -12),
-	Vector3.new(24, 0, 0),
-	Vector3.new(-24, 0, 0),
-	Vector3.new(0, 0, 24),
-	Vector3.new(0, 0, -24),
-}
-
-local function findForestGround(anchor, offset)
-	for _, adjustment in groundSearchOffsets do
-		local position = anchor.CFrame:PointToWorldSpace(offset + adjustment)
-		local hit = workspace:Raycast(position + Vector3.new(0, 150, 0), Vector3.new(0, -350, 0), ray)
-		if hit then
-			return hit
-		end
-	end
-end
-
-for _, definition in definitions do
-	local name, anchorName, offsets = table.unpack(definition)
-	local anchor = markers:FindFirstChild(anchorName)
+-- The map owns encounter positions. Never silently move a spawn away from its
+-- authored pocket: a blocked marker is an actionable authoring error.
+assert(map:GetAttribute("DesignVersion") == 4, "Regenerate Forest with 04 before running 06")
+local encounters = assert(map:FindFirstChild("EncounterMarkers"), "Forest encounter markers missing")
+local overlap = OverlapParams.new()
+overlap.FilterType = Enum.RaycastFilterType.Include
+overlap.FilterDescendantsInstances = { map }
+local installed = {}
+for _, anchor in encounters:GetChildren() do
+	local name = anchor:GetAttribute("Species")
 	local rig = rigs:FindFirstChild(name)
 	local hum = rig and rig:FindFirstChildOfClass("Humanoid")
 	local root = rig and rig:FindFirstChild("HumanoidRootPart")
-	assert(anchor and hum and root, "Missing marker or rig: " .. name)
-	for _, offset in offsets do
-		local hit = findForestGround(anchor, offset)
-		assert(hit, "No Forest ground beneath " .. name)
-		local p = Instance.new("Part")
-		p.Name = name
-		p.Size = Vector3.one
-		p.CFrame = CFrame.new(hit.Position + Vector3.new(0, hum.HipHeight + root.Size.Y / 2 + 0.3, 0))
-			* anchor.CFrame.Rotation
-		p.Anchored = true
-		p.Transparency = 1
-		p.CanCollide = false
-		p.CanTouch = false
-		p.CanQuery = false
-		p.Parent = staging
+	assert(hum and root, "Missing Forest rig: " .. tostring(name))
+	assert(rig:GetAttribute("DesignVersion") == 4, "Regenerate Forest rigs with 05 first")
+	local hit = workspace:Raycast(anchor.Position + Vector3.new(0, 100, 0), Vector3.new(0, -200, 0), ray)
+	assert(hit and hit.Normal.Y > 0.95 and math.abs(hit.Position.Y - anchor.Position.Y + 3) < 1,
+		"Encounter must be on the glade floor: " .. anchor.Name)
+	local clearance = hum.HipHeight + root.Size.Y / 2
+	local boxCF, boxSize = rig:GetBoundingBox()
+	local position = hit.Position + Vector3.new(0, clearance + 0.15, 0)
+	local spawnCF = CFrame.new(position) * anchor.CFrame.Rotation
+	for _, water in map.Water:GetChildren() do
+		if water.Name == "WaterSurface" then
+			local point = water.CFrame:PointToObjectSpace(position)
+			assert(math.sqrt(point.Y*point.Y + point.Z*point.Z) > water.Size.Y/2 + 4,
+				"Encounter intersects water: " .. anchor.Name)
+		end
 	end
+	local localBounds = rig:GetPivot():ToObjectSpace(boxCF)
+	-- Full visible silhouette, not just a small HumanoidRootPart.
+	local checkCF = spawnCF * localBounds + Vector3.new(0, 0.1, 0)
+	for _, obstacle in workspace:GetPartBoundsInBox(checkCF, boxSize, overlap) do
+		assert(not obstacle.CanCollide or obstacle:IsDescendantOf(ground),
+			"Blocked encounter " .. anchor.Name .. " by " .. obstacle:GetFullName())
+	end
+	for _, previous in installed do
+		assert((previous.Position-position).Magnitude > 18, "Encounters too close: " .. anchor.Name)
+	end
+	local p = Instance.new("Part")
+	p.Name, p.Size, p.CFrame = name, Vector3.one, spawnCF
+	p.Anchored, p.Transparency = true, 1
+	p.CanCollide, p.CanTouch, p.CanQuery = false, false, false
+	p:SetAttribute("EncounterId", anchor.Name)
+	p.Parent = staging
+	table.insert(installed, p)
 end
+assert(#installed == map:GetAttribute("EncounterCount"), "Incomplete Forest encounters")
 local template = folder(nil, "Forest")
 local properties = {
-	ClockTime = 16.2,
-	Brightness = 2.2,
-	ExposureCompensation = 0.05,
-	Ambient = Color3.fromRGB(79, 99, 91),
-	OutdoorAmbient = Color3.fromRGB(115, 135, 116),
-	ColorShift_Top = Color3.fromRGB(231, 205, 150),
+	ClockTime = 15.7,
+	Brightness = 2.6,
+	ExposureCompensation = 0.08,
+	Ambient = Color3.fromRGB(84, 105, 103),
+	OutdoorAmbient = Color3.fromRGB(132, 145, 123),
+	ColorShift_Top = Color3.fromRGB(245, 218, 166),
 	ColorShift_Bottom = Color3.fromRGB(40, 66, 57),
-	EnvironmentDiffuseScale = 0.65,
+	EnvironmentDiffuseScale = 0.8,
 	EnvironmentSpecularScale = 0.35,
 	GlobalShadows = true,
-	ShadowSoftness = 0.4,
+	ShadowSoftness = 0.3,
 	FogColor = Color3.fromRGB(145, 177, 161),
 	FogStart = 160,
 	FogEnd = 750,
@@ -159,29 +92,29 @@ for name, value in properties do
 end
 local atmosphere = Instance.new("Atmosphere")
 atmosphere.Name = "ForestHaze"
-atmosphere.Density = 0.28
+atmosphere.Density = 0.24
 atmosphere.Offset = 0.15
 atmosphere.Color = Color3.fromRGB(181, 208, 184)
 atmosphere.Decay = Color3.fromRGB(99, 125, 117)
 atmosphere.Glare = 0.18
-atmosphere.Haze = 1.25
+atmosphere.Haze = 1.1
 atmosphere.Parent = template
 local grade = Instance.new("ColorCorrectionEffect")
 grade.Name = "ForestGrade"
 grade.Brightness = 0.015
-grade.Contrast = 0.12
-grade.Saturation = -0.06
-grade.TintColor = Color3.fromRGB(241, 249, 229)
+grade.Contrast = 0.09
+grade.Saturation = 0.025
+grade.TintColor = Color3.fromRGB(255, 250, 238)
 grade.Parent = template
 local bloom = Instance.new("BloomEffect")
 bloom.Name = "SoftLanternBloom"
-bloom.Intensity = 0.18
+bloom.Intensity = 0.12
 bloom.Size = 24
 bloom.Threshold = 1.35
 bloom.Parent = template
 local rays = Instance.new("SunRaysEffect")
 rays.Name = "CanopySunlight"
-rays.Intensity = 0.065
+rays.Intensity = 0.045
 rays.Spread = 0.8
 rays.Parent = template
 -- Keep the authored sky, if one exists, instead of replacing it with an unrelated skybox.
@@ -245,5 +178,5 @@ for _, p in map:GetDescendants() do
 end
 game:GetService("Selection"):Set({ staging, region })
 print(
-	"Forest: 28 distributed MobSpawns and regional lighting saved. Sync Common and run 07_ForestCombatAssets before Play."
+	"Forest v4: 20 checked encounters and Amberwood regional lighting saved. Run 08 to audit; sync Common before Play."
 )

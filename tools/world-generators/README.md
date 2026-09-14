@@ -1,8 +1,10 @@
 # World generators
 
-## Forest (zona 2, somente modelos)
+## Forest — low poly v4
 
-Execute `04_Forest.luau` e `05_ForestMobModels.luau` completos na Command Bar em Edit. Criam o mapa em `Workspace.Maps.Forest` e quatro rigs em `ReplicatedStorage.Mobs.Forest`, com backup da versÃ£o anterior. NÃ£o instalam gameplay. Consulte `Info/Forest.md` para instalaÃ§Ã£o, balanceamento proposto, itens, crafting futuro e verificaÃ§Ãµes pendentes no Studio.
+Execute `09_InstallForest.luau` completo na Command Bar em **Edit**. Instala mapa, quatro rigs, 20 encontros, iluminação regional, assets de combate e executa a auditoria geométrica. As versões substituídas são preservadas em `ServerStorage.WorldGeneratorBackups`. Sincronize Common pelo Rojo e salve antes de Play.
+
+Os fontes editáveis são `04_Forest.luau`, `05_ForestMobModels.luau`, `06_ForestSpawnsAndLighting.luau`, `07_ForestCombatAssets.luau` e `08_ForestAudit.luau`. Para atualizar o instalador, execute `python tools/build_forest_installer.py` na raiz. Consulte `Info/Forest.md` para organização, limites e verificação no Studio.
 
 ## Portal billboards
 
