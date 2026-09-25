@@ -1,6 +1,21 @@
 local RS = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local VFX = {}
+-- Warm the combat textures independently of UI loading. Short first-use bursts
+-- can expire before an uncached flipbook finishes downloading.
+if RunService:IsClient() then
+ task.spawn(function()
+  local resources = RS:WaitForChild("Resources", 10)
+  local library = resources and resources:WaitForChild("CombatVFX", 10)
+  if not library then return end
+  local emitters = {}
+  for _, object in library:GetDescendants() do
+   if object:IsA("ParticleEmitter") then table.insert(emitters, object) end
+  end
+  local ok, err = pcall(function() game:GetService("ContentProvider"):PreloadAsync(emitters) end)
+  if not ok then warn("[CombatVFX] Texture preload: " .. tostring(err)) end
+ end)
+end
 local basicVariants = setmetatable({}, {__mode = "k"})
 local active = {}
 local statuses = {}
@@ -48,11 +63,11 @@ function VFX:Play(group, name, cf, options)
  for _, e in active do if not e.Destroyed and not e.Status then bursts += 1 end end
  if not options.Status and bursts >= MAX_BURSTS then return end
  local model = template:Clone()
- local preserveParticles = options.PreserveParticles == true and template:GetAttribute("Version") ~= 2
+ local preserveParticles = options.PreserveParticles == true and (template:GetAttribute("Version") or 0) < 2
  local duration = options.Duration or template:GetAttribute("Duration") or 1
  local entry = {Model = model, Origin = cf, Entity = options.Entity, Follow = options.Follow,
   Status = options.Status, Started = os.clock(), Expires = os.clock() + duration,
-  Duration = duration, Offset = options.Offset or CFrame.identity, Parts = {}, Beams = {}, Emitters = {}, Layers = {},
+  Duration = duration, Offset = options.Offset or CFrame.identity, Parts = {}, Beams = {}, Emitters = {}, Layers = {}, Lights = {}, Trails = {},
   Spin = preserveParticles and 0 or template:GetAttribute("SpinSpeed") or 0,
   Rise = preserveParticles and 0 or template:GetAttribute("RiseDistance") or 0,
   Expand = not preserveParticles and template:GetAttribute("ExpandFrom") or nil,
@@ -60,11 +75,23 @@ function VFX:Play(group, name, cf, options)
   Attack = options.Attack}
  for _, v in model:GetDescendants() do
   if v:IsA("BasePart") then
-   v.Anchored = true; v.CanCollide = false; v.CanTouch = false; v.CanQuery = false
-   table.insert(entry.Parts, {Part = v, Transparency = v.Transparency})
+   v.Anchored = true; v.CanCollide = false; v.CanTouch = false; v.CanQuery = false; v.CastShadow = false
+   table.insert(entry.Parts, {Part = v, Transparency = v.Transparency,
+    Local = model:GetPivot():ToObjectSpace(v.CFrame), Size = v.Size,
+    Motion = v:GetAttribute("VFXMotion"), Delay = v:GetAttribute("VFXDelay") or 0,
+    Life = v:GetAttribute("VFXLife") or duration, Velocity = v:GetAttribute("VFXVelocity") or Vector3.zero,
+    Angular = v:GetAttribute("VFXAngular") or Vector3.zero,
+    Gravity = v:GetAttribute("VFXGravity") or 0, Grow = v:GetAttribute("VFXGrowFrom") or 1})
   elseif v:IsA("Beam") then
    v.Enabled = true
-   table.insert(entry.Beams, {Beam = v, Until = os.clock() + (entry.Status and duration or v:GetAttribute("PreviewDuration") or duration)})
+   table.insert(entry.Beams, {Beam = v, Until = entry.Started + (entry.Status and duration or v:GetAttribute("PreviewDuration") or duration),
+    Delay = v:GetAttribute("EmitDelay") or 0, Width0 = v.Width0, Width1 = v.Width1})
+  elseif v:IsA("Trail") then
+   v.Enabled = true
+   table.insert(entry.Trails, {Trail=v, Duration=v:GetAttribute("PreviewDuration") or duration})
+  elseif v:IsA("PointLight") then
+   v.Enabled = false
+   table.insert(entry.Lights, {Light=v, Brightness=v.Brightness, Duration=v:GetAttribute("VFXLife") or 0.16})
   elseif v:IsA("ParticleEmitter") then
    if not preserveParticles then
     v.Enabled = false
@@ -81,7 +108,7 @@ function VFX:Play(group, name, cf, options)
 		local emitDuration = emitter:GetAttribute("EmitDuration") or 0
 		local layer = { Emitter = emitter, At = entry.Started + delay, Done = false,
 			Until = entry.Started + delay + emitDuration,
-			Continuous = entry.Status ~= nil or (name == "Rush" and template:GetAttribute("Version") ~= 2) }
+			Continuous = entry.Status ~= nil or (name == "Rush" and (template:GetAttribute("Version") or 0) < 2) }
 		table.insert(entry.Layers, layer)
 		if delay <= 0 then
 			layer.Done = true
@@ -173,8 +200,48 @@ if RunService:IsClient() then
     entry.Model:ScaleTo(entry.Scale * (entry.Expand + (1 - entry.Expand) * math.min(1, elapsed / (entry.Duration * 0.7))))
    end
    local fade = math.clamp(1 - (entry.Expires - now) / 0.25, 0, 1)
-   for _, p in entry.Parts do p.Part.Transparency = p.Transparency + (1 - p.Transparency) * fade end
-   for _, b in entry.Beams do b.Beam.Enabled = entry.Status ~= nil or now < b.Until end
+   local pivot = entry.Model:GetPivot()
+   for _, p in entry.Parts do
+    if p.Motion then
+     local time = elapsed - p.Delay
+     local progress = math.clamp(time / p.Life, 0, 1)
+     local ease = 1 - (1 - progress)^3
+     local scale = p.Grow + (1 - p.Grow) * ease
+     local localCF = p.Local
+     if p.Motion == "Radial" then
+      local position = localCF.Position
+      localCF = CFrame.new(position.X * scale, position.Y, position.Z * scale) * localCF.Rotation
+      p.Part.Size = Vector3.new(p.Size.X * scale, p.Size.Y, p.Size.Z * scale)
+     elseif p.Motion == "Shard" then
+      localCF = CFrame.new(localCF.Position + p.Velocity * time + Vector3.new(0, -p.Gravity * time * time * 0.5, 0))
+       * localCF.Rotation * CFrame.Angles(p.Angular.X * time, p.Angular.Y * time, p.Angular.Z * time)
+      p.Part.Size = p.Size * math.max(0.05, 1 - math.max(0, progress - 0.55) / 0.45)
+     elseif p.Motion == "Orbit" then
+      localCF = CFrame.Angles(p.Angular.X * time, p.Angular.Y * time, p.Angular.Z * time) * localCF
+      p.Part.Size = p.Size * scale
+     elseif p.Motion == "Rise" then
+      localCF += p.Velocity * (1 - ease)
+      p.Part.Size = p.Size * scale
+     else
+      p.Part.Size = p.Size * scale
+     end
+     p.Part.CFrame = pivot * localCF
+     local dissolve = math.clamp((progress - 0.45) / 0.55, 0, 1)
+     p.Part.Transparency = time < 0 and 1 or p.Transparency + (1 - p.Transparency) * math.max(fade, dissolve)
+    else
+     p.Part.Transparency = p.Transparency + (1 - p.Transparency) * fade
+    end
+   end
+   for _, b in entry.Beams do
+    b.Beam.Enabled = elapsed >= b.Delay and (entry.Status ~= nil or now < b.Until)
+    local beamFade = entry.Status and 1 or math.clamp((b.Until - now) / 0.14, 0, 1)
+    b.Beam.Width0 = b.Width0 * beamFade; b.Beam.Width1 = b.Width1 * beamFade
+   end
+   for _, trail in entry.Trails do trail.Trail.Enabled = elapsed < trail.Duration end
+   for _, light in entry.Lights do
+    light.Light.Enabled = elapsed < light.Duration
+    light.Light.Brightness = light.Brightness * math.max(0, 1 - elapsed / light.Duration)^2
+   end
   end
  end)
 end

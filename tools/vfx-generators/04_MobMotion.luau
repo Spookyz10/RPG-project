@@ -56,7 +56,8 @@ local function poses(name,p,category,t)
 		if category=="Basic" or category=="RootSweep" then
 			if category=="RootSweep" then windup=1.2 end
 			local wind=envelope(t,windup*0.8,windup*0.85,windup)
-			local hit=envelope(t,windup,windup+0.035,windup+0.22)
+			local strikeStart=windup*0.85
+			local hit=envelope(t-strikeStart,windup-strikeStart,windup+0.035-strikeStart,windup+0.22-strikeStart)
 			if quad then
 				local bite=name=="Wolf" or name=="Boar" or name=="Thornback Stag"
 				q.Torso=pose(-7*wind+10*hit,0,-4*wind+4*hit,0.12*wind,-0.55*hit)
@@ -99,7 +100,7 @@ local function poses(name,p,category,t)
 			q.FrontLeftLeg=pose(-28*lift);q.FrontRightLeg=pose(-28*lift)
 		elseif category=="Stomp" or category=="HeartSlam" then
 			local lift=envelope(t,1.12,1.3,1.49)
-			local hit=envelope(t,1.5,1.54,1.76)
+			local hit=envelope(t-1.3,0.2,0.24,0.46)
 			q.Torso=pose(-18*lift+18*hit,0,0,0.3*lift-0.45*hit)
 			q.Head=pose(10*lift-12*hit)
 			q.FrontLeftLeg=pose(-54*lift+30*hit);q.FrontRightLeg=q.FrontLeftLeg

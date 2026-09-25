@@ -1,4 +1,23 @@
-# Combat VFX - gerador de Edit Mode
+# Combat VFX e animacoes de mobs
+
+## Revisao atual (setembro de 2026)
+
+A revisao atual usa `03_CombatPolish.luau` e `04_MobMotion.luau`, executados em **Edit Mode** depois de sincronizar os scripts pelo Rojo. O instalador antigo abaixo serve como base; roda-lo novamente substitui o acabamento atual.
+
+- `03_CombatPolish.luau`: 40 templates e 192 camadas de ParticleEmitter em `ReplicatedStorage.Resources.CombatVFX`. Reaproveita texturas de `ServerStorage.VFX`, preservando os flipbooks, com um anel transparente para ondas de pressao. As copias anteriores ficam em `ServerStorage.RPGVFXBackups`.
+- `04_MobMotion.luau`: 37 KeyframeSequences em `ReplicatedStorage.Resources.MobMotion`, divididas pelos oito mobs. Inclui Idle, Walk, Basic e cada skill existente. Nao adiciona animacao de morte.
+- `05_VerifyCombatPolish.luau`: execute no **Client durante Play**. Usa clones isolados, testa movimento, todas as poses de ataque, emissao atrasada, cancelamento, expiracao de todos os bursts, status, morte e carregamento das texturas. Limpa os objetos de teste mesmo em falhas. Nao modifica dados de jogadores.
+
+`MobAnimations` reproduz localmente as poses nos Motor6Ds durante PreSimulation. Movimento e dano continuam no servidor. `AttackStartedAt` sincroniza as poses com o ataque; o ciclo de caminhada acompanha o deslocamento e a escala do rig. Os clips podem ser editados como KeyframeSequences; essa reproducao nao exige IDs publicados. Reinicie o Play depois de editar clips, pois o cliente compila e guarda as poses em cache. O player atual interpola CFrames linearmente entre as poses amostradas; nao interpreta markers nem curvas de easing do Animation Editor.
+
+Os templates usam `EmitCount`, `EmitDelay` e `EmitDuration`; o runtime agenda as camadas em um unico Heartbeat. Poeira marcada `WorldSpace` fica no mundo, enquanto os cortes acompanham a entidade. Safeguard e Lure Jab usam o mesmo ciclo de vida dos demais status. Morte, remocao, distancia e cancelamento limpam os efeitos; bursts tem limite de 80 simultaneos. O rugido emite no instante do dano.
+
+Escalas de referencia: GroundSlam 32 studs; salto do urso 22; Cavefall 14; rugido 48; TailSpin 20; HeartSlam 36; SporeBloom/SporeEcho 14/20; Cyclone 10; Ground Break 12. Sao diametros visuais; os hitboxes existentes permanecem autoritativos. A cena de comparacao usou o Dire Bear escalado para seus 15 studs de altura de gameplay.
+
+Os assets gerados pertencem ao place: **salve o place no Studio** para persistir as alteracoes. Rojo sincroniza o codigo, mas nao recria esses assets automaticamente. Aplique os instaladores tambem em outros places que usam o mesmo codigo.
+
+## Documentacao do instalador original
+
 
 ## Instalar e testar
 
@@ -47,4 +66,4 @@ Se o anel online nao carregar, substitua TEXTURES.Ring por um asset de anel bran
 
 ## Validacao
 
-Compilacao Luau; analise dos novos modulos cliente e geradores com definicoes Roblox; harnesses `verify_mob_attacks.py`, `verify_equipment.py` e `verify_combat_vfx.py`. Os testes usam mocks. Aparencia, timing percebido, carregamento das texturas e replicacao real precisam de Play no Studio; esta sessao nao tem acesso direto ao Studio.
+Compilacao Luau; analise dos novos modulos cliente e geradores com definicoes Roblox; harnesses `verify_mob_attacks.py`, `verify_equipment.py` e `verify_combat_vfx.py`. Os testes usam mocks. Aparencia, timing percebido, carregamento das texturas e replicacao real precisam de Play no Studio; os resultados historicos dos mocks nao substituem a verificacao em Studio descrita acima.
