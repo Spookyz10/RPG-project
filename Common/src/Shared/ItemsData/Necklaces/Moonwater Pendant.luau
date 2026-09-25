@@ -1,15 +1,15 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Remote = require(ReplicatedStorage.Shared.Utils.RemoteManager)
--- Crafting/drop sources and future passive proposals: Info/Forest.md.
+-- Forest crafting, drops, builds, and model requirements: Info/Forest-content.md.
 local Item = {
 	Kind = "Equipment" :: "Equipment",
-	Stats = {["Attack"] = 0, ["Defense"] = 2, ["Health"] = 30, ["Speed"] = 1, ["Critical"] = 0, ["Critical Power"] = 0},
-	Passive = "",
+	Stats = {["Attack"] = 0, ["Defense"] = 2, ["Health"] = 30, ["Speed"] = 2, ["Critical"] = 4, ["Critical Power"] = 15},
+	Passive = "MoonlitCadence",
 	Data = {
 		ID = "Moonwater Pendant", Name = "Moonwater Pendant", ItemType = "Equipment", SubType = "Necklace",
 		Level = 21, Rarity = "Rare", Stackable = false, SellsFor = 115,
-		ActionName = "Equip", Description = "A polished stone holding the colors of Moonwater Crossing.",
+		ActionName = "Equip", Description = "Moonlit Cadence: every fourth damaging hit is a guaranteed critical hit with +50% Critical Power.",
 	},
 }
 function Item:Elligable(data: Types.PlayerDataValue): boolean

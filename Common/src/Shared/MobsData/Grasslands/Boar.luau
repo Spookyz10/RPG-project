@@ -9,7 +9,6 @@ local Mob: Types.MobInfo = {
 		Wilderbone = { Chance = 70, Amount = 1 },
 		["Small Defense Potion"] = { Chance = 10, Amount = 1 },
 		["Small Health Potion"] = { Chance = 10, Amount = 1 },
-		["Ironhide Band"] = { Chance = 10, Amount = 1 },
 		["Tuskguard Mantle"] = { Chance = 8, Amount = 1 },
 	},
 }

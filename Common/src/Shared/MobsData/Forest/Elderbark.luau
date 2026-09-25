@@ -9,6 +9,7 @@ local Mob: Types.MobInfo = {
 	Currencies = { Gold = 400 },
 	Drops = {
 		["Elder Heartwood"] = { Chance = 100, Amount = 3 },
+		["Small Health Potion"] = { Chance = 100, Amount = 2 },
 		["Heart of the Grove"] = { Chance = 12, Amount = 1 },
 	},
 }

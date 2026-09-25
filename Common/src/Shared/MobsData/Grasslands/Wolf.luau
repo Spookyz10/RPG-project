@@ -9,7 +9,6 @@ local Mob: Types.MobInfo = {
 		["Small Attack Potion"] = { Chance = 10, Amount = 1 },
 		["Small Critical Potion"] = { Chance = 8, Amount = 1 },
 		["Small Speed Potion"] = { Chance = 5, Amount = 1 },
-		["Hunter's Charm"] = { Chance = 10, Amount = 1 },
 		["Bloodfang Ring"] = { Chance = 7, Amount = 1 },
 	},
 }

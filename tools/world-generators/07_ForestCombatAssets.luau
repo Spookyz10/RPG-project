@@ -1,4 +1,4 @@
--- Forest combat VFX and craftable weapon models. Run in Edit after 06.
+-- Forest combat VFX and fallback craftable weapon models. Run in Edit after 06.
 assert(not game:GetService("RunService"):IsRunning(), "Stop Play before generating combat assets")
 local RS, SS = game:GetService("ReplicatedStorage"), game:GetService("ServerStorage")
 local V, C = Vector3.new, Color3.fromRGB
@@ -146,8 +146,12 @@ do
 	install(m, destination)
 end
 -- WeaponLoader expects a Model with Handle and optional GripPoint; never anchored on equip.
+-- Preserve hand-authored weapon models. These generated models are fallbacks only.
 local weapons = folder(resources, "Weapons")
 for _, name in { "Thornwood Blade", "Heartwood Cleaver" } do
+	if weapons:FindFirstChild(name) then
+		continue
+	end
 	local m = Instance.new("Model")
 	m.Name = name
 	local heavy = name == "Heartwood Cleaver"
@@ -186,8 +190,8 @@ for _, name in { "Thornwood Blade", "Heartwood Cleaver" } do
 			p.Massless = true
 		end
 	end
-	install(m, weapons)
+	m.Parent = weapons
 end
 print(
-	"Forest assets saved: 11 attack templates and 2 craftable weapons. Existing versions preserved in WorldGeneratorBackups."
+	"Forest assets saved: 11 attack templates; missing legacy craftable weapons received fallback models. Existing weapon models were preserved."
 )

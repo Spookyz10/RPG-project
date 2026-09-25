@@ -91,11 +91,19 @@ for name,mob in mobs do
  for id,drop in mob.Drops do assert(items[id] and drop.Chance>0 and drop.Chance<=100 and drop.Amount>=1) end
  definitions[name]:Start({})
 end
-for _,name in {"Sporeweave Mantle","Thornwood Blade","Runebark Vestment","Heartwood Cleaver"} do
+for _,name in {
+ "Sporeweave Mantle","Sporethorn Daggers","Thornwood Blade","Rune of Resonance","Sentinel Signet",
+ "Runebark Vestment","Grovekeeper Charm","Heartwood Cleaver",
+} do
  local recipe=recipes[name];assert(items[name] and recipe.Level==items[name].Data.Level)
  for id,amount in recipe.Ingredients do assert(items[id] and amount>0 and amount<=items[id].Data.Cap) end
 end
-assert(not recipes["Bramble Loop"] and not recipes["Moonwater Pendant"] and not recipes["Heart of the Grove"])
+for _,name in {"Sporecap Pendant","Bramble Loop","Moonwater Pendant","Heart of the Grove"} do
+ assert(items[name] and not recipes[name],name.." must remain drop-exclusive")
+end
+for _,mob in mobs do
+ for id in mob.Drops do assert(not recipes[id],id.." cannot be both a mob drop and a crafted result") end
+end
 assert(config.Elderbark.IsBoss and config.Elderbark.SkillRecovery==5)
 -- Execute the production controller with simulated time: optional recovery must not change old mobs.
 for _,recovery in {0,5} do

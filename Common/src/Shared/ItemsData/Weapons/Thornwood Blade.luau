@@ -1,16 +1,16 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Remote = require(ReplicatedStorage.Shared.Utils.RemoteManager)
--- Crafting/drop sources and future passive proposals: Info/Forest.md.
+-- Forest crafting, drops, builds, and model requirements: Info/Forest-content.md.
 local Item = {
 	Kind = "Equipment" :: "Equipment",
-	Stats = {["Attack"] = 18, ["Defense"] = 0, ["Health"] = 0, ["Speed"] = 0, ["Critical"] = 0, ["Critical Power"] = 0},
-	Passive = "",
+	Stats = {["Attack"] = 20, ["Defense"] = 0, ["Health"] = 0, ["Speed"] = 1, ["Critical"] = 3, ["Critical Power"] = 10},
+	Passive = "ThornTempo",
 	WeaponType = "Solo",
 	Data = {
 		ID = "Thornwood Blade", Name = "Thornwood Blade", ItemType = "Equipment", SubType = "Weapon",
-		Level = 18, Rarity = "Rare", Stackable = false, SellsFor = 110,
-		ActionName = "Equip", Description = "A light blade carved from interlocking forest thorns.",
+		Level = 19, Rarity = "Rare", Stackable = false, SellsFor = 110,
+		ActionName = "Equip", Description = "Thorn Tempo: every third damaging hit deals 30% more damage.",
 	},
 }
 function Item:Elligable(data: Types.PlayerDataValue): boolean

@@ -1,36 +1,39 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Remote = require(ReplicatedStorage.Shared.Utils.RemoteManager)
--- Forest crafting, drops, builds, and model requirements: Info/Forest-content.md.
+
 local Item = {
 	Kind = "Equipment" :: "Equipment",
 	Stats = {
-		["Attack"] = 0,
-		["Defense"] = 9,
-		["Health"] = 55,
-		["Speed"] = 0,
-		["Critical"] = 0,
-		["Critical Power"] = 0,
+		Attack = 0,
+		Defense = 0,
+		Health = 0,
+		Speed = 0,
+		Critical = 0,
+		["Critical Power"] = 10,
 	},
-	Passive = "RunicWard",
+	Passive = "CanopyResonance",
 	Data = {
-		ID = "Runebark Vestment",
-		Name = "Runebark Vestment",
+		ID = "Rune of Resonance",
+		Name = "Rune of Resonance",
 		ItemType = "Equipment",
-		SubType = "Armor",
-		Level = 22,
-		Rarity = "Epic",
+		SubType = "Rune",
+		Level = 21,
+		Rarity = "Rare",
 		Stackable = false,
-		SellsFor = 160,
+		SellsFor = 125,
 		ActionName = "Equip",
-		Description = "Runic Ward: every third damaging hit received deals 40% less damage.",
+		Description = "Canopy Resonance: damaging skills deal 15% more damage.",
 	},
 }
+
 function Item:Elligable(data: Types.PlayerDataValue): boolean
 	return data and data.Level() >= self.Data.Level
 end
+
 function Item:Action(uuid: string)
 	Remote.SendServerEvent("EquipItem", uuid)
 end
+
 local TypedItem: Types.Equipment = Item
 return TypedItem

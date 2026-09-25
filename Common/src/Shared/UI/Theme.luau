@@ -24,6 +24,7 @@ Theme.Rarities = {
 	Common = Color3.fromRGB(111, 124, 145),
 	Uncommon = Theme.Mint,
 	Rare = Theme.Sky,
+	Epic = Theme.Purple,
 	Legendary = Color3.fromRGB(217, 64, 156),
 	Godly = Theme.Sand,
 	Ascendant = Theme.Purple,

@@ -9,7 +9,7 @@ local WorldLoot = require(RS.Shared.WorldLoot)
 local Abbreviation = require(RS.Shared.Utils.Abbreviation)
 local Remote = {}
 local sequence = 0
-local ranks = {Common = 1, Uncommon = 2, Rare = 3, Legendary = 4, Godly = 5, Ascendant = 6}
+local ranks = {Common = 1, Uncommon = 2, Rare = 3, Epic = 4, Legendary = 5, Godly = 6, Ascendant = 7}
 local function tween(obj, duration, props, style)
 	local result = TweenService:Create(obj, TweenInfo.new(duration, style or Enum.EasingStyle.Quad, Enum.EasingDirection.Out), props)
 	result:Play()

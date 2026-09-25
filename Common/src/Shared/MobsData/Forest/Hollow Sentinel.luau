@@ -9,6 +9,7 @@ local Mob: Types.MobInfo = {
 	Currencies = { Gold = 55 },
 	Drops = {
 		["Runic Bark"] = { Chance = 75, Amount = 1 },
+		["Small Defense Potion"] = { Chance = 10, Amount = 1 },
 		["Moonwater Pendant"] = { Chance = 5, Amount = 1 },
 	},
 }

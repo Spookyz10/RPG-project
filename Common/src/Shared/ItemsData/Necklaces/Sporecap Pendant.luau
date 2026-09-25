@@ -1,36 +1,39 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Remote = require(ReplicatedStorage.Shared.Utils.RemoteManager)
--- Forest crafting, drops, builds, and model requirements: Info/Forest-content.md.
+
 local Item = {
 	Kind = "Equipment" :: "Equipment",
 	Stats = {
-		["Attack"] = 0,
-		["Defense"] = 9,
-		["Health"] = 55,
-		["Speed"] = 0,
-		["Critical"] = 0,
-		["Critical Power"] = 0,
+		Attack = 2,
+		Defense = 1,
+		Health = 25,
+		Speed = 1,
+		Critical = 4,
+		["Critical Power"] = 15,
 	},
-	Passive = "RunicWard",
+	Passive = "FungalBloom",
 	Data = {
-		ID = "Runebark Vestment",
-		Name = "Runebark Vestment",
+		ID = "Sporecap Pendant",
+		Name = "Sporecap Pendant",
 		ItemType = "Equipment",
-		SubType = "Armor",
-		Level = 22,
-		Rarity = "Epic",
+		SubType = "Necklace",
+		Level = 16,
+		Rarity = "Rare",
 		Stackable = false,
-		SellsFor = 160,
+		SellsFor = 90,
 		ActionName = "Equip",
-		Description = "Runic Ward: every third damaging hit received deals 40% less damage.",
+		Description = "Fungal Bloom: landing a critical hit primes your next damaging hit to deal 20% more damage.",
 	},
 }
+
 function Item:Elligable(data: Types.PlayerDataValue): boolean
 	return data and data.Level() >= self.Data.Level
 end
+
 function Item:Action(uuid: string)
 	Remote.SendServerEvent("EquipItem", uuid)
 end
+
 local TypedItem: Types.Equipment = Item
 return TypedItem

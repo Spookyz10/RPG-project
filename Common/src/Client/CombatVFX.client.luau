@@ -5,7 +5,7 @@ local BuffEffects = require(RS.Shared.BuffEffects)
 
 local function applyStatus(entity, id, duration)
  local effect = BuffEffects[id]
- if effect then effect.Apply(entity) else VFX:Status(entity, id, duration) end
+ if effect then effect.Apply(entity, duration) else VFX:Status(entity, id, duration) end
 end
 
 local function stopStatus(entity, id)

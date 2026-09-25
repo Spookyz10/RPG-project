@@ -7,7 +7,6 @@ local Mob: Types.MobInfo = {
 	Drops = {
 		["Dark Ivy"] = { Chance = 80, Amount = 1 },
 		["Small Health Potion"] = { Chance = 10, Amount = 1 },
-		["Briar Ring"] = { Chance = 10, Amount = 1 },
 		["Bloom Pendant"] = { Chance = 8, Amount = 1 },
 	},
 }

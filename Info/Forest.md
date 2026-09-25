@@ -1,5 +1,7 @@
 # Forest — low poly v4
 
+> **Conteúdo atualizado:** drops, receitas, equipamentos e passivas foram revisados depois desta documentação de mundo. Use `Info/Forest-content.md` como fonte atual para gameplay; as seções antigas de drops/passivas abaixo são apenas histórico da primeira versão.
+
 ## Aplicar no Studio
 
 Com Play parado, cole o conteúdo completo de `tools/world-generators/09_InstallForest.luau` na Command Bar. O instalador executa 04, 05, 06, 07 e a auditoria 08, nessa ordem. Sincronize Common pelo Rojo, salve o place e entre na Forest pelo seletor de zonas.

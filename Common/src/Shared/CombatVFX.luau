@@ -48,11 +48,11 @@ function VFX:Play(group, name, cf, options)
  for _, e in active do if not e.Destroyed and not e.Status then bursts += 1 end end
  if not options.Status and bursts >= MAX_BURSTS then return end
  local model = template:Clone()
- local preserveParticles = options.PreserveParticles == true
+ local preserveParticles = options.PreserveParticles == true and template:GetAttribute("Version") ~= 2
  local duration = options.Duration or template:GetAttribute("Duration") or 1
  local entry = {Model = model, Origin = cf, Entity = options.Entity, Follow = options.Follow,
   Status = options.Status, Started = os.clock(), Expires = os.clock() + duration,
-  Duration = duration, Offset = options.Offset or CFrame.identity, Parts = {}, Beams = {}, Emitters = {},
+  Duration = duration, Offset = options.Offset or CFrame.identity, Parts = {}, Beams = {}, Emitters = {}, Layers = {},
   Spin = preserveParticles and 0 or template:GetAttribute("SpinSpeed") or 0,
   Rise = preserveParticles and 0 or template:GetAttribute("RiseDistance") or 0,
   Expand = not preserveParticles and template:GetAttribute("ExpandFrom") or nil,
@@ -68,7 +68,7 @@ function VFX:Play(group, name, cf, options)
   elseif v:IsA("ParticleEmitter") then
    if not preserveParticles then
     v.Enabled = false
-    if options.Follow then v.LockedToPart = true end
+    if options.Follow and v:GetAttribute("WorldSpace") ~= true then v.LockedToPart = true end
     table.insert(entry.Emitters, v)
    end
   end
@@ -77,10 +77,17 @@ function VFX:Play(group, name, cf, options)
  model:PivotTo(cf * CFrame.new(0, -entry.Rise, 0))
  model.Parent = workspace
 	for _, emitter in entry.Emitters do
-		emitter.Enabled = (entry.Status ~= nil or name == "Rush") and emitter.Rate > 0
-		-- Attack particles are intentionally authored disabled. Emit a burst instead
-		-- of enabling their rate, so an impact stays a one-shot effect.
-		emitter:Emit(emitter:GetAttribute("EmitCount") or math.max(1, math.floor(emitter.Rate * 0.25)))
+		local delay = emitter:GetAttribute("EmitDelay") or 0
+		local emitDuration = emitter:GetAttribute("EmitDuration") or 0
+		local layer = { Emitter = emitter, At = entry.Started + delay, Done = false,
+			Until = entry.Started + delay + emitDuration,
+			Continuous = entry.Status ~= nil or (name == "Rush" and template:GetAttribute("Version") ~= 2) }
+		table.insert(entry.Layers, layer)
+		if delay <= 0 then
+			layer.Done = true
+			emitter.Enabled = (layer.Continuous or emitDuration > 0) and emitter.Rate > 0
+			emitter:Emit(emitter:GetAttribute("EmitCount") or math.max(1, math.floor(emitter.Rate * 0.25)))
+		end
 	end
  table.insert(active, entry)
  return entry
@@ -151,6 +158,15 @@ if RunService:IsClient() then
    end
    if not closeEnough(base) then dispose(entry); table.remove(active, i); continue end
    local elapsed = now - entry.Started
+   for _, layer in entry.Layers do
+    local emitter = layer.Emitter
+    if not layer.Done and now >= layer.At then
+     layer.Done = true
+     emitter:Emit(emitter:GetAttribute("EmitCount") or 1)
+     emitter.Enabled = (layer.Continuous or now < layer.Until) and emitter.Rate > 0
+    end
+    if layer.Done and not layer.Continuous and now >= layer.Until then emitter.Enabled = false end
+   end
    local rise = entry.Rise * (1 - math.min(1, elapsed / 0.16)) ^ 2
    entry.Model:PivotTo(base * CFrame.new(0, -rise, 0) * CFrame.Angles(0, elapsed * entry.Spin, 0))
    if entry.Expand then

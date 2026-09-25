@@ -18,7 +18,7 @@ local function updateWorldEffect(effectId: string, entity: Model, action: string
 	local legacy = BuffEffects[effectId]
 	if legacy then
 		if action == "Start" or action == "Update" then
-			legacy.Apply(entity)
+			legacy.Apply(entity, duration)
 		elseif action == "End" then
 			legacy.Stop(entity)
 		end

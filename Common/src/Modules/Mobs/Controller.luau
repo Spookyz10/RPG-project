@@ -27,6 +27,7 @@ function Controller:Start(mob, definition)
  end
  local function attack(spec)
   if spec.FreeRotation then facing:Release() end
+  mob:SetAttribute("AttackStartedAt", workspace:GetServerTimeNow())
   mob:SetAttribute("Attack", spec.Name)
   spec.Execute(ctx, spec)
   mob:SetAttribute("Attack", nil)

@@ -1,5 +1,7 @@
 # Crafting e equipamentos da zona
 
+> **Referência histórica da Grasslands.** Para o conteúdo atual da Forest e para as receitas revisadas, consulte `Info/Forest-content.md`.
+
 No Studio, fora do Play, execute `tools/ui-generators/20_Crafting.luau` para salvar a tela de crafting e `06_Inventory.luau` para incluir CPWR na ficha de equipamento. `00_All.luau` também inclui tudo. Os geradores guardam backup das telas anteriores. Sincronize os scripts e salve o place antes de jogar. Acesse pelo Blacksmith → Crafting.
 
 A UI mostra nível, descrição da passiva, custo em Gold e contagem de materiais. O servidor valida receita, nível, materiais e espaço, fabrica uma unidade por solicitação e avança a quest CraftItem. Materiais consumidos liberam espaço para o resultado. Falhas de validação não consomem recursos.

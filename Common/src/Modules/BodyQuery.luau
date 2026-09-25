@@ -27,16 +27,23 @@ function BodyQuery.PlayersInVolume(cf, size, radius)
 	for _, part in workspace:GetPartBoundsInBox(cf, size, filter) do
 		local character = BodyQuery.Resolve(part)
 		if not character or not players:GetPlayerFromCharacter(character) then continue end
-		if radius then
-			local axis = Vector3.new(cf.Position.X, math.clamp(part.Position.Y, cf.Position.Y - size.Y / 2, cf.Position.Y + size.Y / 2), cf.Position.Z)
-			local localPoint = part.CFrame:PointToObjectSpace(axis)
-			local half = part.Size / 2
-			local closest = part.CFrame:PointToWorldSpace(Vector3.new(
-				math.clamp(localPoint.X, -half.X, half.X), math.clamp(localPoint.Y, -half.Y, half.Y), math.clamp(localPoint.Z, -half.Z, half.Z)))
-			local delta = closest - axis
-			if Vector2.new(delta.X, delta.Z).Magnitude > radius then continue end
-		end
 		found[character] = true
+	end
+	if radius then
+		-- The box above is only a broad-phase query. Resolve circular attacks from
+		-- each character's authoritative body position so the box corners cannot hit.
+		local radiusSquared = radius * radius
+		for character in found do
+			local root = character:FindFirstChild("HumanoidRootPart")
+			if not root or not root:IsA("BasePart") then
+				found[character] = nil
+				continue
+			end
+			local offset = root.Position - cf.Position
+			if offset.X * offset.X + offset.Z * offset.Z > radiusSquared then
+				found[character] = nil
+			end
+		end
 	end
 	return found
 end

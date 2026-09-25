@@ -10,7 +10,7 @@ local Behavior = require(script.Parent.BehaviorManager)
 local BodyQuery = require(script.Parent.Parent.BodyQuery)
 local Context = {}
 
-local function showDebugHitbox(cf: CFrame, size: Vector3)
+local function showDebugHitbox(cf: CFrame, size: Vector3, radius: number?)
 	local debug = ServerScriptService:FindFirstChild("DebugHitboxes")
 	if not (debug and debug:IsA("BoolValue") and debug.Value and RunService:IsStudio()) then return end
 	local part = Instance.new("Part")
@@ -22,8 +22,14 @@ local function showDebugHitbox(cf: CFrame, size: Vector3)
 	part.Material = Enum.Material.ForceField
 	part.Color = Color3.fromRGB(255, 70, 45)
 	part.Transparency = 0.65
-	part.Size = size
-	part.CFrame = cf
+	if radius then
+		part.Shape = Enum.PartType.Cylinder
+		part.Size = Vector3.new(size.Y, radius * 2, radius * 2)
+		part.CFrame = cf * CFrame.Angles(0, 0, math.rad(90))
+	else
+		part.Size = size
+		part.CFrame = cf
+	end
 	part.Parent = workspace
 	Debris:AddItem(part, 0.3)
 end
@@ -70,8 +76,8 @@ function Context.new(mob, cfg, session)
 		-- The hit volume is deliberately tall: indicators are ground-only, while
 		-- players can be jumping, falling, or standing on uneven cave geometry.
 		local damageSize = Vector3.new(size.X + 2, math.max(size.Y + 6, 40), size.Z + 2)
-		showDebugHitbox(cf, damageSize)
-		for char in BodyQuery.PlayersInVolume(cf, damageSize, radius and radius + 1 or nil) do
+		showDebugHitbox(cf, damageSize, radius)
+		for char in BodyQuery.PlayersInVolume(cf, damageSize, radius) do
 			local part = char:FindFirstChild("HumanoidRootPart")
 			if not part or not alive(char) or seen[char] or char:FindFirstChildOfClass("ForceField") then continue end
 			if not ignoreLineOfSight and workspace:Raycast(root.Position, part.Position - root.Position, exclude) then continue end

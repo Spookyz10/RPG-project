@@ -19,7 +19,6 @@ local Mob: Types.MobInfo = {
 		["Talisman of the Wild"] = { Chance = 25, Amount = 1 },
 		["Clawed Pendant"] = { Chance = 20, Amount = 1 },
 		["Cloak of Hide"] = { Chance = 15, Amount = 1 },
-		["Direheart Pendant"] = { Chance = 10, Amount = 1 },
 		["Crown of the Hunt"] = { Chance = 8, Amount = 1 },
 	},
 }
