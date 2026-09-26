@@ -11,6 +11,7 @@ local statusKeys = {
 	Venom = "Venom",
 	["Lure Jab"] = "LureJab",
 	Safeguard = "Safeguard",
+	Renewal = "Renewal",
 }
 
 local function impact(name, target)

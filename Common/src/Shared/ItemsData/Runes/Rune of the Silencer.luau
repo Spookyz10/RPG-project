@@ -12,7 +12,7 @@ local Item = {
 	},
 	Passive = "",
 	EffectOverrides = {
-		LureJab = { Value = 2.25, HealPercent = 0.05 },
+		LureJab = { HealPercent = 0.05 },
 	},
 	Data = {
 		SellsFor = 10,
@@ -23,7 +23,7 @@ local Item = {
 		Icon = "",
 		Rarity = "Rare",
 		Level = 1,
-		Description = "Empowers Lure Jab, making it deal far more bonus damage and heal you on hit.",
+		Description = "Lure Jab also heals you for 5% of maximum health on hit. Defense reduction remains 10.",
 		ActionName = "Equip",
 		ID = "Rune of the Silencer",
 	},

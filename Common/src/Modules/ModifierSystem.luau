@@ -114,14 +114,19 @@ function ModifierSystem:GetModifiers(target: any, property: string): { Modifier 
 	return list
 end
 
-function ModifierSystem:Aggregate(target: any, property: string, baseValue: number): number
+function ModifierSystem:GetModifier(target: any, property: string, id: string): Modifier?
+	local values = Modifiers[target] and Modifiers[target][property]
+	return values and values[id]
+end
+
+function ModifierSystem:Aggregate(target: any, property: string, baseValue: number, excludedId: string?): number
 	local list = self:GetModifiers(target, property)
 
 	local result = baseValue
 	local overrideValue: number? = nil
 
 	for _, modifier in list do
-		if modifier.Operation == "Override" then
+		if modifier.ID ~= excludedId and modifier.Operation == "Override" then
 			overrideValue = modifier.Value
 		end
 	end
@@ -131,13 +136,13 @@ function ModifierSystem:Aggregate(target: any, property: string, baseValue: numb
 	end
 
 	for _, modifier in list do
-		if modifier.Operation == "Add" then
+		if modifier.ID ~= excludedId and modifier.Operation == "Add" then
 			result += modifier.Value
 		end
 	end
 
 	for _, modifier in list do
-		if modifier.Operation == "Multiply" then
+		if modifier.ID ~= excludedId and modifier.Operation == "Multiply" then
 			result *= modifier.Value
 		end
 	end

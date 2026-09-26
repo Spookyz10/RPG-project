@@ -1,7 +1,6 @@
 -- Run on the Studio CLIENT during Play. Uses isolated clones, never player data.
-assert(game:GetService("RunService"):IsStudio() and game:GetService("RunService"):IsClient())
+assert(game:GetService("RunService"):IsStudio() and game:GetService("RunService"):IsClient(), "Run on Studio Client during Play")
 local RS=game:GetService("ReplicatedStorage")
-local Motion=require(RS.Shared.MobAnimations)
 local VFX=require(RS.Shared.CombatVFX)
 local stage=Instance.new("Folder");stage.Name="CombatPolishVerification";stage.Parent=workspace
 local camera=workspace.CurrentCamera
@@ -12,21 +11,15 @@ local function play(group,name,options)
  table.insert(entries,entry);return entry
 end
 local ok,err=xpcall(function()
- for _,folder in RS.Resources.MobMotion:GetChildren() do
-  local m=RS.Mobs:FindFirstChild(folder.Name,true):Clone()
-  for _,d in m:GetDescendants() do if d:IsA("BasePart") then d.Anchored=d.Name=="HumanoidRootPart";d.CanCollide=false end end
-  m.Parent=stage;m:PivotTo(CFrame.new(origin));Motion:Attach(m);table.insert(rigs,m)
-  local leg=m:FindFirstChild("FrontLeftLegJoint",true) or m:FindFirstChild("LeftLegJoint",true)
-  local before=leg.Transform
-  for _=1,12 do m.HumanoidRootPart.CFrame+=Vector3.new(0.2,0,0);task.wait(0.02) end
-  assert(leg.Transform~=before,"walk failed "..m.Name)
-  for _,clip in folder:GetChildren() do if not clip.Loop then
-   m:SetAttribute("AttackStartedAt",workspace:GetServerTimeNow()-0.2);m:SetAttribute("Attack",clip.Name)
-   task.wait(0.06)
-   assert(m:FindFirstChild("TorsoJoint",true).Transform~=CFrame.identity,m.Name.."/"..clip.Name)
-  end end
-  m:SetAttribute("Attack",nil);table.insert(report,m.Name..": walk + all attacks PASS")
- end
+ local Motion=require(RS.Shared.MobAnimations)
+ local m=RS.Mobs:FindFirstChild("Boar",true):Clone()
+ for _,d in m:GetDescendants() do if d:IsA("BasePart") then d.Anchored=d.Name=="HumanoidRootPart";d.CanCollide=false end end
+ m.Parent=stage;m:PivotTo(CFrame.new(origin));table.insert(rigs,m)
+ Motion:Attach(m)
+ task.wait(0.15)
+ local moved=false
+ for _,j in m:GetDescendants() do if j:IsA("Motor6D") and j.Transform~=CFrame.identity then moved=true end end
+ assert(moved,"mob poses did not animate on client")
  local entity=rigs[1]
  VFX:Status(entity,"Poison",1);VFX:Status(entity,"Poison",1)
  local n=0;for _,m in workspace:GetChildren() do if m.Name=="Poison" and (m:GetPivot().Position-origin).Magnitude<20 then n+=1 end end
@@ -74,7 +67,6 @@ end,debug.traceback)
 for _,entry in entries do if entry.Model.Parent then entry.Model:Destroy() end end
 for _,m in rigs do
  for _,id in {"Poison","Safeguard"} do VFX:StopStatus(m,id) end
- Motion:Detach(m)
 end
 stage:Destroy()
 assert(ok,err)

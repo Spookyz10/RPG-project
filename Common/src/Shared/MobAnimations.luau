@@ -1,10 +1,12 @@
--- Local playback of editable KeyframeSequences. Server owns combat and movement.
+-- Client-only pose evaluation. No per-frame joint replication.
 local RunService = game:GetService("RunService")
-local RS = game:GetService("ReplicatedStorage")
+local Resources = game:GetService("ReplicatedStorage"):WaitForChild("Resources")
+assert(RunService:IsClient(), "Animation playback is client-only")
 local MobAnimations = {}
 local active = {}
 local compiled = setmetatable({}, { __mode = "k" })
 local connection
+local startedFolders = setmetatable({}, { __mode = "k" })
 
 local function compile(sequence)
 	if compiled[sequence] then return compiled[sequence] end
@@ -39,6 +41,7 @@ function MobAnimations:Detach(model)
 	local state = active[model]
 	if not state then return end
 	active[model] = nil
+	if state.OneShot then model:SetAttribute("ClientMotion", nil) end
 	for _, joint in state.Joints do if joint.Parent then joint.Transform = CFrame.identity end end
 	for _, signal in state.Connections do signal:Disconnect() end
 	if next(active) == nil and connection then connection:Disconnect(); connection = nil end
@@ -46,21 +49,31 @@ end
 
 local function step(dt)
 	local now = workspace:GetServerTimeNow()
-	local camera = workspace.CurrentCamera
+
 	for model, state in active do
-		if not model:IsDescendantOf(workspace) or state.Humanoid.Health <= 0 then
+		if not model:IsDescendantOf(workspace) or not state.Root.Parent or not state.Humanoid.Parent or state.Humanoid.Health <= 0 then
 			MobAnimations:Detach(model)
 			continue
 		end
 		local position = state.Root.Position
+		local camera = workspace.CurrentCamera
+		if not state.OneShot and camera and (camera.CFrame.Position - position).Magnitude > 240 then
+			state.LastPosition = position
+			continue
+		end
 		local distance = (position - state.LastPosition) * Vector3.new(1, 0, 1)
 		state.LastPosition = position
 		local speed = math.min(distance.Magnitude / math.max(dt, 0.001), state.Humanoid.WalkSpeed * 1.8)
 		state.Speed += (speed - state.Speed) * (1 - math.exp(-dt * 12))
 		state.WalkTime += dt * math.clamp(state.Speed / state.ReferenceSpeed, 0, 1.8)
-		if camera and (camera.CFrame.Position - position).Magnitude > 220 then continue end
-		local attack = model:GetAttribute("Attack")
-		local started = model:GetAttribute("AttackStartedAt")
+		if state.OneShot then
+			if now - state.Started >= state.AttackClip.Length then
+				MobAnimations:Detach(model)
+				continue
+			end
+		end
+		local attack = state.OneShot or model:GetAttribute("Attack")
+		local started = state.OneShot and state.Started or model:GetAttribute("AttackStartedAt")
 		if attack and (attack ~= state.Attack or started ~= state.Started) then
 			state.Attack, state.Started = attack, started or now
 			state.AttackClip = state.Clips[attack]
@@ -86,11 +99,10 @@ local function step(dt)
 	end
 end
 
-function MobAnimations:Attach(model)
-	if not RunService:IsClient() or active[model] then return end
-	local resources = RS:FindFirstChild("Resources")
-	local library = resources and resources:FindFirstChild("MobMotion")
-	local folder = library and library:FindFirstChild(model.Name)
+function MobAnimations:Attach(model, playerClip, startedAt)
+	if active[model] then return end
+	local library = Resources:FindFirstChild("MobMotion")
+	local folder = playerClip and playerClip.Parent or library and library:FindFirstChild(model.Name)
 	local root = model:FindFirstChild("HumanoidRootPart")
 	local hum = model:FindFirstChildOfClass("Humanoid")
 	if not folder or not root or not hum or hum.Health <= 0 then return end
@@ -99,25 +111,54 @@ function MobAnimations:Attach(model)
 		Scale = model:GetScale() / (folder:GetAttribute("RigScale") or 1),
 		ReferenceSpeed = folder:GetAttribute("WalkSpeed") or 12 }
 	local names = {}
-	for _, seq in folder:GetChildren() do
+	for _, seq in (playerClip and { playerClip } or folder:GetChildren()) do
 		if seq:IsA("KeyframeSequence") then
 			local clip = compile(seq)
 			state.Clips[seq.Name] = clip
 			for _, frame in clip.Frames do for name in frame.Poses do names[name] = true end end
 		end
 	end
-	for _, joint in model:GetDescendants() do
+	local function addJoint(joint)
 		if joint:IsA("Motor6D") and joint.Part1 and names[joint.Part1.Name] then
 			state.Joints[joint.Part1.Name] = joint
 		end
 	end
+	for _, joint in model:GetDescendants() do addJoint(joint) end
+	table.insert(state.Connections, model.DescendantAdded:Connect(addJoint))
+	if playerClip then
+		model:SetAttribute("ClientMotion", playerClip.Name)
+		state.OneShot = playerClip.Name
+		state.Attack = playerClip.Name
+		state.AttackClip = state.Clips[playerClip.Name]
+		state.Started = startedAt or workspace:GetServerTimeNow()
+	end
 	active[model] = state
 	table.insert(state.Connections, model.Destroying:Connect(function() self:Detach(model) end))
 	table.insert(state.Connections, hum.Died:Connect(function() self:Detach(model) end))
-	if not connection then connection = RunService.PreSimulation:Connect(step) end
+	if not connection then
+		connection = RunService.PreSimulation:Connect(step)
+	end
+	return state
+end
+
+function MobAnimations:Play(model, name, startedAt)
+	local library = Resources:FindFirstChild("PlayerMotion")
+	local clip = library and library:FindFirstChild(name)
+	if not clip or not clip:IsA("KeyframeSequence") then
+		warn("Missing client PlayerMotion clip: " .. name)
+		return 0
+	end
+	if startedAt and workspace:GetServerTimeNow() - startedAt >= compile(clip).Length then return 0 end
+	local current = active[model]
+	if current and startedAt and current.Started and startedAt <= current.Started then return 0 end
+	self:Detach(model)
+	local state = self:Attach(model, clip, startedAt)
+	return state and state.AttackClip.Length or 0
 end
 
 function MobAnimations:Start(folder)
+	if startedFolders[folder] then return end
+	startedFolders[folder] = true
 	local function attach(model)
 		if not model:IsA("Model") then return end
 		task.spawn(function()
@@ -129,6 +170,18 @@ function MobAnimations:Start(folder)
 	for _, model in folder:GetChildren() do attach(model) end
 	folder.ChildAdded:Connect(attach)
 	folder.ChildRemoved:Connect(function(model) self:Detach(model) end)
+end
+
+-- Compile replicated pose data during loading, before the first cast or spawn.
+function MobAnimations:Preload()
+	for _, name in { "MobMotion", "PlayerMotion" } do
+		local library = Resources:WaitForChild(name, 10)
+		if library then
+			for _, sequence in library:GetDescendants() do
+				if sequence:IsA("KeyframeSequence") then compile(sequence) end
+			end
+		end
+	end
 end
 
 return MobAnimations

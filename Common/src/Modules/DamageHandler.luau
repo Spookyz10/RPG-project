@@ -63,6 +63,13 @@ function DamageHandler:BuildContext(caster: Model, victim: Model, multi: number?
 	end
 
 	local FinalDamage = CasterAttack - VictimDefense
+	-- Lure Jab adds a fixed 10 even when armor would otherwise absorb the hit.
+	-- Evaluate the same defense without its modifier before applying that flat exposure.
+	local exposure = ModifierSystem:GetModifier(victim, "Defense", "Status:Lure Jab")
+	if exposure then
+		local defenseWithoutExposure = ModifierSystem:Aggregate(victim, "Defense", VictimStats.Defense, exposure.ID)
+		FinalDamage = math.max(0, CasterAttack - defenseWithoutExposure) + 10
+	end
 	FinalDamage = ModifierSystem:Aggregate(victim, "IncomingDamage", FinalDamage)
 	Context.Damage = FinalDamage
 	Context.IsCrit = IsCrit

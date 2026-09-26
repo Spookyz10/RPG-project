@@ -1,15 +1,8 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
-
-local Remote = {}
-
-function Remote:Activate(Character: Model, animName: string, fadeTime: number?, speed: number?)
-	if not Character then
-		return
-	end
-
-	local Handler = AnimationHandler.GetOrCreate(Character)
-	Handler:Play(animName, fadeTime, speed)
-end
-
-return Remote
+local Motion = require(game:GetService("ReplicatedStorage").Shared.MobAnimations)
+return {
+	Activate = function(_, character, name, startedAt)
+		if character and character:IsDescendantOf(workspace) then
+			Motion:Play(character, name, startedAt)
+		end
+	end,
+}

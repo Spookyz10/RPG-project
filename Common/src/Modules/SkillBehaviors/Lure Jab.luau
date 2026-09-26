@@ -11,7 +11,6 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Behavior = {} :: Types.SkillBehavior
 
 local EFFECT_ID = "Lure Jab"
-local BASE_DEFENSE_MULTIPLIER = 0.5
 local BASE_DURATION = 5
 
 function Behavior:Execute(caster: Player, definition: Types.SkillDefinition): AnimationTrack?
@@ -26,9 +25,8 @@ function Behavior:Execute(caster: Player, definition: Types.SkillDefinition): An
 
 	local PlayerData = Data.Service:waitForData(caster) :: Types.PlayerData
 	local RuneInfo = PlayerData and Functions:GetEquippedItemInfo(PlayerData, "Rune")
-	local Override = RuneInfo and RuneInfo.EffectOverrides and RuneInfo.EffectOverrides[EFFECT_ID]
+	local Override = RuneInfo and RuneInfo.EffectOverrides and RuneInfo.EffectOverrides.LureJab
 
-	local DefenseMultiplier = (Override and Override.Value) or BASE_DEFENSE_MULTIPLIER
 	local HealPercent = Override and Override.HealPercent
 
 	RemoteManager.SendClientEvent("SkillVFX", { All = true }, "Lure Jab", Character)
@@ -41,15 +39,15 @@ function Behavior:Execute(caster: Player, definition: Types.SkillDefinition): An
 		Time = 0.3,
 		Caster = Character,
 		OnHit = function(_, HitEntity)
-			DamageHandler:dealDamage(Character, HitEntity, definition.Multiplier)
-
+			if caster.Character ~= Character or not Functions:isEntityAlive(Character) then return end
 			StatusEffectManager:Apply(HitEntity, EFFECT_ID, {
 				Property = "Defense",
-				Operation = "Multiply",
-				Value = DefenseMultiplier,
+				Operation = "Add",
+				Value = -10,
 				Duration = BASE_DURATION,
 				Source = caster,
 			})
+			DamageHandler:dealDamage(Character, HitEntity, definition.Multiplier)
 
 			if HealPercent then
 				local Humanoid = Character:FindFirstChildOfClass("Humanoid")

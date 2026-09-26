@@ -9,7 +9,7 @@ local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local Behavior = {} :: Types.SkillBehavior
 
 local HITBOX_SIZE = Vector3.new(12, 8, 12)
-local HITBOX_OFFSET = CFrame.new(0, -2, -3)
+local HITBOX_OFFSET = CFrame.new(0, -2, 0)
 function Behavior:Execute(caster: Player, definition: Types.SkillDefinition): AnimationTrack?
 	local Character = caster.Character
 	if not Character then

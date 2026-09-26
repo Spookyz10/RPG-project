@@ -6,7 +6,7 @@ local Skill: Types.SkillDefinition = {
 	Cooldown = 9,
 	Multiplier = 2,
 	LevelRequirement = 11,
-	Description = "Jab the enemy to lower their defense by 50%.",
+	Description = "Jab enemies and reduce their defense by 10 for 5 seconds, including below zero.",
 	SkillType = "Support",
 }
 

@@ -3,14 +3,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local AnimationHandler = require(ReplicatedStorage.Shared.AnimationHandler)
-local MobAnimations = require(ReplicatedStorage.Shared.MobAnimations)
 local MobsData = require(ReplicatedStorage.Shared.MobsData)
 local Abbreviation = require(ReplicatedStorage.Shared.Utils.Abbreviation)
 
--- Animation startup does not depend on UI templates becoming ready.
-MobAnimations:Start(workspace:WaitForChild("Mobs"))
 local Templates = require(ReplicatedStorage.Shared.UI.Bootstrap).GetTemplates()
 local MobsFolder = workspace:WaitForChild("Mobs")
+
+require(ReplicatedStorage.Shared.MobAnimations):Start(MobsFolder)
 
 local ActiveOverheads: { [Model]: BillboardGui } = {}
 local HealthTweens = {}

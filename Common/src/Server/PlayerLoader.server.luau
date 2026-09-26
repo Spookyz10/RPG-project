@@ -81,6 +81,10 @@ end
 
 local function SetupCharacter(Player: Player, Character: Model)
 	local Humanoid = Character:WaitForChild("Humanoid") :: Humanoid
+	-- Created on the server so tracks started by the owning client can replicate.
+	if not Humanoid:FindFirstChildOfClass("Animator") then
+		Instance.new("Animator", Humanoid)
+	end
 
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
 	if PlayerData then

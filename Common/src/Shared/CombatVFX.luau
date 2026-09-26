@@ -21,7 +21,7 @@ local active = {}
 local statuses = {}
 local warned = {}
 local MAX_BURSTS = 80
-local STATUS_NAMES = {Poison = "Poison", Venom = "Venom", LureJab = "Lure Jab", Safeguard = "Safeguard"}
+local STATUS_NAMES = {Poison = "Poison", Venom = "Venom", LureJab = "Lure Jab", Safeguard = "Safeguard", Renewal = "Renewal"}
 VFX.StatusNames = STATUS_NAMES
 
 local function rootOf(entity)
@@ -138,24 +138,32 @@ end
 function VFX:Ground(cf, entity)
  local params = RaycastParams.new()
  params.FilterType = Enum.RaycastFilterType.Exclude
+ params.RespectCanCollide = true
  local excluded = {}
  if entity then table.insert(excluded, entity) end
  local mobs = workspace:FindFirstChild("Mobs"); if mobs then table.insert(excluded, mobs) end
  for _, p in game:GetService("Players"):GetPlayers() do if p.Character then table.insert(excluded, p.Character) end end
  params.FilterDescendantsInstances = excluded
- local result = workspace:Raycast(cf.Position + Vector3.new(0, 3, 0), Vector3.new(0, -60, 0), params)
- return CFrame.new(result and result.Position + Vector3.new(0, 0.08, 0) or cf.Position) * cf.Rotation
+ local result = workspace:Raycast(cf.Position, Vector3.new(0, -256, 0), params)
+ if not result or result.Normal.Y < 0.25 then return nil end
+ local up = result.Normal
+ local forward = cf.LookVector - up * cf.LookVector:Dot(up)
+ if forward.Magnitude < 0.01 then forward = up:Cross(Vector3.xAxis) end
+ return CFrame.lookAt(result.Position + up * 0.08, result.Position + up * 0.08 + forward.Unit, up)
 end
-function VFX:Skill(name, entity)
+function VFX:Skill(name, entity, comboIndex)
  local root = rootOf(entity)
  if not root or not living(entity) then return end
  local cf, offset = root.CFrame, CFrame.identity
- local follow = name == "Cyclone" or name == "Blessing" or name == "Basic" or name == "Lure Jab"
- if name == "Ground Break" then cf = self:Ground(cf * CFrame.new(0, 0, -3), entity)
- elseif name == "Basic" then offset = CFrame.new(0, 0, -1); cf *= offset end
+ local follow = name == "Cyclone" or name == "Blessing" or name == "Basic" or name == "Lure Jab" or name == "Renewal"
+ if name == "Ground Break" then
+  cf = self:Ground(cf, entity)
+  if not cf then return end
+ elseif name == "Basic" then offset = CFrame.new(0, 0, -1); cf *= offset
+ elseif name == "Arc Breaker" then cf *= CFrame.new(0, 0, -7) end
  local effectName = name
  if name == "Basic" then
-  local index = (basicVariants[entity] or 0) % 3 + 1
+  local index = comboIndex or (basicVariants[entity] or 0) % 3 + 1
   basicVariants[entity] = index
   effectName = "Basic" .. index
  end

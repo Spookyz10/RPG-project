@@ -1,20 +1,20 @@
 # Combat VFX e animacoes de mobs
 
-## Revisao atual (setembro de 2026)
+## Revisao atual: animacoes no cliente
 
-A revisao atual usa `03_CombatPolish.luau` e `04_MobMotion.luau`, executados em **Edit Mode** depois de sincronizar os scripts pelo Rojo. O instalador antigo abaixo serve como base; roda-lo novamente substitui o acabamento atual.
+Execute os instaladores em Edit Mode, na ordem `03`, `04`, `06`, `07`. Para atualizar o place existente, basta `07_ClientMotionAndSkills.luau`: move as bibliotecas existentes para `ReplicatedStorage.Resources`, preserva os clips, adiciona Renewal/Arc Breaker e guarda os templates substituidos em `ServerStorage.RPGVFXBackups`. Salve o place depois. Rojo sincroniza codigo; os assets sao dados do place. Aplique o instalador em cada place que usa o codigo compartilhado.
 
-- `03_CombatPolish.luau`: 40 templates e 192 camadas de ParticleEmitter em `ReplicatedStorage.Resources.CombatVFX`. Reaproveita texturas de `ServerStorage.VFX`, preservando os flipbooks, com um anel transparente para ondas de pressao. As copias anteriores ficam em `ServerStorage.RPGVFXBackups`.
-- `04_MobMotion.luau`: 37 KeyframeSequences em `ReplicatedStorage.Resources.MobMotion`, divididas pelos oito mobs. Inclui Idle, Walk, Basic e cada skill existente. Nao adiciona animacao de morte.
-- `05_VerifyCombatPolish.luau`: execute no **Client durante Play**. Usa clones isolados, testa movimento, todas as poses de ataque, emissao atrasada, cancelamento, expiracao de todos os bursts, status, morte e carregamento das texturas. Limpa os objetos de teste mesmo em falhas. Nao modifica dados de jogadores.
+- `Shared.MobAnimations`: avalia poses no cliente em PreSimulation, escrevendo somente Motor6D.Transform. Usa Attack/AttackStartedAt existentes para mobs e o remoto SkillAnimation para golpes aprovados. Descarta avisos expirados; morte/remocao limpa poses e conexoes. Mobs alem de 240 studs da camera deixam de avaliar poses.
+- `Client.PlayerMovement`: inicia locomocao e idle publicados no cliente dono do personagem. O Animator criado pelo servidor permite a replicacao nativa desses tracks; o servidor nao carrega, toca ou amostra animacoes. Golpes locais suspendem a locomocao.
+- `Modules.MobAnimations`: apenas encaminha nome e horario de inicio. `Shared.Combat.MotionTimings` define tempos autoritativos de cast; dano/cooldown nao dependem de tracks ou markers enviados pelo cliente.
+- `First.Preload`: prepara todas as sequencias em cache e faz preload em lote das Animations presentes em Resources. As sequencias continuam R6 e usam interpolacao linear; nao interpretam markers ou easing por pose.
+- `07`: Renewal (nivel 18, cura 5% por segundo por 6 segundos, raio 20, cooldown 22) e Arc Breaker (nivel 25, impacto frontal 5x, cooldown 12), com clips proprios e VFX de particulas, geometria animada e PointLights.
 
-`MobAnimations` reproduz localmente as poses nos Motor6Ds durante PreSimulation. Movimento e dano continuam no servidor. `AttackStartedAt` sincroniza as poses com o ataque; o ciclo de caminhada acompanha o deslocamento e a escala do rig. Os clips podem ser editados como KeyframeSequences; essa reproducao nao exige IDs publicados. Reinicie o Play depois de editar clips, pois o cliente compila e guarda as poses em cache. O player atual interpola CFrames linearmente entre as poses amostradas; nao interpreta markers nem curvas de easing do Animation Editor.
+Ground Break procura uma superficie com colisao abaixo do personagem, ignora personagens/hitboxes e alinha o efeito a normal. Sem superficie, nao cria uma rachadura suspensa. Lure Jab reduz defesa em 10 por 5 segundos sem acumular, inclusive abaixo de zero; o calculo garante o bonus fixo mesmo contra armadura que absorveria todo o ataque, antes de protecoes de dano recebido.
 
-Os templates usam `EmitCount`, `EmitDelay` e `EmitDuration`; o runtime agenda as camadas em um unico Heartbeat. Poeira marcada `WorldSpace` fica no mundo, enquanto os cortes acompanham a entidade. Safeguard e Lure Jab usam o mesmo ciclo de vida dos demais status. Morte, remocao, distancia e cancelamento limpam os efeitos; bursts tem limite de 80 simultaneos. O rugido emite no instante do dano.
+`tools/verify_client_motion_skills.luau` executa modulos de producao com tabelas simuladas em Edit Mode, sem saves ou personagens reais. `05_VerifyCombatPolish.luau` roda no Client durante Play com clones isolados, verificando movimento, efeitos, cancelamento e limpeza. `tools/verify_elderbark_motion.luau` verifica ataques no servidor durante Play. Os testes de simulacao nao substituem Play com dois clientes para conferir replicacao, latencia, respawn e streaming.
 
-Escalas de referencia: GroundSlam 32 studs; salto do urso 22; Cavefall 14; rugido 48; TailSpin 20; HeartSlam 36; SporeBloom/SporeEcho 14/20; Cyclone 10; Ground Break 12. Sao diametros visuais; os hitboxes existentes permanecem autoritativos. A cena de comparacao usou o Dire Bear escalado para seus 15 studs de altura de gameplay.
-
-Os assets gerados pertencem ao place: **salve o place no Studio** para persistir as alteracoes. Rojo sincroniza o codigo, mas nao recria esses assets automaticamente. Aplique os instaladores tambem em outros places que usam o mesmo codigo.
+Leia `Docs/ClientAnimations.md` para a diferenca entre preparar KeyframeSequences, preload de Animation e publicar clips no Roblox.
 
 ## Documentacao do instalador original
 

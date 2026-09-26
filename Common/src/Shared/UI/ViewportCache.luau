@@ -205,7 +205,9 @@ end
 function ViewportCache.PlayIdle(character: Model, weaponType: string?, allowDefaultFallback: boolean?): AnimationTrack?
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	if not humanoid then return nil end
-	local animation = weaponType and ReplicatedStorage.Resources.Animations:FindFirstChild(weaponType, true)
+	-- Viewport-only public asset references; editable sequences stay server-only.
+	local previews = ReplicatedStorage.Resources:FindFirstChild("AnimationPreviews")
+	local animation = weaponType and previews and previews:FindFirstChild(weaponType)
 	if not animation or not animation:IsA("Animation") then
 		return allowDefaultFallback == false and nil or ViewportCache.PlayDefaultIdle(character, Enum.AnimationPriority.Idle)
 	end

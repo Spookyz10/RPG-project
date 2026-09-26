@@ -138,6 +138,7 @@ local function refresh(player: Player, PlayerData: Types.PlayerData)
 	end
 
 	clearWeapon(player)
+	Character:SetAttribute("WeaponStyle", nil)
 
 	local WeaponUUID = PlayerData.Equipment.Weapon()
 	if not WeaponUUID or WeaponUUID == "" then
@@ -154,6 +155,7 @@ local function refresh(player: Player, PlayerData: Types.PlayerData)
 	local ItemEntry = PlayerData.Inventory[DisplayUUID]() or EquippedEntry
 	local EquippedInfo = ItemsData[EquippedEntry.ID] :: Types.Equipment?
 	local WeaponType = EquippedInfo and EquippedInfo.WeaponType
+	Character:SetAttribute("WeaponStyle", WeaponType)
 
 	local weapons = {}
 	local WeaponModel = attachWeapon(Character, ItemEntry.Name, "Right", "Sword")

@@ -104,13 +104,14 @@ end
 for _,mob in mobs do
  for id in mob.Drops do assert(not recipes[id],id.." cannot be both a mob drop and a crafted result") end
 end
-assert(config.Elderbark.IsBoss and config.Elderbark.SkillRecovery==5)
+assert(config.Elderbark.IsBoss and config.Elderbark.SkillRecovery==1.8 and config.Elderbark.EnragedRecovery==0.85)
 -- Execute the production controller with simulated time: optional recovery must not change old mobs.
 for _,recovery in {0,5} do
  local now=0
  env.os={clock=function() return now end}
  env.warn=error
  env.workspace.FindFirstChild=function() return nil end
+ env.workspace.GetServerTimeNow=function() return now end
  local times={}
  local body={Position=v(),CFrame=cf()}
  local hum={Health=100}
@@ -136,7 +137,7 @@ for _,recovery in {0,5} do
 end
 print("PASS: Forest cancellations, pulse deduplication, alternating lanes, nearest-three roots, blocked charge, effect routing, behaviors, drops and recipes")
 '''
-attacks=['ForestBurst','RootLanes','MarkedRoots','AntlerRush','Melee']
+attacks=['ForestBurst','RootLanes','MarkedRoots','AntlerRush','Melee','ElderPatterns']
 source=source.replace('ATTACKS','\n'.join(f'attacks.{name}=load([====[{(root/f"Common/src/Modules/Mobs/Attacks/{name}.luau").read_text()}]====])' for name in attacks))
 source=source.replace('CONTROLLER',(root/'Common/src/Modules/Mobs/Controller.luau').read_text())
 source=source.replace('CONFIG',(root/'Common/src/Shared/MobCombatConfig.luau').read_text()).replace('RECIPES',(root/'Common/src/Shared/CraftingRecipes.luau').read_text())

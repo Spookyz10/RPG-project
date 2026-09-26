@@ -6,7 +6,6 @@ local AttackStyles = require(ReplicatedStorage.Shared.Combat.AttackStyles)
 local CooldownSystem = require(script.Parent.CooldownSystem)
 local ComboManager = require(script.Parent.ComboManager)
 local StunManager = require(script.Parent.StunManager)
-local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local DamageHandler = require(script.Parent.DamageHandler)
 local Hitbox = require(script.Parent.Hitbox)
 local SkillResolver = require(script.Parent.SkillResolver)
@@ -14,10 +13,10 @@ local Functions = require(ReplicatedStorage.Shared.Utils.Functions)
 local Types = require(ReplicatedStorage.Shared.Utils.Types)
 local RemoteManager = require(ReplicatedStorage.Shared.Utils.RemoteManager)
 
+local Motion = require(script.Parent.MobAnimations)
 local AttackManager = {}
 
 local DEFAULT_SKILL_STUN_DURATION = 0.6
-local SKILL_STUN_RELEASE_BUFFER = 0
 local DEFAULT_STYLE = "Solo"
 
 local SwingComboIndex: { [Player]: number } = {}
@@ -39,7 +38,7 @@ function AttackManager:Swing(Player: Player)
 	end
 
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
-	if not PlayerData then
+	if not PlayerData or Player.Character ~= Character then
 		return
 	end
 
@@ -82,28 +81,39 @@ function AttackManager:Swing(Player: Player)
 	LastSwingTime[Player] = Now
 	SwingComboIndex[Player] = ((SwingComboIndex[Player] or 0) % Style.MaxCombo) + 1
 
-	CooldownSystem:StartCooldown(Player, "Swing", Cooldown - 0.2)
+	CooldownSystem:StartCooldown(Player, "Swing", Cooldown)
 
-	RemoteManager.SendClientEvent("AttackSound", { All = true }, Character)
-	RemoteManager.SendClientEvent("SkillVFX", { All = true }, "Basic", Character)
+	local comboIndex = SwingComboIndex[Player]
+	Motion:Play(Character, Style.Prefix .. comboIndex)
 
-	Hitbox:Create({
-		Size = Vector3.new(5, 5, 5),
-		Part = PrimaryPart,
-		Offset = CFrame.new(0, 0, -3),
-		Time = 0.5,
-		Caster = Character,
-		Drag = true,
-		OnHit = function(_, HitEntity)
-			DamageHandler:dealDamage(Character, HitEntity)
-			if WeaponData.Swing then
-				WeaponData.Swing()
-			end
-		end,
-	})
+	task.delay(0.2, function()
+		if Player.Character ~= Character or not Functions:isEntityAlive(Character)
+			or PlayerData.Equipment.Weapon() ~= Weapon or StunManager:IsStunned(Player) then
+			return
+		end
+		RemoteManager.SendClientEvent("AttackSound", { All = true }, Character)
+		RemoteManager.SendClientEvent("SkillVFX", { All = true }, "Basic", Character, comboIndex)
+
+		Hitbox:Create({
+			Size = Vector3.new(5, 5, 5),
+			Part = PrimaryPart,
+			Offset = CFrame.new(0, 0, -3),
+			Time = 0.5,
+			Caster = Character,
+			Drag = true,
+			OnHit = function(_, HitEntity)
+				if Player.Character ~= Character or not Functions:isEntityAlive(Character) or PlayerData.Equipment.Weapon() ~= Weapon then return end
+				DamageHandler:dealDamage(Character, HitEntity)
+				if WeaponData.Swing then
+					WeaponData.Swing()
+				end
+			end,
+		})
+	end)
 end
 
 function AttackManager:UseSkill(Player: Player, slot: string)
+	if typeof(slot) ~= "string" or (slot ~= "Q" and slot ~= "E" and slot ~= "R") then return end
 	local Character = Player.Character
 	if not Character then
 		return
@@ -114,7 +124,7 @@ function AttackManager:UseSkill(Player: Player, slot: string)
 	end
 
 	local PlayerData = Data.Service:waitForData(Player) :: Types.PlayerData
-	if not PlayerData then
+	if not PlayerData or Player.Character ~= Character then
 		return
 	end
 
@@ -122,6 +132,8 @@ function AttackManager:UseSkill(Player: Player, slot: string)
 	if not Definition or not Behavior then
 		return
 	end
+	local slotLevel = ({ Q = 1, E = 5, R = 10 })[slot]
+	if PlayerData.Level() < slotLevel or not Definition:Elligable(PlayerData()) then return end
 
 	if CooldownSystem:IsInCooldown(Player, slot) then
 		return
@@ -135,9 +147,13 @@ function AttackManager:UseSkill(Player: Player, slot: string)
 
 	RemoteManager.SendClientEvent("SkillCooldown", { Player = Player }, slot, Definition.Cooldown, Definition.Name)
 
-	local Track = Behavior:Execute(Player, Definition)
-
-	StunManager:StunUntilAnimationEnds(Player, Track, SKILL_STUN_RELEASE_BUFFER, DEFAULT_SKILL_STUN_DURATION)
+	local duration = Motion:Play(Character, Definition.Name)
+	StunManager:Stun(Player, math.max(duration, DEFAULT_SKILL_STUN_DURATION))
+	task.delay(Definition.Name == "Cyclone" and 0.12 or 0.28, function()
+		if Player.Character == Character and Functions:isEntityAlive(Character) and not StunManager:IsHardStunned(Player) then
+			Behavior:Execute(Player, Definition)
+		end
+	end)
 
 	ComboManager:RecordSkill(Player, Definition.Name)
 end

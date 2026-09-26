@@ -48,8 +48,9 @@ function Manager:Apply(target, id, options)
 	local previous = group.Entries[priority]
 	config.Priority = priority
 	config.Stacks = math.clamp(config.Stacks or 1, 1, config.MaxStacks or 1)
-	config.ExpiresAt = config.Duration and os.clock() + config.Duration or math.huge
-	config.NextTick = config.Interval and os.clock() + config.Interval or math.huge
+	local now = os.clock()
+	config.ExpiresAt = config.Duration and now + config.Duration or math.huge
+	config.NextTick = config.Interval and now + config.Interval or math.huge
 	config.State = previous and previous.State or {}
 	group.Entries[priority] = config
 	local behavior = Behaviors[id]

@@ -5,7 +5,7 @@ local Mob: Types.MobInfo = {
 	XP = 3200,
 	RespawnTime = 120,
 	GlobalDrops = false,
-	Data = { Stats = { Attack = 38, Defense = 9, Critical = 0, Health = 6500, Speed = 9 } },
+	Data = { Stats = { Attack = 38, Defense = 9, Critical = 0, Health = 6500, Speed = 12 } },
 	Currencies = { Gold = 400 },
 	Drops = {
 		["Elder Heartwood"] = { Chance = 100, Amount = 3 },

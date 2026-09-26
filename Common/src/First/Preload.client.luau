@@ -29,6 +29,8 @@ pcall(function()
 	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
 end)
 
+require(Shared.MobAnimations):Preload()
+
 local items = {}
 local resources = ReplicatedStorage:FindFirstChild("Resources")
 if resources then

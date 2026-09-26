@@ -3,7 +3,7 @@ return function(ctx, spec)
 	local radius = spec.Radius or 7
 	local windup = spec.Windup or 1.2
 	local pulses = spec.Pulses or 1
-	local gap = 0.8
+	local gap = spec.PulseGap or 0.8
 	-- Both circles are announced up front and stay at the original position.
 	for i = 1, pulses do
 		local r = radius + (i - 1) * 3
@@ -18,8 +18,8 @@ return function(ctx, spec)
 			return
 		end
 		local r = radius + (i - 1) * 3
-		ctx.VFX(i == 2 and "SporeEcho" or spec.Effect, cf, 0.7)
-		ctx.Hit(cf, Vector3.new(r * 2, 12, r * 2), r, spec.Multiplier or 1.2, spec.Knockback, false, seen)
+		ctx.VFX(i > 1 and (spec.EchoEffect or "SporeEcho") or spec.Effect, cf, 0.7)
+		ctx.Hit(cf, Vector3.new(r * 2, 12, r * 2), r, spec.Multiplier or 1.2, spec.Knockback, false, spec.RepeatDamage and {} or seen)
 		if i < pulses and not ctx.Pause(gap) then
 			return
 		end

@@ -53,6 +53,8 @@ function Hitbox:Create(info: Types.HitboxInfo): (BasePart, HitboxResults)
 	Part.Size = info.Size
 	SetHitboxPosition(Part, info.Part, info.Offset)
 	Part.CanCollide = false
+	Part.CanQuery = false
+	Part.CanTouch = false
 	Part.Anchored = true
 	Part.Transparency = Debug and RunService:IsStudio() and 0.6 or 1
 	Part.Color = Color3.fromRGB(255, 0, 0)

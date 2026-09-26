@@ -76,7 +76,8 @@ function Controller:Start(mob, definition)
 				if skill then
 					mob:SetAttribute("SkillSequence", bossIndex)
 					attack(skill)
-					nextSkillAt = os.clock() + (cfg.SkillRecovery or 0)
+					local enraged = cfg.EnrageThreshold and hum.Health <= hum.MaxHealth * cfg.EnrageThreshold
+					nextSkillAt = os.clock() + (enraged and cfg.EnragedRecovery or cfg.SkillRecovery or 0)
 					nextSkills[bossIndex] = os.clock() + (skill.Cooldown or cfg.SkillCooldown or 6)
 					nextBasic = math.min(nextBasic, os.clock() + 0.15)
 				elseif os.clock() >= nextBasic then

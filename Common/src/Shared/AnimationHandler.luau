@@ -1,8 +1,8 @@
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local AnimationsFolder = ReplicatedStorage.Resources.Animations
+assert(RunService:IsClient(), "AnimationHandler is client-only")
+local AnimationsFolder = game:GetService("ReplicatedStorage"):WaitForChild("Resources"):WaitForChild("Animations", 10)
 local PreloadStatus = RunService:IsClient()
 		and require(ReplicatedFirst:WaitForChild("First"):WaitForChild("PreloadStatus"))
 	or nil
@@ -118,9 +118,9 @@ function AnimationHandler:LoadTrack(animName: string): AnimationTrack?
 		return nil
 	end
 
-	local AnimInstance = AnimationsFolder:FindFirstChild(animName, true) :: Animation?
+	local AnimInstance = AnimationsFolder and AnimationsFolder:FindFirstChild(animName, true) :: Animation?
 	if not AnimInstance then
-		warn("[AnimationHandler] Nenhuma Animation chamada '" .. animName .. "' em Assets.Animations")
+		warn("[AnimationHandler] Nenhuma Animation chamada '" .. animName .. "' em ReplicatedStorage.Resources.Animations")
 		return nil
 	end
 
@@ -232,7 +232,7 @@ function AnimationHandler:PlayWeaponIdle(weaponType: string?): AnimationTrack?
 		return nil
 	end
 
-	local animation = AnimationsFolder:FindFirstChild(weaponType, true)
+	local animation = AnimationsFolder and AnimationsFolder:FindFirstChild(weaponType, true)
 	if not animation or not animation:IsA("Animation") then
 		self.CurrentWeaponIdle = nil
 		return nil
